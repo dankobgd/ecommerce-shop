@@ -1,0 +1,23 @@
+{
+  "api.user.create_user.json.app_error": "could not decode user json data",
+  "model.compare_password.app_error": "passwords don't match",
+  "model.user.validate.app_error": "invalid user data",
+  "model.user.validate.confirm_password.app_error": "invalid confirm password",
+  "model.user.validate.created_at.app_error": "invalid created_at timestamp",
+  "model.user.validate.email.app_error": "invalid email",
+  "model.user.validate.first_name.app_error": "invalid first name",
+  "model.user.validate.id.app_error": "uppercase letter required",
+  "model.user.validate.last_name.app_error": "invalid last name",
+  "model.user.validate.locale.app_error": "invalid locale",
+  "model.user.validate.password.app_error": "invalid password",
+  "model.user.validate.password_length.app_error": "invalid password length",
+  "model.user.validate.password_lowercase.app_error": "lowercase letter required",
+  "model.user.validate.password_numbers.app_error": "number required",
+  "model.user.validate.password_symbols.app_error": "symbol required",
+  "model.user.validate.password_uppercase.app_error": "uppercase letter required",
+  "model.user.validate.updated_at.app_error": "invalid updated_at timestamp",
+  "model.user.validate.username.app_error": "invalid username",
+  "store.postgres.user.login.app_error": "could not get user by email",
+  "store.postgres.user.save.app_error": "could not save user to db",
+  "store.postgres.user.save.unique_constraint.app_error": "invalid credentials"
+}

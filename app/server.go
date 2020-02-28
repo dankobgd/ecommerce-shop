@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,24 +9,39 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/dankobgd/ecommerce-shop/apiv1"
 	"github.com/dankobgd/ecommerce-shop/store"
 	"github.com/go-chi/chi"
 	"github.com/rs/cors"
 )
 
-// Server ...
+// Server containts the configured app server
 type Server struct {
 	Store  store.Store
 	Server *http.Server
 	Router *chi.Mux
+	// Log *log.Logger
+	// RateLimiter *RateLimiter
+	// jobs
+	// other cfg
 }
 
-// NewServer ...
-func NewServer() (*Server, error) {
-	// r := chi.NewRouter()
-	r := apiv1.Init()
+// NewServer creates the new server
+func NewServer(st store.Store) (*Server, error) {
+	r := chi.NewRouter()
 
+	s := &Server{
+		Router: r,
+		Store:  st,
+	}
+
+	// s.Log = log.NewLogger()
+
+	return s, nil
+}
+
+// Start runs the HTTP server
+func (s *Server) Start() (err error) {
+	// TODO: read from cfg
 	corsWrapper := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
@@ -38,61 +52,48 @@ func NewServer() (*Server, error) {
 		Debug:            false,
 	})
 
-	handler := corsWrapper.Handler(r)
+	handler := corsWrapper.Handler(s.Router)
 
-	srv := &http.Server{
+	// if ratelimit set it here...
+
+	listenAddr := ":3001"
+
+	s.Server = &http.Server{
+		// ErrorLog: logger
 		Handler:           handler,
-		Addr:              ":3001",
+		Addr:              listenAddr,
 		ReadHeaderTimeout: 3 * time.Second,
 		ReadTimeout:       5 * time.Second,
 		WriteTimeout:      7 * time.Second,
 		IdleTimeout:       30 * time.Second,
 	}
 
-	s := &Server{
-		Server: srv,
-		Router: r,
-	}
-
-	return s, nil
-}
-
-// Start runs the HTTP server
-func (s *Server) Start() {
-	fmt.Println("start")
-	done := make(chan struct{})
-	defer close(done)
+	// autocert manager later...
+	// if UseLetsEncrypt...
 
 	go func() {
-		waitForTermination(done)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-		defer cancel()
-		s.Stop(ctx)
+		if err = s.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("could not listen on %s: %v\n", listenAddr, err)
+		}
 	}()
+	log.Printf("server started")
 
-	if err := s.Server.ListenAndServe(); err != http.ErrServerClosed {
-		log.Fatal("Server listen failed")
-		// log.WithError(err).Fatal("http server listen failed")
-	}
+	gracefullShutdown(s.Server)
 
+	return
 }
 
-// Stop stops the HTTP server
-func (s *Server) Stop(ctx context.Context) {
-	fmt.Println("stop")
-	s.Server.Shutdown(ctx)
-}
+func gracefullShutdown(srv *http.Server) {
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-// WaitForShutdown blocks until the system signals termination or done has a value
-func waitForTermination(done <-chan struct{}) {
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
-	select {
-	case sig := <-signals:
-		log.Printf("Triggering shutdown from singlas %s", sig)
-		// log.Infof("Triggering shutdown from signal %s", sig)
-	case <-done:
-		log.Printf("Shutting down")
-		// log.Infof("Shutting down...")
+	<-interrupt
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("server shutdown failed: %+s", err)
 	}
+	log.Fatalf("server is shutting down")
 }

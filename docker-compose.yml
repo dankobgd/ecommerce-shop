@@ -1,0 +1,60 @@
+version: "3.7"
+
+services:
+  # # Golang app
+  # app:
+  #   build:
+  #     context: .
+  #     dockerfile: ./dockerfiles/app.dockerfile
+  #   container_name: app
+  #   restart: always
+  #   ports:
+  #     - 3001:3001
+  #   networks:
+  #     - net
+  #   depends_on:
+  #     - database
+
+  # Database
+  database:
+    image: postgres:alpine
+    container_name: database
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=ecommerce
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
+    volumes:
+      - /home/docker/volumes/postgres:/var/lib/postgresql/data
+    networks:
+      - net
+
+  # Redis
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: always
+    ports:
+      - 6379:6379
+    networks:
+      - net
+
+  # Database client
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    environment:
+      - ADMINER_DESIGN=mvt
+    networks:
+      - net
+    depends_on:
+      - database
+
+networks:
+  net:
+    driver: bridge

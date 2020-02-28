@@ -1,0 +1,21 @@
+syntax: "3.7"
+
+services:
+  # Migrate database
+  migrate:
+    image: migrate/migrate
+    container_name: migrate
+    networks:
+      - net
+    volumes:
+      - ./migrations:/migrations
+    command:
+      [
+        "-path",
+        "/migrations",
+        "-database",
+        "postgres://test:test@database:5432/ecommerce?sslmode=disable",
+        "up",
+      ]
+    depends_on:
+      - database

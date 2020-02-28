@@ -1,99 +1,119 @@
 package config
 
 import (
-	"fmt"
 	"log"
-	"time"
 
-	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
+	"github.com/kelseyhightower/envconfig"
 )
 
-// AppConfig ...
-type AppConfig struct {
-	Host string `env:"HOST" envDefault:"127.0.0.1"`
-	Port int    `env:"PORT" envDefault:"3001"`
-	ENV  bool   `env:"ENV" envDefault:development`
+// AppSettings contains common app settings
+type AppSettings struct {
+	Host string `envconfig:"HOST"`
+	Port int    `envconfig:"PORT"`
+	ENV  string `envconfig:"ENV"`
 }
 
-// DatabaseConfig ...
-type DatabaseConfig struct {
-	DBHost string `env:"DB_HOST"`
-	DBURI  string `env:"DB_URI"`
-	DBName string `env:"DB_NAME"`
-	DBUser string `env:"DB_USER"`
-	DBPass string `env:"DB_PASSWORD"`
+// DatabaseSettings contains DB settings
+type DatabaseSettings struct {
+	PostgresHost string `envconfig:"POSTGRES_HOST"`
+	PostgresURI  string `envconfig:"POSTGRES_URI"`
+	PostgresDB   string `envconfig:"POSTGRES_DB"`
+	PostgresUser string `envconfig:"POSTGRES_USER"`
+	PostgresPass string `envconfig:"POSTGRES_PASSWORD"`
 }
 
-// AuthConfig ...
-type AuthConfig struct {
-	VerificationRequired  bool   `env:"VERIFICATION_REQUIRED" envDefault:false`
-	ResetPasswordValidFor int    `env:"RESET_PASSWORD_VALID_FOR" envDefault:9999`
-	AccessTokenSecret     string `env:"ACCESS_TOKEN_SECRET" envDefault:xxxxx`
-	RefreshTokenSecret    string `env:"REFRESH_TOKEN_SECRET" envDefault:xxxxx`
+// AuthSettings contains auth related settings
+type AuthSettings struct {
+	VerificationRequired  bool   `envconfig:"VERIFICATION_REQUIRED"`
+	ResetPasswordValidFor int    `envconfig:"RESET_PASSWORD_VALID_FOR"`
+	AccessTokenSecret     string `envconfig:"ACCESS_TOKEN_SECRET"`
+	RefreshTokenSecret    string `envconfig:"REFRESH_TOKEN_SECRET"`
 }
 
-// EmailConfig ...
-type EmailConfig struct {
-	Enabled   bool   `env:"EMAIL_ENABLED" envDefault:false`
-	Transport string `env:"EMAIL_TRANSPORT" envDefault:"sendgrid"`
-	From      string `env:"EMAIL_FROM" envDefault:"dp24031995@gmail.com"`
-	Host      string `env:"EMAIL_HOST"`
-	Port      int    `env:"EMAIL_PORT"`
-	User      string `env:"EMAIL_USER"`
-	Pass      string `env:"EMAIL_PASS"`
+// EmailSettings contains email settings
+type EmailSettings struct {
+	Enabled   bool   `envconfig:"EMAIL_ENABLED"`
+	Transport string `envconfig:"EMAIL_TRANSPORT"`
+	From      string `envconfig:"EMAIL_FROM"`
+	Host      string `envconfig:"EMAIL_HOST"`
+	Port      int    `envconfig:"EMAIL_PORT"`
+	User      string `envconfig:"EMAIL_USER"`
+	Pass      string `envconfig:"EMAIL_PASS"`
 }
 
-// CookieConfig ...
-type CookieConfig struct {
-	Name     string    `env:"COOKIE_NAME", default:"cookie"`
-	Path     string    `env:"COOKIE_PATH" default:"/"`
-	Secret   string    `env:"COOKIE_SECRET" default:"xxxxx"`
-	HTTPOnly bool      `env:"COOKIE_HTTP_ONLY" default:false`
-	Secure   bool      `env:"COOKIE_SECURE" default:false`
-	MaxAge   time.Time `env:"COOKIE_MAX_AGE" default:0`
+// CookieSettings contains cookie security settings
+type CookieSettings struct {
+	Name     string `envconfig:"COOKIE_NAME"`
+	Path     string `envconfig:"COOKIE_PATH"`
+	Secret   string `envconfig:"COOKIE_SECRET"`
+	HTTPOnly bool   `envconfig:"COOKIE_HTTP_ONLY"`
+	Secure   bool   `envconfig:"COOKIE_SECURE"`
+	MaxAge   int    `envconfig:"COOKIE_MAX_AGE"`
+}
+
+// PasswordSettings contains the password criteria settings
+type PasswordSettings struct {
+	MinLength int  `envconfig:"PASSWORD_MIN_LENGTH"`
+	MaxLength int  `envconfig:"PASSWORD_MAX_LENGTH"`
+	Lowercase bool `envconfig:"PASSWORD_LOWERCASE"`
+	Uppercase bool `envconfig:"PASSWORD_UPPERCASE"`
+	Number    bool `envconfig:"PASSWORD_NUMBER"`
+	Symbol    bool `envconfig:"PASSWORD_SYMBOL"`
+}
+
+// LoggerSettings contains the logger settings
+type LoggerSettings struct {
+	EnableConsole bool   `envconfig:"LOG_ENABLE_CONSOLE"`
+	ConsoleJSON   bool   `envconfig:"LOG_CONSOLE_JSON"`
+	ConsoleLevel  string `envconfig:"LOG_CONSOLE_LEVEL"`
+	EnableFile    bool   `envconfig:"LOG_ENABLE_FILE"`
+	FileJSON      bool   `envconfig:"LOG_FILE_JSON"`
+	FileLevel     string `envconfig:"LOG_FILE_LEVEL"`
+	FileLocation  string `envconfig:"LOG_FILE_LOCATION"`
 }
 
 // Config represents the app config
 type Config struct {
-	App    AppConfig
-	DB     DatabaseConfig
-	Auth   AuthConfig
-	Email  EmailConfig
-	Cookie CookieConfig
-}
-
-func (c Config) isDev() bool {
-	if c.App.ENV == "development" {
-		return true
-	}
-	return false
-}
-func (c Config) isProd() bool {
-	if c.App.ENV == "production" {
-		return true
-	}
-	return false
-}
-func (c Config) isTest() bool {
-	if c.App.ENV == "test" {
-		return true
-	}
-	return false
+	AppSettings
+	DatabaseSettings DatabaseSettings
+	AuthSettings     AuthSettings
+	EmailSettings    EmailSettings
+	CookieSettings   CookieSettings
+	PasswordSettings PasswordSettings
+	LoggerSettings   LoggerSettings
 }
 
 func loadEnvironment() {
-	err := godotenv.Load("./env/.env")
+	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatal("error loading .env file")
+		log.Fatalf("error loading .env file: %v", err)
 	}
 }
 
-func init() {
+// ApplyDefaults sets all config default values
+func (c *Config) ApplyDefaults() {
+	c.AppSettings.SetDefaults()
+	c.DatabaseSettings.SetDefaults()
+	c.AuthSettings.SetDefaults()
+	c.EmailSettings.SetDefaults()
+	c.CookieSettings.SetDefaults()
+	c.PasswordSettings.SetDefaults()
+	c.LoggerSettings.SetDefaults()
+}
+
+// New creates the new config
+func New() *Config {
 	loadEnvironment()
-	cfg := Config{}
-	if err := env.Parse(&cfg); err != nil {
-		panic("config error")
+	cfg := &Config{}
+
+	// ENV variables have the highest priority
+	// they override the defaults set in the cfg
+	cfg.ApplyDefaults()
+
+	if err := envconfig.Process("", cfg); err != nil {
+		panic(err)
 	}
-	fmt.Printf("%+v\n", cfg)
+
+	return cfg
 }

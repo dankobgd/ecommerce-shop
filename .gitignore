@@ -16,3 +16,6 @@
 
 # env files
 .env
+
+# app logs
+logs/*
