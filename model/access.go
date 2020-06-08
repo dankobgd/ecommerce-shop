@@ -6,7 +6,12 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go/v4"
-	"github.com/google/uuid"
+)
+
+// general token types
+const (
+	TokenTypePasswordRecovery  = "password_recovery"
+	TokenTypeEmailVerification = "email_verification"
 )
 
 // access data information
@@ -19,12 +24,9 @@ const (
 	RefreshCookieName = "refresh_token"
 )
 
-// AccessToken is the user access token
-type AccessToken struct {
-	ID       string `json:"id"`
-	Token    string `json:"token,omitempty"`
-	UserID   string `json:"user_id"`
-	IsActive bool   `json:"is_active"`
+// RefreshToken is the user refresh token
+type RefreshToken struct {
+	RefreshToken string `json:"refresh_token"`
 }
 
 // AccessData holds the auth access info
@@ -44,29 +46,23 @@ type TokenMetadata struct {
 	RefreshExpires time.Time
 }
 
-// UserClaims is the custom claims for the jwt
-type UserClaims struct {
+// Claims is the custom claims for the jwt
+type Claims struct {
 	Authorized bool     `json:"authorized"`
 	Username   string   `json:"username,omitempty"`
 	Roles      []string `json:"roles,omitempty"`
 	*jwt.StandardClaims
 }
 
-// PreSave sets the uuid and isActive flag
-func (t *AccessToken) PreSave() {
-	t.ID = uuid.New().String()
-	t.IsActive = true
-}
-
-// ToJSON converts token to json string
-func (t *AccessToken) ToJSON() string {
+// ToJSON converts the refresh token to json string
+func (t *RefreshToken) ToJSON() string {
 	b, _ := json.Marshal(t)
 	return string(b)
 }
 
-// AccessTokenFromJSON decodes the input and returns the AccessToken
-func AccessTokenFromJSON(data io.Reader) (*AccessToken, error) {
-	var t *AccessToken
+// RefreshTokenFromJSON decodes the input and returns the RefreshToken
+func RefreshTokenFromJSON(data io.Reader) (*RefreshToken, error) {
+	var t *RefreshToken
 	err := json.NewDecoder(data).Decode(&t)
 	return t, err
 }

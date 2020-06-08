@@ -34,4 +34,7 @@ func respondError(w http.ResponseWriter, appErr *model.AppErr) error {
 	return err
 }
 
-func respondOK() {}
+func respondOK(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}

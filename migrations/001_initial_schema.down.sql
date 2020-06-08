@@ -25,3 +25,5 @@ DROP TABLE public.address;
 DROP TABLE public.user;
 
 DROP TYPE gender;
+
+DROP TYPE token_type;

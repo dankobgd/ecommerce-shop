@@ -7,6 +7,7 @@ import (
 // Store represents all stores
 type Store interface {
 	User() UserStore
+	Token() TokenStore
 	AccessToken() AccessTokenStore
 }
 
@@ -25,4 +26,11 @@ type AccessTokenStore interface {
 	SaveAuth(userID int64, meta *model.TokenMetadata) *model.AppErr
 	GetAuth(ad *model.AccessData) (int64, *model.AppErr)
 	DeleteAuth(uuid string) (int64, *model.AppErr)
+}
+
+// TokenStore is the access token store
+type TokenStore interface {
+	Get()
+	Cleanup()
+	RemoveAllTokensByType(tokenType string)
 }

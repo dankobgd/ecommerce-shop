@@ -1,5 +1,7 @@
 CREATE TYPE gender AS ENUM ('m', 'f');
 
+CREATE TYPE token_type AS ENUM ('password_recovery', 'email_verification');
+
 CREATE TABLE public.user (
   id int generated always as identity primary key,
   first_name varchar(255),
@@ -96,12 +98,12 @@ CREATE TABLE public.user_access_token (
 );
 
 CREATE TABLE public.token (
-  id int generated always as identity primary key,
+  id int generated always as identity primary key,  
   user_id int,
-  reset_token text,
-  reset_expires timestamptz,
-  verification_token text,
-  verification_expires timestamptz,
+  token text,
+  type character varying(64),
+  created_at timestamptz,
+  expires_at timestamptz,
   foreign key (user_id) references public.user (id)
 );
 

@@ -2,10 +2,10 @@ package app
 
 import (
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
+	"github.com/dankobgd/ecommerce-shop/config"
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
 	"github.com/dgrijalva/jwt-go/v4"
@@ -14,10 +14,13 @@ import (
 )
 
 var (
-	msgGenerateTokens    = &i18n.Message{ID: "app.generate_tokens.app_error", Other: "could not generate token"}
-	msgVerifyToken       = &i18n.Message{ID: "app.verify_token.app_error", Other: "invalid token"}
-	msgVerifyTokenMethod = &i18n.Message{ID: "app.verify_token.app_error", Other: "invalid token signin method"}
-	msgExtractTokenMeta  = &i18n.Message{ID: "app.extract_token_meta.app_error", Other: "could not extract token meta data"}
+	msgGenerateTokens     = &i18n.Message{ID: "app.generate_tokens.app_error", Other: "could not generate token"}
+	msgVerifyToken        = &i18n.Message{ID: "app.verify_token.app_error", Other: "invalid token"}
+	msgVerifyTokenMethod  = &i18n.Message{ID: "app.verify_token.app_error", Other: "invalid token signin method"}
+	msgExtractTokenMeta   = &i18n.Message{ID: "app.extract_token_meta.app_error", Other: "could not extract token meta data"}
+	msgRefreshToken       = &i18n.Message{ID: "app.refresh_token.app_error", Other: "invalid refresh token"}
+	msgRefreshTokenMethod = &i18n.Message{ID: "app.refresh_token.app_error", Other: "invalid refresh token signing method"}
+	msgDeleteToken        = &i18n.Message{ID: "app.refresh_token.app_error", Other: "could not delete old token"}
 )
 
 // IsValidPassword checks if user password is valid
@@ -38,7 +41,7 @@ func (a *App) IssueTokens(userID int64) (*model.TokenMetadata, *model.AppErr) {
 	settings := &a.Cfg().AuthSettings
 	accessID := uuid.New().String()
 	accessExpires := time.Now().Add(time.Minute * 15)
-	accessClaims := &model.UserClaims{
+	accessClaims := &model.Claims{
 		Authorized: true,
 		StandardClaims: &jwt.StandardClaims{
 			ExpiresAt: &jwt.Time{Time: accessExpires},
@@ -55,7 +58,7 @@ func (a *App) IssueTokens(userID int64) (*model.TokenMetadata, *model.AppErr) {
 
 	refreshID := uuid.New().String()
 	refreshExpires := time.Now().Add(time.Hour * 24 * 7)
-	refreshClaims := &model.UserClaims{
+	refreshClaims := &model.Claims{
 		Authorized: true,
 		StandardClaims: &jwt.StandardClaims{
 			ExpiresAt: &jwt.Time{Time: refreshExpires},
@@ -117,13 +120,13 @@ func ExtractToken(r *http.Request) string {
 }
 
 // VerifyToken checks if token is valid
-func VerifyToken(r *http.Request) (*jwt.Token, *model.AppErr) {
+func VerifyToken(r *http.Request, settings *config.AuthSettings) (*jwt.Token, *model.AppErr) {
 	tokenString := ExtractToken(r)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, model.NewAppErr("VerifyToken", model.ErrInvalid, locale.GetUserLocalizer("en"), msgVerifyTokenMethod, http.StatusUnauthorized, nil)
 		}
-		return []byte(os.Getenv("ACCESS_TOKEN_SECRET")), nil
+		return []byte(settings.AccessTokenSecret), nil
 	})
 
 	if err != nil {
@@ -134,11 +137,11 @@ func VerifyToken(r *http.Request) (*jwt.Token, *model.AppErr) {
 
 // TokenValid returns error if token is not valid
 func (a *App) TokenValid(r *http.Request) *model.AppErr {
-	token, err := VerifyToken(r)
+	token, err := VerifyToken(r, &a.Cfg().AuthSettings)
 	if err != nil {
 		return err
 	}
-	if _, ok := token.Claims.(*model.UserClaims); !ok && !token.Valid {
+	if _, ok := token.Claims.(*model.Claims); !ok && !token.Valid {
 		return err
 	}
 	return nil
@@ -146,7 +149,7 @@ func (a *App) TokenValid(r *http.Request) *model.AppErr {
 
 // ExtractTokenMetadata extracts the token meta details
 func (a *App) ExtractTokenMetadata(r *http.Request) (*model.AccessData, *model.AppErr) {
-	token, err := VerifyToken(r)
+	token, err := VerifyToken(r, &a.Cfg().AuthSettings)
 	if err != nil {
 		return nil, err
 	}
@@ -169,4 +172,45 @@ func (a *App) ExtractTokenMetadata(r *http.Request) (*model.AccessData, *model.A
 		return ad, nil
 	}
 	return nil, err
+}
+
+// RefreshToken refreshes the token and returns the token detials
+func (a *App) RefreshToken(rt *model.RefreshToken) (*model.TokenMetadata, *model.AppErr) {
+	l := locale.GetUserLocalizer("en")
+	token, err := jwt.Parse(rt.RefreshToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, model.NewAppErr("RefreshToken", model.ErrInvalid, l, msgRefreshTokenMethod, http.StatusUnauthorized, nil)
+		}
+		return []byte(a.Cfg().AuthSettings.RefreshTokenSecret), nil
+	})
+
+	if err != nil {
+		return nil, model.NewAppErr("RefreshToken", model.ErrInvalid, l, msgRefreshToken, http.StatusUnauthorized, nil)
+	}
+
+	if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
+		return nil, model.NewAppErr("RefreshToken", model.ErrInvalid, l, msgRefreshToken, http.StatusUnauthorized, nil)
+	}
+
+	claims, ok := token.Claims.(*model.Claims)
+	if ok && token.Valid {
+		deleted, err := a.DeleteAuth(claims.ID)
+		if err != nil || deleted == 0 {
+			return nil, model.NewAppErr("RefreshToken", model.ErrInvalid, l, msgDeleteToken, http.StatusUnauthorized, nil)
+		}
+
+		userID, _ := strconv.ParseInt(claims.Subject, 10, 64)
+		meta, err := a.IssueTokens(userID)
+		if err != nil {
+			return nil, model.NewAppErr("RefreshToken", model.ErrInvalid, l, msgRefreshToken, http.StatusUnauthorized, nil)
+		}
+
+		if err := a.SaveAuth(userID, meta); err != nil {
+			return nil, model.NewAppErr("RefreshToken", model.ErrInvalid, l, msgRefreshToken, http.StatusUnauthorized, nil)
+		}
+
+		return meta, nil
+	}
+
+	return nil, model.NewAppErr("RefreshToken", model.ErrInvalid, l, msgRefreshToken, http.StatusUnauthorized, nil)
 }

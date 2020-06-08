@@ -2,7 +2,6 @@ package apiv1
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
@@ -10,7 +9,9 @@ import (
 )
 
 var (
-	msgUserFromJSON = &i18n.Message{ID: "api.user.create_user.json.app_error", Other: "could not decode user json data"}
+	msgInvalidToken         = &i18n.Message{ID: "model.access_token_verify.json.app_error", Other: "token is invalid or has already expired"}
+	msgUserFromJSON         = &i18n.Message{ID: "api.user.create_user.json.app_error", Other: "could not decode user json data"}
+	msgRefreshTokenFromJSON = &i18n.Message{ID: "api.user.create_user.json.app_error", Other: "could not decode token json data"}
 )
 
 // InitUser inits the user routes
@@ -18,6 +19,8 @@ func InitUser(a *API) {
 	a.BaseRoutes.Users.Post("/", a.createUser)
 	a.BaseRoutes.Users.Post("/login", a.login)
 	a.BaseRoutes.Users.Post("/logout", a.AuthRequired(a.logout))
+	a.BaseRoutes.Users.Post("/token/refresh", a.refresh)
+
 	a.BaseRoutes.Users.Get("/test", a.AuthRequired(a.test))
 }
 
@@ -89,17 +92,34 @@ func (a *API) logout(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("success logout"))
 }
 
+func (a *API) refresh(w http.ResponseWriter, r *http.Request) {
+	rt, e := model.RefreshTokenFromJSON(r.Body)
+	if e != nil {
+		respondError(w, model.NewAppErr("refresh", model.ErrInternal, locale.GetUserLocalizer("en"), msgRefreshTokenFromJSON, http.StatusInternalServerError, nil))
+		return
+	}
+
+	meta, err := a.app.RefreshToken(rt)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	a.app.AttachSessionCookies(w, meta)
+	respondOK(w)
+}
+
 func (a *API) test(w http.ResponseWriter, r *http.Request) {
 	ad, err := a.app.ExtractTokenMetadata(r)
 	if err != nil {
-		w.Write([]byte("unaothorized"))
+		respondError(w, model.NewAppErr("test", model.ErrUnauthenticated, locale.GetUserLocalizer("en"), msgInvalidToken, http.StatusUnauthorized, nil))
 		return
 	}
 	userID, err := a.app.GetAuth(ad)
 	if err != nil {
-		w.Write([]byte("unaothorized"))
+		respondError(w, model.NewAppErr("test", model.ErrUnauthenticated, locale.GetUserLocalizer("en"), msgInvalidToken, http.StatusUnauthorized, nil))
 		return
 	}
 
-	w.Write([]byte("userID: " + strconv.FormatInt(userID, 10)))
+	respondJSON(w, http.StatusOK, map[string]interface{}{"userID": userID})
 }
