@@ -8,11 +8,11 @@ import (
 	"github.com/dgrijalva/jwt-go/v4"
 )
 
-// general token types
-const (
-	TokenTypePasswordRecovery  = "password_recovery"
-	TokenTypeEmailVerification = "email_verification"
-)
+// TokenType is general token type (pwd recovery, verify email etc)
+type TokenType int
+
+// AccessTokenLocation is the location from where the access token is retrieved
+type AccessTokenLocation int
 
 // access data information
 const (
@@ -22,7 +22,50 @@ const (
 
 	AccessCookieName  = "access_token"
 	RefreshCookieName = "refresh_token"
+
+	HeaderBearer        = "Bearer"
+	HeaderAuthorization = "Authorization"
 )
+
+// general token types
+const (
+	TokenTypePasswordRecovery TokenType = iota
+	TokenTypeEmailVerification
+)
+
+// access token locations
+const (
+	TokenLocationNotFound AccessTokenLocation = iota
+	TokenLocationCookie
+	TokenLocationHeader
+	TokenLocationQueryString
+)
+
+func (loc AccessTokenLocation) String() string {
+	switch loc {
+	case TokenLocationNotFound:
+		return "Not Found"
+	case TokenLocationHeader:
+		return "Header"
+	case TokenLocationCookie:
+		return "Cookie"
+	case TokenLocationQueryString:
+		return "QueryString"
+	default:
+		return "Unknown"
+	}
+}
+
+func (tt TokenType) String() string {
+	switch tt {
+	case TokenTypePasswordRecovery:
+		return "Password Recovery"
+	case TokenTypeEmailVerification:
+		return "Email Verification"
+	default:
+		return "Unknown"
+	}
+}
 
 // RefreshToken is the user refresh token
 type RefreshToken struct {
@@ -48,10 +91,9 @@ type TokenMetadata struct {
 
 // Claims is the custom claims for the jwt
 type Claims struct {
-	Authorized bool     `json:"authorized"`
-	Username   string   `json:"username,omitempty"`
-	Roles      []string `json:"roles,omitempty"`
-	*jwt.StandardClaims
+	Username string   `json:"username,omitempty"`
+	Roles    []string `json:"roles,omitempty"`
+	jwt.StandardClaims
 }
 
 // ToJSON converts the refresh token to json string

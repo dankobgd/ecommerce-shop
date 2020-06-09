@@ -3,6 +3,7 @@ package app
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dankobgd/ecommerce-shop/config"
@@ -39,47 +40,45 @@ func (a *App) CheckUserPassword(user *model.User, password string) *model.AppErr
 // IssueTokens returns the token pair
 func (a *App) IssueTokens(userID int64) (*model.TokenMetadata, *model.AppErr) {
 	settings := &a.Cfg().AuthSettings
-	accessID := uuid.New().String()
-	accessExpires := time.Now().Add(time.Minute * 15)
-	accessClaims := &model.Claims{
-		Authorized: true,
-		StandardClaims: &jwt.StandardClaims{
-			ExpiresAt: &jwt.Time{Time: accessExpires},
-			ID:        accessID,
+	atID := uuid.New().String()
+	atExp := time.Now().Add(time.Minute * 15)
+	atClaims := model.Claims{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: &jwt.Time{Time: atExp},
+			ID:        atID,
 			IssuedAt:  &jwt.Time{Time: time.Now()},
 			Subject:   strconv.FormatInt(userID, 10),
 		},
 	}
-	access := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
-	accessToken, err := access.SignedString([]byte(settings.AccessTokenSecret))
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
+	at, err := token.SignedString([]byte(settings.AccessTokenSecret))
 	if err != nil {
 		return nil, model.NewAppErr("App.GenerateTokens", model.ErrInternal, locale.GetUserLocalizer("en"), msgGenerateTokens, http.StatusInternalServerError, nil)
 	}
 
-	refreshID := uuid.New().String()
-	refreshExpires := time.Now().Add(time.Hour * 24 * 7)
-	refreshClaims := &model.Claims{
-		Authorized: true,
-		StandardClaims: &jwt.StandardClaims{
-			ExpiresAt: &jwt.Time{Time: refreshExpires},
-			ID:        refreshID,
+	rtID := uuid.New().String()
+	rtExp := time.Now().Add(time.Hour * 24 * 7)
+	rtClaims := model.Claims{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: &jwt.Time{Time: rtExp},
+			ID:        rtID,
 			IssuedAt:  &jwt.Time{Time: time.Now()},
 			Subject:   strconv.FormatInt(userID, 10),
 		},
 	}
-	refresh := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
-	refreshToken, err := refresh.SignedString([]byte(settings.RefreshTokenSecret))
+	refresh := jwt.NewWithClaims(jwt.SigningMethodHS256, rtClaims)
+	rt, err := refresh.SignedString([]byte(settings.RefreshTokenSecret))
 	if err != nil {
 		return nil, model.NewAppErr("App.GenerateTokens", model.ErrInternal, locale.GetUserLocalizer("en"), msgGenerateTokens, http.StatusInternalServerError, nil)
 	}
 
 	meta := &model.TokenMetadata{
-		AccessToken:    accessToken,
-		RefreshToken:   refreshToken,
-		AccessUUID:     accessID,
-		RefreshUUID:    refreshID,
-		AccessExpires:  accessExpires,
-		RefreshExpires: refreshExpires,
+		AccessToken:    at,
+		RefreshToken:   rt,
+		AccessUUID:     atID,
+		RefreshUUID:    rtID,
+		AccessExpires:  atExp,
+		RefreshExpires: rtExp,
 		TokenType:      model.AccessTokenType,
 	}
 
@@ -88,41 +87,64 @@ func (a *App) IssueTokens(userID int64) (*model.TokenMetadata, *model.AppErr) {
 
 // AttachSessionCookies sets the token inside cookies
 func (a *App) AttachSessionCookies(w http.ResponseWriter, meta *model.TokenMetadata) {
+	secure, httpOnly := false, false
+	if a.IsProd() {
+		secure = true
+		httpOnly = true
+	}
+
 	accessCookie := &http.Cookie{
 		Name:     model.AccessCookieName,
 		Value:    meta.AccessToken,
 		Expires:  meta.AccessExpires,
-		HttpOnly: false,
-		Secure:   false,
+		HttpOnly: httpOnly,
+		Secure:   secure,
+		Path:     "/",
 	}
 
 	refreshCookie := &http.Cookie{
 		Name:     model.RefreshCookieName,
 		Value:    meta.RefreshToken,
 		Expires:  meta.RefreshExpires,
-		HttpOnly: false,
-		Secure:   false,
+		HttpOnly: httpOnly,
+		Secure:   secure,
+		Path:     "/",
 	}
 
 	http.SetCookie(w, accessCookie)
 	http.SetCookie(w, refreshCookie)
 }
 
-// ExtractToken from the request
-func ExtractToken(r *http.Request) string {
-	c, err := r.Cookie(model.AccessCookieName)
+// ExtractAuthTokenFromRequest gets the auth token in few different ways
+func ExtractAuthTokenFromRequest(r *http.Request) (string, model.AccessTokenLocation) {
+	authHeader := r.Header.Get(model.HeaderBearer)
 
-	if err != nil {
-		return ""
+	// extract from cookie
+	if cookie, err := r.Cookie(model.AccessCookieName); err == nil {
+		return cookie.Value, model.TokenLocationCookie
 	}
 
-	return c.Value
+	// extract from auth headers
+	if len(authHeader) > 6 && strings.ToUpper(authHeader[0:6]) == model.HeaderBearer {
+		return authHeader[7:], model.TokenLocationHeader // default bearer
+	}
+
+	if len(authHeader) > 5 && strings.ToLower(authHeader[0:5]) == model.HeaderAuthorization {
+		return authHeader[6:], model.TokenLocationHeader // oauth
+	}
+
+	// extract from query string
+	if token := r.URL.Query().Get("access_token"); token != "" {
+		return token, model.TokenLocationQueryString
+	}
+
+	return "", model.TokenLocationNotFound
 }
 
 // VerifyToken checks if token is valid
 func VerifyToken(r *http.Request, settings *config.AuthSettings) (*jwt.Token, *model.AppErr) {
-	tokenString := ExtractToken(r)
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	tokenString, _ := ExtractAuthTokenFromRequest(r)
+	token, err := jwt.ParseWithClaims(tokenString, &model.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, model.NewAppErr("VerifyToken", model.ErrInvalid, locale.GetUserLocalizer("en"), msgVerifyTokenMethod, http.StatusUnauthorized, nil)
 		}
@@ -153,19 +175,15 @@ func (a *App) ExtractTokenMetadata(r *http.Request) (*model.AccessData, *model.A
 	if err != nil {
 		return nil, err
 	}
-	claims, ok := token.Claims.(jwt.MapClaims)
+	claims, ok := token.Claims.(*model.Claims)
 	if ok && token.Valid {
-		accessUUID, ok := claims["jti"].(string)
-		if !ok {
-			return nil, err
-		}
-		userID, err := strconv.ParseInt(claims["sub"].(string), 10, 64)
+		userID, err := strconv.ParseInt(claims.Subject, 10, 64)
 		if err != nil {
 			return nil, model.NewAppErr("ExtractTokenMetadata", model.ErrInvalid, locale.GetUserLocalizer("en"), msgExtractTokenMeta, http.StatusBadRequest, nil)
 		}
 
 		ad := &model.AccessData{
-			AccessUUID: accessUUID,
+			AccessUUID: claims.ID,
 			UserID:     userID,
 		}
 
@@ -177,7 +195,7 @@ func (a *App) ExtractTokenMetadata(r *http.Request) (*model.AccessData, *model.A
 // RefreshToken refreshes the token and returns the token detials
 func (a *App) RefreshToken(rt *model.RefreshToken) (*model.TokenMetadata, *model.AppErr) {
 	l := locale.GetUserLocalizer("en")
-	token, err := jwt.Parse(rt.RefreshToken, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(rt.RefreshToken, &model.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, model.NewAppErr("RefreshToken", model.ErrInvalid, l, msgRefreshTokenMethod, http.StatusUnauthorized, nil)
 		}

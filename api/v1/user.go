@@ -21,7 +21,7 @@ func InitUser(a *API) {
 	a.BaseRoutes.Users.Post("/logout", a.AuthRequired(a.logout))
 	a.BaseRoutes.Users.Post("/token/refresh", a.refresh)
 
-	a.BaseRoutes.Users.Get("/test", a.AuthRequired(a.test))
+	a.BaseRoutes.Users.Get("/protected", a.AuthRequired(a.protected))
 }
 
 func (a *API) createUser(w http.ResponseWriter, r *http.Request) {
@@ -81,15 +81,15 @@ func (a *API) login(w http.ResponseWriter, r *http.Request) {
 func (a *API) logout(w http.ResponseWriter, r *http.Request) {
 	ad, err := a.app.ExtractTokenMetadata(r)
 	if err != nil {
-		w.Write([]byte("unauthorized"))
+		respondError(w, err)
 		return
 	}
 	deleted, err := a.app.DeleteAuth(ad.AccessUUID)
 	if err != nil || deleted == 0 {
-		w.Write([]byte("unauthorized"))
+		respondError(w, err)
 		return
 	}
-	w.Write([]byte("success logout"))
+	respondOK(w)
 }
 
 func (a *API) refresh(w http.ResponseWriter, r *http.Request) {
@@ -109,17 +109,6 @@ func (a *API) refresh(w http.ResponseWriter, r *http.Request) {
 	respondOK(w)
 }
 
-func (a *API) test(w http.ResponseWriter, r *http.Request) {
-	ad, err := a.app.ExtractTokenMetadata(r)
-	if err != nil {
-		respondError(w, model.NewAppErr("test", model.ErrUnauthenticated, locale.GetUserLocalizer("en"), msgInvalidToken, http.StatusUnauthorized, nil))
-		return
-	}
-	userID, err := a.app.GetAuth(ad)
-	if err != nil {
-		respondError(w, model.NewAppErr("test", model.ErrUnauthenticated, locale.GetUserLocalizer("en"), msgInvalidToken, http.StatusUnauthorized, nil))
-		return
-	}
-
-	respondJSON(w, http.StatusOK, map[string]interface{}{"userID": userID})
+func (a *API) protected(w http.ResponseWriter, r *http.Request) {
+	respondJSON(w, http.StatusOK, map[string]interface{}{"resource": "protected data"})
 }

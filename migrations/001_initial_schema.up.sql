@@ -1,7 +1,5 @@
 CREATE TYPE gender AS ENUM ('m', 'f');
 
-CREATE TYPE token_type AS ENUM ('password_recovery', 'email_verification');
-
 CREATE TABLE public.user (
   id int generated always as identity primary key,
   first_name varchar(255),
@@ -88,13 +86,6 @@ CREATE TABLE public.manufacturer (
   website_url text,
   address text,
   description text
-);
-
-CREATE TABLE public.user_access_token (
-	id varchar(100),
-	token varchar(100),
-	user_id int,
-	is_active bool
 );
 
 CREATE TABLE public.token (
