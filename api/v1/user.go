@@ -41,13 +41,10 @@ func (a *API) createUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		respondError(w, err)
 	}
-
 	if err := a.app.SaveAuth(user.ID, tokenMeta); err != nil {
 		respondError(w, err)
 	}
-
 	a.app.AttachSessionCookies(w, tokenMeta)
-
 	respondJSON(w, http.StatusCreated, user)
 }
 
@@ -68,13 +65,10 @@ func (a *API) login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		respondError(w, err)
 	}
-
 	if err := a.app.SaveAuth(user.ID, tokenMeta); err != nil {
 		respondError(w, err)
 	}
-
 	a.app.AttachSessionCookies(w, tokenMeta)
-
 	respondJSON(w, http.StatusOK, user)
 }
 
@@ -110,5 +104,9 @@ func (a *API) refresh(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) protected(w http.ResponseWriter, r *http.Request) {
+	if err := a.app.SendWelcomeEmail("test@test.com"); err != nil {
+		respondError(w, err)
+		return
+	}
 	respondJSON(w, http.StatusOK, map[string]interface{}{"resource": "protected data"})
 }

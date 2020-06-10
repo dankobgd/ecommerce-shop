@@ -53,23 +53,23 @@ func (s *EmailSettings) SetDefaults() {
 	if s.Enabled == false {
 		s.Enabled = false
 	}
-	if s.From == "" {
-		s.From = ""
+	if s.SMTPFrom == "" {
+		s.SMTPFrom = ""
 	}
-	if s.Host == "" {
-		s.Host = ""
+	if s.SMTPHost == "" {
+		s.SMTPHost = ""
 	}
-	if s.Port == 0 {
-		s.Port = 0
+	if s.SMTPPort == 0 {
+		s.SMTPPort = 0
 	}
-	if s.User == "" {
-		s.User = ""
+	if s.SMTPUsername == "" {
+		s.SMTPUsername = ""
 	}
-	if s.Pass == "" {
-		s.Pass = ""
+	if s.SMTPPassword == "" {
+		s.SMTPPassword = ""
 	}
 	if s.Transport == "" {
-		s.Transport = ""
+		s.Transport = "smtp"
 	}
 }
 
