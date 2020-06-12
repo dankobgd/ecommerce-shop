@@ -7,16 +7,16 @@ import (
 	"github.com/dankobgd/ecommerce-shop/model"
 )
 
-func (a *App) sendMail(templateName string, templateData interface{}, info mailer.MailData) *model.AppErr {
-	return mailer.Send(&a.Cfg().EmailSettings, info, templateName, templateData)
+func (a *App) sendEmailTemplate(filename string, data interface{}, maildata *mailer.Maildata) *model.AppErr {
+	return mailer.SendEmailTemplate(filename, data, maildata, a.Cfg())
 }
 
 // SendWelcomeEmail sends the email o the newly registered user
 func (a *App) SendWelcomeEmail(to string) *model.AppErr {
-	info := mailer.MailData{
-		Subject: "some test title",
+	info := &mailer.Maildata{
 		To:      []string{to},
+		Subject: "Test Subject",
 	}
 	data := map[string]string{"Email": strings.Join(info.To, ",")}
-	return a.sendMail("templates/welcome.html", data, info)
+	return a.sendEmailTemplate("templates/welcome.html", data, info)
 }

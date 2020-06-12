@@ -53,8 +53,11 @@ func (s *EmailSettings) SetDefaults() {
 	if s.Enabled == false {
 		s.Enabled = false
 	}
-	if s.SMTPFrom == "" {
-		s.SMTPFrom = ""
+	if s.FeedbackEmail == "" {
+		s.FeedbackEmail = ""
+	}
+	if s.FeedbackUser == "" {
+		s.FeedbackUser = ""
 	}
 	if s.SMTPHost == "" {
 		s.SMTPHost = ""

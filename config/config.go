@@ -33,15 +33,16 @@ type AuthSettings struct {
 
 // EmailSettings contains email settings
 type EmailSettings struct {
-	Enabled      bool   `envconfig:"EMAIL_ENABLED"`
-	Transport    string `envconfig:"EMAIL_TRANSPORT"`
-	SMTPFrom     string `envconfig:"SMTP_FROM"`
-	SMTPHost     string `envconfig:"SMTP_HOST"`
-	SMTPPort     int    `envconfig:"SMTP_PORT"`
-	SMTPUsername string `envconfig:"SMTP_USERNAME"`
-	SMTPPassword string `envconfig:"SMTP_PASSWORD"`
-	MailTrap     MailtrapSettings
-	Sendgrid     SendgridSettings
+	Enabled       bool   `envconfig:"EMAIL_ENABLED"`
+	Transport     string `envconfig:"EMAIL_TRANSPORT"`
+	FeedbackEmail string `envconfig:"FEEDBACK_EMAIL"`
+	FeedbackUser  string `envconfig:"FEEDBACK_USER"`
+	SMTPHost      string `envconfig:"SMTP_HOST"`
+	SMTPPort      int    `envconfig:"SMTP_PORT"`
+	SMTPUsername  string `envconfig:"SMTP_USERNAME"`
+	SMTPPassword  string `envconfig:"SMTP_PASSWORD"`
+	MailTrap      MailtrapSettings
+	Sendgrid      SendgridSettings
 }
 
 // SendgridSettings contains sendgrid api email settings

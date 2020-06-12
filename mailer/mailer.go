@@ -1,79 +1,120 @@
 package mailer
 
 import (
-	"bytes"
 	"fmt"
-	"html/template"
 	"net/http"
 	"net/smtp"
+	"net/textproto"
 	"strings"
 
 	"github.com/dankobgd/ecommerce-shop/config"
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/dankobgd/ecommerce-shop/utils/template"
 	"github.com/dankobgd/ecommerce-shop/zlog"
+	"github.com/jordan-wright/email"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/sendgrid/sendgrid-go"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
+	"jaytaylor.com/html2text"
 )
 
 var (
-	msgParseTpl  = &i18n.Message{ID: "mailer.send.app_error", Other: "could not parse email template"}
-	msgSendEmail = &i18n.Message{ID: "mailer.send.app_error", Other: "could not send email"}
+	msgSendMailSMTP       = &i18n.Message{ID: "mailer.send_smpt.app_error", Other: "could not send email with smtp"}
+	msgSendMailSendgrid   = &i18n.Message{ID: "mailer.send_sendgrid.app_error", Other: "could not send email with sendgird"}
+	msgParseEmailTemplate = &i18n.Message{ID: "mailer.parse_template.app_error", Other: "could not parse email template"}
+	msgParseHTMLToText    = &i18n.Message{ID: "mailer.parse_html2text.app_error", Other: "could not parse email html to text"}
 )
 
-const (
-	mimeHTML = "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-	mimeTEXT = "MIME-version: 1.0;\nContent-Type: text/plain; charset=\"UTF-8\";\n\n"
-)
-
-// MailData has the email information
-type MailData struct {
-	Subject string
-	To      []string
+// Maildata holds email details
+type Maildata struct {
+	To       []string
+	Subject  string
+	textBody string
+	hTMLBody string
+	Headers  textproto.MIMEHeader
 }
 
-func parseTemplate(fileName string, data interface{}) (string, error) {
-	t, err := template.ParseFiles(fileName)
-	if err != nil {
-		return "", err
+func sendWithSMTP(settings config.EmailSettings, md *Maildata) *model.AppErr {
+	e := &email.Email{
+		From:    settings.FeedbackEmail,
+		To:      md.To,
+		Subject: md.Subject,
+		HTML:    []byte(md.hTMLBody),
+		Text:    []byte(md.textBody),
+		Headers: md.Headers,
 	}
 
-	buffer := new(bytes.Buffer)
-	if err = t.Execute(buffer, data); err != nil {
-		return "", err
-	}
+	var addr string
+	var auth smtp.Auth
 
-	return buffer.String(), nil
-}
-
-func sendMailWithConfig(config *config.EmailSettings, data MailData, htmlString string) error {
-	body := "To: " + data.To[0] + "\r\nSubject: " + data.Subject + "\r\n" + mimeHTML + "\r\n" + htmlString
-
-	if config.Enabled {
-		SMTP := fmt.Sprintf("%s:%d", config.SMTPHost, config.SMTPPort)
-		if err := smtp.SendMail(SMTP, smtp.PlainAuth("", config.SMTPUsername, config.SMTPPassword, config.SMTPHost), config.SMTPFrom, data.To, []byte(body)); err != nil {
-			return err
-		}
+	if settings.Enabled {
+		addr = fmt.Sprintf("%s:%d", settings.SMTPHost, settings.SMTPPort)
+		auth = smtp.PlainAuth("", settings.SMTPUsername, settings.SMTPPassword, settings.SMTPHost)
 	} else {
-		SMTP := fmt.Sprintf("%s:%d", config.MailTrap.Host, config.MailTrap.Port)
-		if err := smtp.SendMail(SMTP, smtp.PlainAuth("", config.MailTrap.Username, config.MailTrap.Password, config.MailTrap.Host), config.SMTPFrom, data.To, []byte(body)); err != nil {
-			return err
-		}
+		addr = fmt.Sprintf("%s:%d", settings.MailTrap.Host, settings.MailTrap.Port)
+		auth = smtp.PlainAuth("", settings.MailTrap.Username, settings.MailTrap.Password, settings.MailTrap.Host)
 	}
 
+	if err := e.Send(addr, auth); err != nil {
+		zlog.Info("could not send email with smtp", zlog.String("recipients:", strings.Join(e.To, ",")), zlog.Err(err))
+		return model.NewAppErr("mailer.Send", model.ErrInternal, locale.GetUserLocalizer("en"), msgSendMailSMTP, http.StatusInternalServerError, nil)
+	}
+	zlog.Info("email has been sent successfully", zlog.String("recipients:", strings.Join(e.To, ",")))
 	return nil
 }
 
-// Send sends an email with the given template name
-func Send(config *config.EmailSettings, data MailData, templateName string, templateData interface{}) *model.AppErr {
-	body, err := parseTemplate(templateName, templateData)
+func sendWithSendgrid(config *config.Config, md *Maildata) *model.AppErr {
+	mailSettings := config.EmailSettings
+
+	from := mail.NewEmail(mailSettings.FeedbackUser, mailSettings.FeedbackEmail)
+	to := mail.NewEmail("", strings.Join(md.To, ","))
+	subject := md.Subject
+	textContent := md.textBody
+	htmlContent := md.hTMLBody
+
+	message := mail.NewSingleEmail(from, subject, to, textContent, htmlContent)
+	client := sendgrid.NewSendClient(mailSettings.Sendgrid.APIKey)
+
+	resp, err := client.Send(message)
 	if err != nil {
-		zlog.Error("could not parse email template", zlog.Err(err))
-		return model.NewAppErr("mailer.Send", model.ErrInternal, locale.GetUserLocalizer("en"), msgParseTpl, http.StatusInternalServerError, nil)
+		zlog.Info("could not send email with sendgird", zlog.String("recipients:", strings.Join(md.To, ",")), zlog.Err(err))
+		return model.NewAppErr("mailer.Send", model.ErrInternal, locale.GetUserLocalizer("en"), msgSendMailSendgrid, http.StatusInternalServerError, nil)
 	}
-	if err := sendMailWithConfig(config, data, body); err != nil {
-		zlog.Error("could not send the email", zlog.String("recepients:", strings.Join(data.To, ",")), zlog.Err(err))
-		return model.NewAppErr("mailer.Send", model.ErrInternal, locale.GetUserLocalizer("en"), msgSendEmail, http.StatusInternalServerError, nil)
-	}
-	zlog.Info("email has been sent successfuly", zlog.String("recepients:", strings.Join(data.To, ",")))
+
+	zlog.Info("email successfully sent with sendgrid", zlog.String("recipients:", strings.Join(md.To, ",")), zlog.Int("statusCode", resp.StatusCode))
 	return nil
+}
+
+// SendEmailTemplate parses the email template to get the html and text contents
+// and sends the email with the information
+func SendEmailTemplate(filename string, data interface{}, md *Maildata, config *config.Config) *model.AppErr {
+	htmlString, err := template.ParseTemplate(filename, data)
+	if err != nil {
+		zlog.Info("could not parse email template", zlog.Err(err))
+		return model.NewAppErr("mailer.parse_template", model.ErrInternal, locale.GetUserLocalizer("en"), msgParseEmailTemplate, http.StatusInternalServerError, nil)
+	}
+
+	textString, err := html2text.FromString(htmlString)
+	if err != nil {
+		zlog.Info("could not parse html to string", zlog.Err(err))
+		return model.NewAppErr("mailer.parse_html2text", model.ErrInternal, locale.GetUserLocalizer("en"), msgParseHTMLToText, http.StatusInternalServerError, nil)
+	}
+
+	md.hTMLBody = htmlString
+	md.textBody = textString
+
+	return send(config, md)
+}
+
+func send(config *config.Config, md *Maildata) *model.AppErr {
+	settings := config.EmailSettings
+	switch settings.Transport {
+	case "smtp":
+		return sendWithSMTP(settings, md)
+	case "sendgrid":
+		return sendWithSendgrid(config, md)
+	default:
+		panic(fmt.Errorf("could not configure mailer: unknown email transport"))
+	}
 }
