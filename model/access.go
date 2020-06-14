@@ -8,9 +8,6 @@ import (
 	"github.com/dgrijalva/jwt-go/v4"
 )
 
-// TokenType is general token type (pwd recovery, verify email etc)
-type TokenType int
-
 // AccessTokenLocation is the location from where the access token is retrieved
 type AccessTokenLocation int
 
@@ -27,12 +24,6 @@ const (
 	HeaderAuthorization = "Authorization"
 )
 
-// general token types
-const (
-	TokenTypePasswordRecovery TokenType = iota
-	TokenTypeEmailVerification
-)
-
 // access token locations
 const (
 	TokenLocationNotFound AccessTokenLocation = iota
@@ -44,26 +35,15 @@ const (
 func (loc AccessTokenLocation) String() string {
 	switch loc {
 	case TokenLocationNotFound:
-		return "Not Found"
+		return "not_found"
 	case TokenLocationHeader:
-		return "Header"
+		return "header"
 	case TokenLocationCookie:
-		return "Cookie"
+		return "cookie"
 	case TokenLocationQueryString:
-		return "QueryString"
+		return "query_string"
 	default:
-		return "Unknown"
-	}
-}
-
-func (tt TokenType) String() string {
-	switch tt {
-	case TokenTypePasswordRecovery:
-		return "Password Recovery"
-	case TokenTypeEmailVerification:
-		return "Email Verification"
-	default:
-		return "Unknown"
+		return "unknown"
 	}
 }
 

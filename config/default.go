@@ -18,9 +18,6 @@ func (s *DatabaseSettings) SetDefaults() {
 	if s.PostgresHost == "" {
 		s.PostgresHost = "localhost"
 	}
-	if s.PostgresURI == "" {
-		s.PostgresURI = ""
-	}
 	if s.PostgresDB == "" {
 		s.PostgresDB = "ecommerce"
 	}

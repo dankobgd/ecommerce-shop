@@ -14,11 +14,12 @@ type Store interface {
 // UserStore ris the user store
 type UserStore interface {
 	Save(*model.User) (*model.User, *model.AppErr)
-	Get(id int) (*model.User, *model.AppErr)
+	Get(id int64) (*model.User, *model.AppErr)
 	GetAll() ([]*model.User, *model.AppErr)
 	GetByEmail(email string) (*model.User, *model.AppErr)
-	Update(id int, u *model.User) (*model.User, *model.AppErr)
-	Delete(id int) (*model.User, *model.AppErr)
+	Update(id int64, u *model.User) (*model.User, *model.AppErr)
+	Delete(id int64) (*model.User, *model.AppErr)
+	VerifyEmail(usrerID int64) *model.AppErr
 }
 
 // AccessTokenStore is the access token store
@@ -30,7 +31,9 @@ type AccessTokenStore interface {
 
 // TokenStore is the access token store
 type TokenStore interface {
-	Get()
-	Cleanup()
-	RemoveAllTokensByType(tokenType string)
+	Save(token *model.Token) *model.AppErr
+	GetByToken(token string) (*model.Token, *model.AppErr)
+	Delete(token string) *model.AppErr
+	Cleanup() *model.AppErr
+	RemoveByType(tokenType model.TokenType) *model.AppErr
 }

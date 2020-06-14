@@ -1,13 +1,31 @@
 package model
 
 import (
-	"net/http"
 	"time"
 
-	"github.com/dankobgd/ecommerce-shop/utils/locale"
 	"github.com/dankobgd/ecommerce-shop/utils/random"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
+
+// TokenType is general token type (pwd recovery, verify email etc)
+type TokenType int
+
+// general token types
+const (
+	TokenTypePasswordRecovery TokenType = iota
+	TokenTypeEmailVerification
+)
+
+func (tt TokenType) String() string {
+	switch tt {
+	case TokenTypePasswordRecovery:
+		return "password_recovery"
+	case TokenTypeEmailVerification:
+		return "email_verification"
+	default:
+		return "unknown"
+	}
+}
 
 const (
 	tokenSize               = 64
@@ -30,38 +48,12 @@ type Token struct {
 }
 
 // NewToken returns the new token
-func NewToken(tokentype string, userID int64) *Token {
+func NewToken(tokentype TokenType, userID int64) *Token {
 	return &Token{
 		UserID:    userID,
 		Token:     random.SecureToken(tokenSize),
-		Type:      tokentype,
+		Type:      tokentype.String(),
 		CreatedAt: time.Now(),
 		ExpiresAt: time.Now().Add(time.Hour * tokenMaxExpiryTimeHours),
 	}
-}
-
-func newInvalidTokenError(msg *i18n.Message, errs ValidationErrors) *AppErr {
-	details := map[string]interface{}{}
-	if !errs.IsZero() {
-		details["validation"] = map[string]interface{}{"errors": errs}
-	}
-	return NewAppErr("Token.Validate", ErrInvalid, locale.GetUserLocalizer("en"), msg, http.StatusUnprocessableEntity, details)
-}
-
-// Validate validates the token
-func (t *Token) Validate() *AppErr {
-	var errs ValidationErrors
-	l := locale.GetUserLocalizer("en")
-
-	if len(t.Token) != tokenSize {
-		errs.Add(NewValidationErr("token", l, msgInvalidToken))
-	}
-	if t.CreatedAt.IsZero() {
-		errs.Add(NewValidationErr("token", l, msgTokenExpired))
-	}
-
-	if !errs.IsZero() {
-		return newInvalidTokenError(msgInvalidToken, errs)
-	}
-	return nil
 }

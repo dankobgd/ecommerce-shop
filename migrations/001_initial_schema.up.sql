@@ -5,18 +5,28 @@ CREATE TABLE public.user (
   first_name varchar(255),
   last_name varchar(255),
   username varchar(255),
-  email varchar(255) unique,
-  password text,
+  email varchar(255) unique not null,
+  password text not null,
   gender gender,
-  locale varchar(5),
+  locale varchar(5) not null,
   avatar_url text,
-  active bool,
-  email_verified bool,
+  active bool not null,
+  email_verified bool not null,
   failed_attempts int,
   last_login_at timestamptz,
-  created_at timestamptz,
-  updated_at timestamptz,
+  created_at timestamptz not null,
+  updated_at timestamptz not null,
   deleted_at timestamptz
+);
+
+CREATE TABLE public.token (
+  id int generated always as identity primary key,
+  user_id int not null,
+  token text not null,
+  type varchar(64) not null,
+  created_at timestamptz not null,
+  expires_at timestamptz not null,
+  foreign key (user_id) references public.user (id) on delete cascade
 );
 
 CREATE TABLE public.role (
@@ -86,16 +96,6 @@ CREATE TABLE public.manufacturer (
   website_url text,
   address text,
   description text
-);
-
-CREATE TABLE public.token (
-  id int generated always as identity primary key,  
-  user_id int,
-  token text,
-  type character varying(64),
-  created_at timestamptz,
-  expires_at timestamptz,
-  foreign key (user_id) references public.user (id)
 );
 
 CREATE TABLE public.color (

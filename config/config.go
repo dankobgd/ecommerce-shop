@@ -17,7 +17,6 @@ type AppSettings struct {
 // DatabaseSettings contains DB settings
 type DatabaseSettings struct {
 	PostgresHost string `envconfig:"POSTGRES_HOST"`
-	PostgresURI  string `envconfig:"POSTGRES_URI"`
 	PostgresDB   string `envconfig:"POSTGRES_DB"`
 	PostgresUser string `envconfig:"POSTGRES_USER"`
 	PostgresPass string `envconfig:"POSTGRES_PASSWORD"`

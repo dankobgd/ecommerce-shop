@@ -1,6 +1,8 @@
 package app
 
 import (
+	"strconv"
+
 	"github.com/dankobgd/ecommerce-shop/config"
 	"github.com/dankobgd/ecommerce-shop/zlog"
 )
@@ -25,6 +27,15 @@ func New(options ...Option) *App {
 		option(app)
 	}
 	return app
+}
+
+// SiteURL returs the site URL
+func (a *App) SiteURL() string {
+	scheme := "http"
+	if a.IsProd() {
+		scheme = "https"
+	}
+	return scheme + "://" + a.Cfg().Host + ":" + strconv.Itoa(a.Cfg().Port)
 }
 
 // IsDev returs true if app is in development mode

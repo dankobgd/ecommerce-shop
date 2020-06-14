@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/store"
@@ -20,8 +21,10 @@ func NewPgUserStore(pgst *PgStore) store.UserStore {
 }
 
 var (
-	msgSave             = &i18n.Message{ID: "store.postgres.user.save.app_error", Other: "could not save user to db"}
-	msgGetByEmail       = &i18n.Message{ID: "store.postgres.user.login.app_error", Other: "could not get user by email"}
+	msgSaveUser         = &i18n.Message{ID: "store.postgres.user.save.app_error", Other: "could not save user to db"}
+	msgGetUser          = &i18n.Message{ID: "store.postgres.user.login.app_error", Other: "could not get the user from db"}
+	msgVerifyEmail      = &i18n.Message{ID: "store.postgres.user.verify_email.app_error", Other: "could not verify email"}
+	msgDeleteToken      = &i18n.Message{ID: "store.postgres.user.verify_email.delete_token.app_error", Other: "could not delete verify token"}
 	msgUniqueConstraint = &i18n.Message{ID: "store.postgres.user.save.unique_constraint.app_error", Other: "invalid credentials"}
 )
 
@@ -34,7 +37,7 @@ func (s PgUserStore) Save(user *model.User) (*model.User, *model.AppErr) {
 	rows, err := s.db.NamedQuery(q, user)
 	defer rows.Close()
 	if err != nil {
-		return nil, model.NewAppErr("PgUserStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSave, http.StatusInternalServerError, nil)
+		return nil, model.NewAppErr("PgUserStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveUser, http.StatusInternalServerError, nil)
 	}
 	for rows.Next() {
 		rows.Scan(&id)
@@ -43,18 +46,22 @@ func (s PgUserStore) Save(user *model.User) (*model.User, *model.AppErr) {
 		if IsUniqueConstraintError(err) {
 			return nil, model.NewAppErr("PgUserStore.Save", model.ErrConflict, locale.GetUserLocalizer("en"), msgUniqueConstraint, http.StatusInternalServerError, nil)
 		}
-		return nil, model.NewAppErr("PgUserStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSave, http.StatusInternalServerError, nil)
+		return nil, model.NewAppErr("PgUserStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveUser, http.StatusInternalServerError, nil)
 	}
 	user.ID = id
 	return user, nil
 }
 
-// Get ...
-func (s PgUserStore) Get(id int) (*model.User, *model.AppErr) {
-	return &model.User{}, nil
+// Get gets one user by id
+func (s PgUserStore) Get(id int64) (*model.User, *model.AppErr) {
+	var user model.User
+	if err := s.db.Get(&user, "SELECT * FROM public.user where id = $1", id); err != nil {
+		return nil, model.NewAppErr("PgUserStore.Get", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetUser, http.StatusInternalServerError, nil)
+	}
+	return &user, nil
 }
 
-// GetAll ...
+// GetAll returns all users
 func (s PgUserStore) GetAll() ([]*model.User, *model.AppErr) {
 	return []*model.User{}, nil
 }
@@ -63,17 +70,26 @@ func (s PgUserStore) GetAll() ([]*model.User, *model.AppErr) {
 func (s PgUserStore) GetByEmail(email string) (*model.User, *model.AppErr) {
 	var user model.User
 	if err := s.db.Get(&user, "SELECT * FROM public.user where email = $1", email); err != nil {
-		return nil, model.NewAppErr("PgUserStore.GetByEmail", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetByEmail, http.StatusInternalServerError, nil)
+		return nil, model.NewAppErr("PgUserStore.GetByEmail", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetUser, http.StatusInternalServerError, nil)
 	}
 	return &user, nil
 }
 
+// VerifyEmail updates the email_verified field
+func (s PgUserStore) VerifyEmail(id int64) *model.AppErr {
+	m := map[string]interface{}{"now": time.Now(), "id": id}
+	if _, err := s.db.NamedExec("UPDATE public.user SET updated_at = :now, email_verified = true WHERE id = :id", m); err != nil {
+		return model.NewAppErr("PgUserStore.VerifyEmail", model.ErrInternal, locale.GetUserLocalizer("en"), msgVerifyEmail, http.StatusInternalServerError, nil)
+	}
+	return nil
+}
+
 // Update ...
-func (s PgUserStore) Update(id int, u *model.User) (*model.User, *model.AppErr) {
+func (s PgUserStore) Update(id int64, u *model.User) (*model.User, *model.AppErr) {
 	return &model.User{}, nil
 }
 
 // Delete ...
-func (s PgUserStore) Delete(id int) (*model.User, *model.AppErr) {
+func (s PgUserStore) Delete(id int64) (*model.User, *model.AppErr) {
 	return &model.User{}, nil
 }

@@ -12,6 +12,7 @@ var (
 	msgInvalidToken         = &i18n.Message{ID: "model.access_token_verify.json.app_error", Other: "token is invalid or has already expired"}
 	msgUserFromJSON         = &i18n.Message{ID: "api.user.create_user.json.app_error", Other: "could not decode user json data"}
 	msgRefreshTokenFromJSON = &i18n.Message{ID: "api.user.create_user.json.app_error", Other: "could not decode token json data"}
+	msgInvalidEmail         = &i18n.Message{ID: "api.sendUserVerificationEmail.email.app_error", Other: "invalid email provided"}
 )
 
 // InitUser inits the user routes
@@ -20,6 +21,10 @@ func InitUser(a *API) {
 	a.BaseRoutes.Users.Post("/login", a.login)
 	a.BaseRoutes.Users.Post("/logout", a.AuthRequired(a.logout))
 	a.BaseRoutes.Users.Post("/token/refresh", a.refresh)
+	a.BaseRoutes.Users.Post("/email/verify", a.verifyUserEmail)
+	a.BaseRoutes.Users.Post("/email/verify/send", a.sendVerificationEmail)
+	a.BaseRoutes.Users.Post("/password/reset", a.resetUserPassword)
+	a.BaseRoutes.Users.Post("/password/reset/send", a.sendPasswordResetEmail)
 
 	a.BaseRoutes.Users.Get("/protected", a.AuthRequired(a.protected))
 }
@@ -104,9 +109,62 @@ func (a *API) refresh(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) protected(w http.ResponseWriter, r *http.Request) {
-	if err := a.app.SendWelcomeEmail("test@test.com"); err != nil {
+	ad, err := a.app.ExtractTokenMetadata(r)
+	if err != nil {
 		respondError(w, err)
 		return
 	}
-	respondJSON(w, http.StatusOK, map[string]interface{}{"resource": "protected data"})
+	userID, err := a.app.GetAuth(ad)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{"userID": userID})
 }
+
+func (a *API) sendVerificationEmail(w http.ResponseWriter, r *http.Request) {
+	props := model.MapStrStrFromJSON(r.Body)
+	email := props["email"]
+	email = model.NormalizeEmail(email)
+
+	if len(email) == 0 || !model.IsValidEmail(email) {
+		respondError(w, model.NewAppErr("api.sendVerificationEmail", model.ErrInvalid, locale.GetUserLocalizer("en"), msgInvalidEmail, http.StatusBadRequest, nil))
+		return
+	}
+
+	user, err := a.app.GetUserByEmail(email)
+	if err != nil {
+		// don't leak whether email is valid and exists - maybe for demonstration return some err
+		respondOK(w)
+		return
+	}
+
+	if err := a.app.SendVerificationEmail(user, email); err != nil {
+		// don't leak whether email is valid and exists - maybe for demonstration return some err
+		respondOK(w)
+		return
+	}
+
+	respondOK(w)
+}
+
+func (a *API) verifyUserEmail(w http.ResponseWriter, r *http.Request) {
+	props := model.MapStrStrFromJSON(r.Body)
+	token := props["token"]
+
+	if len(token) == 0 {
+		respondError(w, model.NewAppErr("api.sendVerificationEmail", model.ErrInvalid, locale.GetUserLocalizer("en"), msgInvalidToken, http.StatusBadRequest, nil))
+		return
+	}
+
+	if err := a.app.VerifyUserEmail(token); err != nil {
+		respondError(w, err)
+		return
+	}
+	respondOK(w)
+}
+
+func (a *API) sendPasswordResetEmail(w http.ResponseWriter, r *http.Request) {}
+
+func (a *API) resetUserPassword(w http.ResponseWriter, r *http.Request) {}

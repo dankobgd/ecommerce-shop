@@ -119,6 +119,11 @@ func UserLoginFromJSON(data io.Reader) (*UserLogin, error) {
 	return u, err
 }
 
+// IsValidEmail checks if email is valid
+func IsValidEmail(email string) bool {
+	return is.ValidEmail(email)
+}
+
 // IsValidUsername validates whether username matches the criteria
 func IsValidUsername(username string) bool {
 	if len(username) < userUsernameMinLength || len(username) > userUsernameMaxLength {

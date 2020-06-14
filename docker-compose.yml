@@ -23,9 +23,9 @@ services:
     ports:
       - 5432:5432
     environment:
-      - POSTGRES_DB=ecommerce
-      - POSTGRES_USER=test
-      - POSTGRES_PASSWORD=test
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_USER}
     volumes:
       - /home/docker/volumes/postgres:/var/lib/postgresql/data
     networks:
@@ -40,20 +40,6 @@ services:
       - 6379:6379
     networks:
       - net
-
-  # Database client
-  adminer:
-    image: adminer
-    container_name: adminer
-    restart: always
-    ports:
-      - 8080:8080
-    environment:
-      - ADMINER_DESIGN=mvt
-    networks:
-      - net
-    depends_on:
-      - database
 
 networks:
   net:
