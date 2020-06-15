@@ -13,6 +13,7 @@ var (
 	msgUserFromJSON         = &i18n.Message{ID: "api.user.create_user.json.app_error", Other: "could not decode user json data"}
 	msgRefreshTokenFromJSON = &i18n.Message{ID: "api.user.create_user.json.app_error", Other: "could not decode token json data"}
 	msgInvalidEmail         = &i18n.Message{ID: "api.sendUserVerificationEmail.email.app_error", Other: "invalid email provided"}
+	msgInvalidPassword      = &i18n.Message{ID: "api.resetUserPassword.password.app_error", Other: "invalid password provided"}
 )
 
 // InitUser inits the user routes
@@ -165,6 +166,38 @@ func (a *API) verifyUserEmail(w http.ResponseWriter, r *http.Request) {
 	respondOK(w)
 }
 
-func (a *API) sendPasswordResetEmail(w http.ResponseWriter, r *http.Request) {}
+func (a *API) sendPasswordResetEmail(w http.ResponseWriter, r *http.Request) {
+	props := model.MapStrStrFromJSON(r.Body)
+	email := props["email"]
+	email = model.NormalizeEmail(email)
 
-func (a *API) resetUserPassword(w http.ResponseWriter, r *http.Request) {}
+	if len(email) == 0 || !model.IsValidEmail(email) {
+		respondError(w, model.NewAppErr("api.sendPasswordResetEmail", model.ErrInvalid, locale.GetUserLocalizer("en"), msgInvalidEmail, http.StatusBadRequest, nil))
+		return
+	}
+
+	if err := a.app.SendPasswordResetEmail(email); err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondOK(w)
+}
+
+func (a *API) resetUserPassword(w http.ResponseWriter, r *http.Request) {
+	props := model.MapStrStrFromJSON(r.Body)
+	token := props["token"]
+	oldPassword := props["old_password"]
+	newPassword := props["new_password"]
+
+	if len(oldPassword) == 0 || len(newPassword) == 0 {
+		respondError(w, model.NewAppErr("api.resetUserPassword", model.ErrInvalid, locale.GetUserLocalizer("en"), msgInvalidPassword, http.StatusBadRequest, nil))
+		return
+	}
+
+	if err := a.app.ResetUserPassword(token, oldPassword, newPassword); err != nil {
+		respondError(w, err)
+		return
+	}
+	respondOK(w)
+}

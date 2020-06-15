@@ -24,10 +24,11 @@ type DatabaseSettings struct {
 
 // AuthSettings contains auth related settings
 type AuthSettings struct {
-	VerificationRequired  bool   `envconfig:"VERIFICATION_REQUIRED"`
-	ResetPasswordValidFor int    `envconfig:"RESET_PASSWORD_VALID_FOR"`
-	AccessTokenSecret     string `envconfig:"ACCESS_TOKEN_SECRET"`
-	RefreshTokenSecret    string `envconfig:"REFRESH_TOKEN_SECRET"`
+	VerificationRequired         bool   `envconfig:"VERIFICATION_REQUIRED"`
+	PasswordResetExpiryHours     int    `envconfig:"PASSWORD_RESET_EXPIRY_HOURS"`
+	EmailVerificationExpiryHours int    `envconfig:"EMAIL_VERIFICATION_EXPIRY_HOURS"`
+	AccessTokenSecret            string `envconfig:"ACCESS_TOKEN_SECRET"`
+	RefreshTokenSecret           string `envconfig:"REFRESH_TOKEN_SECRET"`
 }
 
 // EmailSettings contains email settings

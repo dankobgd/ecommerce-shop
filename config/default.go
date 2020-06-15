@@ -37,8 +37,11 @@ func (s *AuthSettings) SetDefaults() {
 	if s.RefreshTokenSecret == "" {
 		s.RefreshTokenSecret = "secret2"
 	}
-	if s.ResetPasswordValidFor == 0 {
-		s.ResetPasswordValidFor = 0
+	if s.PasswordResetExpiryHours == 0 {
+		s.PasswordResetExpiryHours = 12
+	}
+	if s.EmailVerificationExpiryHours == 0 {
+		s.EmailVerificationExpiryHours = 12
 	}
 	if s.VerificationRequired == false {
 		s.VerificationRequired = true

@@ -48,12 +48,20 @@ type Token struct {
 }
 
 // NewToken returns the new token
-func NewToken(tokentype TokenType, userID int64) *Token {
+func NewToken(tokentype TokenType, userID int64, expiryHours ...int) *Token {
+	var expiry time.Duration
+
+	if len(expiryHours) == 0 {
+		expiry = time.Hour * tokenMaxExpiryTimeHours
+	} else {
+		expiry = time.Hour * time.Duration(expiryHours[0])
+	}
+
 	return &Token{
 		UserID:    userID,
 		Token:     random.SecureToken(tokenSize),
 		Type:      tokentype.String(),
 		CreatedAt: time.Now(),
-		ExpiresAt: time.Now().Add(time.Hour * tokenMaxExpiryTimeHours),
+		ExpiresAt: time.Now().Add(expiry),
 	}
 }

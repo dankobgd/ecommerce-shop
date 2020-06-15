@@ -21,11 +21,12 @@ func NewPgUserStore(pgst *PgStore) store.UserStore {
 }
 
 var (
+	msgUniqueConstraint = &i18n.Message{ID: "store.postgres.user.save.unique_constraint.app_error", Other: "invalid credentials"}
 	msgSaveUser         = &i18n.Message{ID: "store.postgres.user.save.app_error", Other: "could not save user to db"}
 	msgGetUser          = &i18n.Message{ID: "store.postgres.user.login.app_error", Other: "could not get the user from db"}
 	msgVerifyEmail      = &i18n.Message{ID: "store.postgres.user.verify_email.app_error", Other: "could not verify email"}
 	msgDeleteToken      = &i18n.Message{ID: "store.postgres.user.verify_email.delete_token.app_error", Other: "could not delete verify token"}
-	msgUniqueConstraint = &i18n.Message{ID: "store.postgres.user.save.unique_constraint.app_error", Other: "invalid credentials"}
+	msgUpdatePassword   = &i18n.Message{ID: "store.postgres.user.update_password.app_error", Other: "could not update password"}
 )
 
 // Save inserts the new user in the db
@@ -77,9 +78,18 @@ func (s PgUserStore) GetByEmail(email string) (*model.User, *model.AppErr) {
 
 // VerifyEmail updates the email_verified field
 func (s PgUserStore) VerifyEmail(id int64) *model.AppErr {
-	m := map[string]interface{}{"now": time.Now(), "id": id}
-	if _, err := s.db.NamedExec("UPDATE public.user SET updated_at = :now, email_verified = true WHERE id = :id", m); err != nil {
+	m := map[string]interface{}{"updated_at": time.Now(), "id": id}
+	if _, err := s.db.NamedExec("UPDATE public.user SET updated_at = :updated_at, email_verified = true WHERE id = :id", m); err != nil {
 		return model.NewAppErr("PgUserStore.VerifyEmail", model.ErrInternal, locale.GetUserLocalizer("en"), msgVerifyEmail, http.StatusInternalServerError, nil)
+	}
+	return nil
+}
+
+// UpdatePassword updates the user's password
+func (s PgUserStore) UpdatePassword(userID int64, hashedPassword string) *model.AppErr {
+	m := map[string]interface{}{"id": userID, "password": hashedPassword, "updated_at": time.Now()}
+	if _, err := s.db.NamedExec("UPDATE public.user SET password = :password, updated_at = :updated_at WHERE id = :id", m); err != nil {
+		return model.NewAppErr("PgUserStore.UpdatePassword", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdatePassword, http.StatusInternalServerError, nil)
 	}
 	return nil
 }
