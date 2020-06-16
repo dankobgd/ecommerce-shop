@@ -79,6 +79,7 @@ func (a *API) login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) logout(w http.ResponseWriter, r *http.Request) {
+	a.app.DeleteSessionCookies(w)
 	ad, err := a.app.ExtractTokenMetadata(r)
 	if err != nil {
 		respondError(w, err)

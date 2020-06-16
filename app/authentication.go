@@ -89,7 +89,7 @@ func (a *App) IssueTokens(userID int64) (*model.TokenMetadata, *model.AppErr) {
 func (a *App) AttachSessionCookies(w http.ResponseWriter, meta *model.TokenMetadata) {
 	secure, httpOnly := false, false
 	if a.IsProd() {
-		secure = true
+		secure, httpOnly = true, true
 		httpOnly = true
 	}
 
@@ -113,6 +113,24 @@ func (a *App) AttachSessionCookies(w http.ResponseWriter, meta *model.TokenMetad
 
 	http.SetCookie(w, accessCookie)
 	http.SetCookie(w, refreshCookie)
+}
+
+// DeleteSessionCookies deletes the cookies
+func (a *App) DeleteSessionCookies(w http.ResponseWriter) {
+	expiredAccess := expireCookie(model.AccessCookieName)
+	expiredRefresh := expireCookie(model.RefreshCookieName)
+	http.SetCookie(w, expiredAccess)
+	http.SetCookie(w, expiredRefresh)
+}
+
+func expireCookie(cookieName string) *http.Cookie {
+	return &http.Cookie{
+		Name:    cookieName,
+		Value:   "",
+		Expires: time.Now().Add(-100 * 24 * time.Hour),
+		MaxAge:  -1,
+		Path:    "/",
+	}
 }
 
 // ExtractAuthTokenFromRequest gets the auth token in few different ways
