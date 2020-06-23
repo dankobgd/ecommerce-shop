@@ -7,6 +7,7 @@ CREATE TABLE public.user (
   username varchar(255),
   email varchar(255) unique not null,
   password text not null,
+  role varchar(20) not null default 'user',
   gender gender,
   locale varchar(5) not null,
   avatar_url text,
@@ -27,19 +28,6 @@ CREATE TABLE public.token (
   created_at timestamptz not null,
   expires_at timestamptz not null,
   foreign key (user_id) references public.user (id) on delete cascade
-);
-
-CREATE TABLE public.role (
-  id int generated always as identity primary key,
-  name varchar(30)
-);
-
-CREATE TABLE public.user_role (
-  user_id int not null,
-  role_id int not null,
-  primary key (user_id, role_id),
-  foreign key (user_id) references public.user (id),
-  foreign key (role_id) references public.role (id)
 );
 
 CREATE TABLE public.address (

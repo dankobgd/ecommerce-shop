@@ -38,16 +38,17 @@ func (a *App) CheckUserPassword(user *model.User, password string) *model.AppErr
 }
 
 // IssueTokens returns the token pair
-func (a *App) IssueTokens(userID int64) (*model.TokenMetadata, *model.AppErr) {
+func (a *App) IssueTokens(user *model.User) (*model.TokenMetadata, *model.AppErr) {
 	settings := &a.Cfg().AuthSettings
 	atID := uuid.New().String()
 	atExp := time.Now().Add(time.Minute * 15)
 	atClaims := model.Claims{
+		Role: user.Role,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: &jwt.Time{Time: atExp},
 			ID:        atID,
 			IssuedAt:  &jwt.Time{Time: time.Now()},
-			Subject:   strconv.FormatInt(userID, 10),
+			Subject:   strconv.FormatInt(user.ID, 10),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
@@ -59,11 +60,12 @@ func (a *App) IssueTokens(userID int64) (*model.TokenMetadata, *model.AppErr) {
 	rtID := uuid.New().String()
 	rtExp := time.Now().Add(time.Hour * 24 * 7)
 	rtClaims := model.Claims{
+		Role: user.Role,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: &jwt.Time{Time: rtExp},
 			ID:        rtID,
 			IssuedAt:  &jwt.Time{Time: time.Now()},
-			Subject:   strconv.FormatInt(userID, 10),
+			Subject:   strconv.FormatInt(user.ID, 10),
 		},
 	}
 	refresh := jwt.NewWithClaims(jwt.SigningMethodHS256, rtClaims)
@@ -164,13 +166,13 @@ func VerifyToken(r *http.Request, settings *config.AuthSettings) (*jwt.Token, *m
 	tokenString, _ := ExtractAuthTokenFromRequest(r)
 	token, err := jwt.ParseWithClaims(tokenString, &model.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, model.NewAppErr("VerifyToken", model.ErrInvalid, locale.GetUserLocalizer("en"), msgVerifyTokenMethod, http.StatusUnauthorized, nil)
+			return nil, model.NewAppErr("VerifyToken", model.ErrUnauthorized, locale.GetUserLocalizer("en"), msgVerifyTokenMethod, http.StatusUnauthorized, nil)
 		}
 		return []byte(settings.AccessTokenSecret), nil
 	})
 
 	if err != nil {
-		return nil, model.NewAppErr("VerifyToken", model.ErrInvalid, locale.GetUserLocalizer("en"), msgVerifyToken, http.StatusUnauthorized, nil)
+		return nil, model.NewAppErr("VerifyToken", model.ErrUnauthorized, locale.GetUserLocalizer("en"), msgVerifyToken, http.StatusUnauthorized, nil)
 	}
 	return token, nil
 }
@@ -236,7 +238,9 @@ func (a *App) RefreshToken(rt *model.RefreshToken) (*model.TokenMetadata, *model
 		}
 
 		userID, _ := strconv.ParseInt(claims.Subject, 10, 64)
-		meta, err := a.IssueTokens(userID)
+		udata := &model.User{Role: claims.Role, ID: userID}
+
+		meta, err := a.IssueTokens(udata)
 		if err != nil {
 			return nil, model.NewAppErr("RefreshToken", model.ErrInvalid, l, msgRefreshToken, http.StatusUnauthorized, nil)
 		}

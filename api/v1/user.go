@@ -43,7 +43,7 @@ func (a *API) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenMeta, err := a.app.IssueTokens(user.ID)
+	tokenMeta, err := a.app.IssueTokens(user)
 	if err != nil {
 		respondError(w, err)
 	}
@@ -67,7 +67,7 @@ func (a *API) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenMeta, err := a.app.IssueTokens(user.ID)
+	tokenMeta, err := a.app.IssueTokens(user)
 	if err != nil {
 		respondError(w, err)
 	}

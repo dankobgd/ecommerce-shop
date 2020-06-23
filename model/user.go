@@ -72,6 +72,7 @@ type User struct {
 	Password        string     `json:"password,omitempty" db:"password"`
 	ConfirmPassword string     `json:"confirm_password,omitempty"`
 	Gender          *string    `json:"gender" db:"gender"`
+	Role            string     `json:"role" db:"role"`
 	Locale          string     `json:"locale" db:"locale"`
 	AvatarURL       string     `json:"avatar_url" db:"avatar_url"`
 	Active          bool       `json:"active" db:"active"`

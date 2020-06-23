@@ -10,12 +10,12 @@ import (
 
 // Application error codes
 const (
-	ErrConflict        = "Conflict"         // action cannot be performed
-	ErrInternal        = "Internal"         // internal error
-	ErrInvalid         = "Invalid"          // validation failed
-	ErrNotFound        = "Not Found"        // entity does not exist
-	ErrPermision       = "Permision Denied" // permission denied
-	ErrUnauthenticated = "Unauthenticated"  // unauthenticated access
+	ErrConflict     = "Conflict"         // action cannot be performed
+	ErrInternal     = "Internal"         // internal error
+	ErrInvalid      = "Invalid"          // validation failed
+	ErrNotFound     = "Not Found"        // entity does not exist
+	ErrPermision    = "Permision Denied" // permission denied
+	ErrUnauthorized = "Unauthorized"     // unauthorized access
 )
 
 // AppErr is the main app error

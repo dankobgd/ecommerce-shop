@@ -31,8 +31,8 @@ var (
 
 // Save inserts the new user in the db
 func (s PgUserStore) Save(user *model.User) (*model.User, *model.AppErr) {
-	q := `INSERT INTO public.user(first_name, last_name, username, email, password, gender, locale, avatar_url, active, email_verified, failed_attempts, last_login_at, created_at, updated_at, deleted_at) 
-	VALUES(:first_name, :last_name, :username, :email, :password, :gender, :locale, :avatar_url, :active, :email_verified, :failed_attempts, :last_login_at, :created_at, :updated_at, :deleted_at) RETURNING id`
+	q := `INSERT INTO public.user(first_name, last_name, username, email, password, role, gender, locale, avatar_url, active, email_verified, failed_attempts, last_login_at, created_at, updated_at, deleted_at) 
+	VALUES(:first_name, :last_name, :username, :email, :password, :role, :gender, :locale, :avatar_url, :active, :email_verified, :failed_attempts, :last_login_at, :created_at, :updated_at, :deleted_at) RETURNING id`
 
 	var id int64
 	rows, err := s.db.NamedQuery(q, user)

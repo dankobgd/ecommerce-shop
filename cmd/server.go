@@ -27,9 +27,17 @@ func init() {
 }
 
 func serverCmdFn(command *cobra.Command, args []string) error {
-	db, err := postgres.Connect()
+	a, err := setupApp()
 	if err != nil {
 		return err
+	}
+	return runServer(a.Srv())
+}
+
+func setupApp() (*app.App, error) {
+	db, err := postgres.Connect()
+	if err != nil {
+		return nil, err
 	}
 
 	pgStore := postgres.NewStore(db)
@@ -69,9 +77,14 @@ func serverCmdFn(command *cobra.Command, args []string) error {
 
 	api.Init(a, server.Router)
 
-	if srvErr := server.Start(); srvErr != nil {
-		log.Fatalf("could not start the server: %v\n", srvErr)
-	}
+	return a, nil
+}
 
+func runServer(srv *app.Server) error {
+	srvErr := srv.Start()
+	if srvErr != nil {
+		log.Fatalf("could not start the server: %v\n", srvErr)
+		return srvErr
+	}
 	return nil
 }

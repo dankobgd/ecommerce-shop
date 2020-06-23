@@ -71,8 +71,8 @@ type TokenMetadata struct {
 
 // Claims is the custom claims for the jwt
 type Claims struct {
-	Username string   `json:"username,omitempty"`
-	Roles    []string `json:"roles,omitempty"`
+	Username string `json:"username,omitempty"`
+	Role     string `json:"role,omitempty"`
 	jwt.StandardClaims
 }
 

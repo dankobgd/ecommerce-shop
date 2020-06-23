@@ -14,10 +14,6 @@ DROP TABLE public.item;
 
 DROP TABLE public.token;
 
-DROP TABLE public.user_role;
-
-DROP TABLE public.role;
-
 DROP TABLE public.address;
 
 DROP TABLE public.user;

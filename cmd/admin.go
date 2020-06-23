@@ -4,8 +4,12 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/dankobgd/ecommerce-shop/app"
+	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/spf13/cobra"
 )
+
+var cmdApp *app.App
 
 var userCmd = &cobra.Command{
 	Use:   "admin",
@@ -13,11 +17,12 @@ var userCmd = &cobra.Command{
 }
 
 var createSuperAdminCmd = &cobra.Command{
-	Use:     "super",
+	Use:     "createsuper",
 	Short:   "Create super admin",
 	Long:    "Creates the super admin",
-	Example: "  admin super --email user@example.com --username userexample --password password123",
-	RunE:    createUserFn,
+	Example: "  admin createsuper --email user@example.com --username userexample --password password123",
+	RunE:    createSuperAdminFn,
+	PreRun:  loadApp,
 }
 
 var createUserCmd = &cobra.Command{
@@ -49,6 +54,15 @@ func init() {
 	rootCmd.AddCommand(userCmd)
 }
 
+func loadApp(command *cobra.Command, args []string) {
+	appl, err := setupApp()
+	if err != nil {
+		fmt.Println(err)
+	}
+	cmdApp = appl
+	go runServer(appl.Srv())
+}
+
 func createSuperAdminFn(command *cobra.Command, args []string) error {
 	email, erre := command.Flags().GetString("email")
 	if erre != nil || email == "" {
@@ -63,7 +77,19 @@ func createSuperAdminFn(command *cobra.Command, args []string) error {
 		return errors.New("Password is required")
 	}
 
-	fmt.Println("CREATE SUPER ADMIN")
+	u := &model.User{
+		Username:        username,
+		Password:        password,
+		ConfirmPassword: password,
+		Email:           email,
+		Role:            "admin",
+		EmailVerified:   true,
+	}
+	if _, e := cmdApp.CreateUser(u); e != nil {
+		return errors.New(e.Message)
+	}
+
+	cmdApp.Log().Info("created super user")
 	return nil
 }
 
