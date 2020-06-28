@@ -12,6 +12,11 @@ type Supplier struct {
 	Rdst *redis.RdStore
 }
 
+// AccessToken returns the AccessToken store implementation
+func (s *Supplier) AccessToken() store.AccessTokenStore {
+	return redis.NewRedisAccessTokenStore(s.Rdst)
+}
+
 // User returns the User store implementation
 func (s *Supplier) User() store.UserStore {
 	return postgres.NewPgUserStore(s.Pgst)
@@ -22,7 +27,7 @@ func (s *Supplier) Token() store.TokenStore {
 	return postgres.NewPgTokenStore(s.Pgst)
 }
 
-// AccessToken returns the AccessToken store implementation
-func (s *Supplier) AccessToken() store.AccessTokenStore {
-	return redis.NewRedisAccessTokenStore(s.Rdst)
+// Product returns the Product store implementation
+func (s *Supplier) Product() store.ProductStore {
+	return postgres.NewPgProductStore(s.Pgst)
 }

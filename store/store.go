@@ -6,13 +6,15 @@ import (
 
 // Store represents all stores
 type Store interface {
+	AccessToken() AccessTokenStore
 	User() UserStore
 	Token() TokenStore
-	AccessToken() AccessTokenStore
+	Product() ProductStore
 }
 
 // UserStore ris the user store
 type UserStore interface {
+	BulkInsert([]*model.User) *model.AppErr
 	Save(*model.User) (*model.User, *model.AppErr)
 	Get(id int64) (*model.User, *model.AppErr)
 	GetAll() ([]*model.User, *model.AppErr)
@@ -37,4 +39,14 @@ type TokenStore interface {
 	Delete(token string) *model.AppErr
 	Cleanup() *model.AppErr
 	RemoveByType(tokenType model.TokenType) *model.AppErr
+}
+
+// ProductStore is the product store
+type ProductStore interface {
+	BulkInsert([]*model.Product) *model.AppErr
+	Save(*model.Product) (*model.Product, *model.AppErr)
+	Get(id int64) (*model.Product, *model.AppErr)
+	GetAll() ([]*model.Product, *model.AppErr)
+	Update(id int64, u *model.Product) (*model.Product, *model.AppErr)
+	Delete(id int64) (*model.Product, *model.AppErr)
 }
