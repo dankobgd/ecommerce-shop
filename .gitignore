@@ -19,3 +19,6 @@
 
 # app logs
 logs/*
+
+upload/*
+tmp/*

@@ -57,10 +57,7 @@ func (a *App) Login(u *model.UserLogin) (*model.User, *model.AppErr) {
 
 // SaveAuth saves the user auth information
 func (a *App) SaveAuth(userID int64, meta *model.TokenMetadata) *model.AppErr {
-	if err := a.Srv().Store.AccessToken().SaveAuth(userID, meta); err != nil {
-		return model.NewAppErr("createUser", model.ErrInternal, locale.GetUserLocalizer("en"), model.MsgInvalidUser, http.StatusInternalServerError, nil)
-	}
-	return nil
+	return a.Srv().Store.AccessToken().SaveAuth(userID, meta)
 }
 
 // GetAuth gets the auth details information
@@ -149,8 +146,8 @@ func (a *App) ResetUserPassword(tokenString, oldPassword, newPassword string) *m
 		return err
 	}
 
-	if !model.ComparePassword(user.Password, oldPassword) {
-		return model.NewAppErr("app.ResetUserPassword", model.ErrConflict, locale.GetUserLocalizer("en"), model.MsgComparePwd, http.StatusBadRequest, nil)
+	if err := a.CheckUserPassword(user, oldPassword); err != nil {
+		return err
 	}
 
 	if err := a.UpdatePassword(user, newPassword); err != nil {

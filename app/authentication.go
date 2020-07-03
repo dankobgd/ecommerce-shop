@@ -22,6 +22,7 @@ var (
 	msgRefreshToken       = &i18n.Message{ID: "app.refresh_token.app_error", Other: "invalid refresh token"}
 	msgRefreshTokenMethod = &i18n.Message{ID: "app.refresh_token.app_error", Other: "invalid refresh token signing method"}
 	msgDeleteToken        = &i18n.Message{ID: "app.refresh_token.app_error", Other: "could not delete old token"}
+	msgComparePwd         = &i18n.Message{ID: "model.compare_password.app_error", Other: "passwords don't match"}
 )
 
 // IsValidPassword checks if user password is valid
@@ -32,7 +33,7 @@ func (a *App) IsValidPassword(password string) *model.AppErr {
 // CheckUserPassword checks if password matches the hashed version
 func (a *App) CheckUserPassword(user *model.User, password string) *model.AppErr {
 	if !model.ComparePassword(user.Password, password) {
-		return model.NewAppErr("App.ComparePassword", model.ErrConflict, locale.GetUserLocalizer("en"), model.MsgComparePwd, http.StatusBadRequest, nil)
+		return model.NewAppErr("App.ComparePassword", model.ErrConflict, locale.GetUserLocalizer("en"), msgComparePwd, http.StatusBadRequest, nil)
 	}
 	return nil
 }

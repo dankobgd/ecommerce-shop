@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -52,18 +53,18 @@ func (e *AppErr) ToJSON() string {
 	return string(b)
 }
 
-// ValidationErr holds the key and the message of the field that had errors
-type ValidationErr struct {
+// FieldError holds the key and the message of the field that was invalid
+type FieldError struct {
 	Field   string `json:"field"`
 	Message string `json:"message"`
 }
 
 // ValidationErrors is a list of validation errors
-type ValidationErrors []*ValidationErr
+type ValidationErrors []*FieldError
 
 // Add appends the new error to the list
-func (list *ValidationErrors) Add(verr *ValidationErr) {
-	*list = append(*list, verr)
+func (list *ValidationErrors) Add(err *FieldError) {
+	*list = append(*list, err)
 }
 
 // IsZero returns true if there are no errors
@@ -71,9 +72,23 @@ func (list ValidationErrors) IsZero() bool {
 	return len(list) == 0
 }
 
-// NewValidationErr creates the validationErr
-func NewValidationErr(field string, l *i18n.Localizer, msg *i18n.Message) *ValidationErr {
-	e := &ValidationErr{Field: field}
+// Invalid creates the input validation error
+func Invalid(field string, l *i18n.Localizer, msg *i18n.Message) *FieldError {
+	e := &FieldError{Field: field}
 	e.Message = locale.LocalizeDefaultMessage(l, msg)
 	return e
+}
+
+// NewValidationError builds the invalid user error
+func NewValidationError(name string, msg *i18n.Message, userID string, errs ValidationErrors) *AppErr {
+	details := map[string]interface{}{}
+	if userID != "" {
+		details["userID"] = userID
+	}
+	if !errs.IsZero() {
+		details["validation"] = map[string]interface{}{"errors": errs}
+	}
+
+	errorName := name + ".Validate"
+	return NewAppErr(errorName, ErrInvalid, locale.GetUserLocalizer("en"), msg, http.StatusUnprocessableEntity, details)
 }

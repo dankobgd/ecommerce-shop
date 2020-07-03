@@ -3,7 +3,12 @@ package model
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/gorilla/schema"
 )
+
+// SchemaDecoder to decode maps to struct
+var SchemaDecoder = schema.NewDecoder()
 
 // MapStrStrToJSON converts a map to a json string
 func MapStrStrToJSON(obj map[string]string) string {

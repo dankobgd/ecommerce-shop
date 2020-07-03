@@ -9,7 +9,8 @@ import (
 )
 
 var (
-	msgProductFromJSON = &i18n.Message{ID: "api.product.create_product.json.app_error", Other: "could not decode product json data"}
+	msgProductFileErr   = &i18n.Message{ID: "api.product.create_product.formfile.app_error", Other: "error parsing files"}
+	msgProductMultipart = &i18n.Message{ID: "api.product.create_product.multipart.app_error", Other: "could not decode product multipart data"}
 )
 
 // InitProducts inits the product routes
@@ -19,15 +20,48 @@ func InitProducts(a *API) {
 }
 
 func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
-	p, e := model.ProductFromJSON(r.Body)
-	if e != nil {
-		respondError(w, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductFromJSON, http.StatusInternalServerError, nil))
+	if err := r.ParseMultipartForm(model.FileUploadSizeLimit); err != nil {
+		respondError(w, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductMultipart, http.StatusInternalServerError, nil))
 		return
 	}
 
-	product, err := a.app.CreateProduct(p)
+	var p model.Product
+	var pTag model.ProductTag
+	var pCat model.ProductCategory
+	var pBrand model.ProductBrand
+
+	model.SchemaDecoder.IgnoreUnknownKeys(true)
+	hasError := false
+	vals := r.MultipartForm.Value
+
+	if err := model.SchemaDecoder.Decode(&p, vals); err != nil {
+		hasError = true
+	}
+	if err := model.SchemaDecoder.Decode(&pTag, vals); err != nil {
+		hasError = true
+	}
+	if err := model.SchemaDecoder.Decode(&pCat, vals); err != nil {
+		hasError = true
+	}
+	if err := model.SchemaDecoder.Decode(&pBrand, vals); err != nil {
+		hasError = true
+	}
+
+	if hasError {
+		respondError(w, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductMultipart, http.StatusInternalServerError, nil))
+		return
+	}
+
+	file, header, err := r.FormFile("image")
 	if err != nil {
-		respondError(w, err)
+		respondError(w, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductFileErr, http.StatusInternalServerError, nil))
+		return
+	}
+	defer file.Close()
+
+	product, productError := a.app.CreateProduct(&p, &pTag, &pCat, &pBrand, file, header)
+	if productError != nil {
+		respondError(w, productError)
 		return
 	}
 	respondJSON(w, http.StatusCreated, product)

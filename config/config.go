@@ -89,15 +89,21 @@ type LoggerSettings struct {
 	FileLocation  string `envconfig:"LOG_FILE_LOCATION"`
 }
 
+// CloudinarySettings contains the cloudinary settings
+type CloudinarySettings struct {
+	EnvURI string `envconfig:"CLOUDINARY_ENV_URI"`
+}
+
 // Config represents the app config
 type Config struct {
 	AppSettings
-	DatabaseSettings DatabaseSettings
-	AuthSettings     AuthSettings
-	EmailSettings    EmailSettings
-	CookieSettings   CookieSettings
-	PasswordSettings PasswordSettings
-	LoggerSettings   LoggerSettings
+	DatabaseSettings   DatabaseSettings
+	AuthSettings       AuthSettings
+	EmailSettings      EmailSettings
+	CookieSettings     CookieSettings
+	PasswordSettings   PasswordSettings
+	LoggerSettings     LoggerSettings
+	CloudinarySettings CloudinarySettings
 }
 
 func loadEnvironment() {

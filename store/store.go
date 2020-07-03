@@ -49,4 +49,7 @@ type ProductStore interface {
 	GetAll() ([]*model.Product, *model.AppErr)
 	Update(id int64, u *model.Product) (*model.Product, *model.AppErr)
 	Delete(id int64) (*model.Product, *model.AppErr)
+	InsertTag(tag *model.ProductTag) *model.AppErr
+	InsertCategory(category *model.ProductCategory) *model.AppErr
+	InsertBrand(brand *model.ProductBrand) *model.AppErr
 }

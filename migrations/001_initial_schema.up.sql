@@ -74,14 +74,12 @@ create table public.contact (
 
 create table public.product (
   id int generated always as identity primary key,
-  brand_id int not null,
-  discount_id int,
   name varchar(255) not null,
   slug varchar(50),
   image_url text not null,
   description text,
   price int not null,
-  stock int,
+  stock int default 0 not null,
   sku text not null,
   is_featured bool default false not null,
   created_at timestamptz not null,
@@ -103,7 +101,7 @@ create table public.product_category (
   slug varchar(50),
   description text,
   foreign key (product_id) references public.product (id),
-  foreign key (name) references public.category (name)
+  foreign key (name) references public.category (name) on delete cascade
 );
 
 create table public.product_tag (
@@ -127,7 +125,7 @@ create table public.product_brand (
   foreign key (product_id) references public.product (id)
 );
 
-create table public.product_images (
+create table public.product_image (
   id int generated always as identity primary key,
   product_id int not null,
   url text not null,
@@ -137,8 +135,9 @@ create table public.product_images (
 create table public.product_discount (
   id int generated always as identity primary key,
   product_id int not null,
-  percentage int not null,
-  reason text,
+  fixed_value int,
+  percentage_value int,
+  description text,
   starts_at timestamptz,
   ends_at timestamptz,
   foreign key (product_id) references public.product (id)
