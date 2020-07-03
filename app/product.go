@@ -50,26 +50,10 @@ func (a *App) CreateProduct(p *model.Product, pTag *model.ProductTag, pCat *mode
 	}
 	p.SetImageURL(url)
 
-	product, pErr := a.Srv().Store.Product().Save(p)
+	product, pErr := a.Srv().Store.Product().Save(p, pTag, pBrand, pCat)
 	if pErr != nil {
 		a.log.Error(err.Error(), zlog.Err(pErr))
 		return nil, pErr
-	}
-
-	pTag.SetProductID(product.ID)
-	if err := a.Srv().Store.Product().InsertTag(pTag); err != nil {
-		a.log.Error(err.Error(), zlog.Err(err))
-		return nil, err
-	}
-	pCat.SetProductID(product.ID)
-	if err := a.Srv().Store.Product().InsertCategory(pCat); err != nil {
-		a.log.Error(err.Error(), zlog.Err(err))
-		return nil, err
-	}
-	pBrand.SetProductID(product.ID)
-	if err := a.Srv().Store.Product().InsertBrand(pBrand); err != nil {
-		a.log.Error(err.Error(), zlog.Err(err))
-		return nil, err
 	}
 
 	return product, nil

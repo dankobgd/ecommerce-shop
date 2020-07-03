@@ -36,11 +36,6 @@ type ProductBrand struct {
 	UpdatedAt   time.Time `json:"updated_at" db:"updated_at" schema:"-"`
 }
 
-// SetProductID sets product id
-func (pb *ProductBrand) SetProductID(pid int64) {
-	pb.ProductID = pid
-}
-
 // PreSave will fill timestamps and will set productID
 func (pb *ProductBrand) PreSave() {
 	pb.CreatedAt = time.Now()

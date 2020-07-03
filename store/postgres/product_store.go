@@ -28,13 +28,58 @@ func (s PgProductStore) BulkInsert(products []*model.Product) *model.AppErr {
 	return nil
 }
 
-// Save inserts the new user in the db
-func (s PgProductStore) Save(product *model.Product) (*model.Product, *model.AppErr) {
-	q := `INSERT INTO public.product (name, slug, image_url, description, price, stock, sku, is_featured, created_at, updated_at, deleted_at) 
-		VALUES (:name, :slug, :image_url, :description, :price, :stock, :sku, :is_featured, :created_at, :updated_at, :deleted_at) RETURNING id`
+// Save inserts the new product in the db
+func (s PgProductStore) Save(p *model.Product, pt *model.ProductTag, pb *model.ProductBrand, pc *model.ProductCategory) (*model.Product, *model.AppErr) {
+	m := map[string]interface{}{
+		"name":              p.Name,
+		"slug":              p.Slug,
+		"image_url":         p.ImageURL,
+		"description":       p.Description,
+		"price":             p.Price,
+		"stock":             p.Stock,
+		"sku":               p.SKU,
+		"is_featured":       p.IsFeatured,
+		"created_at":        p.CreatedAt,
+		"updated_at":        p.UpdatedAt,
+		"deleted_at":        p.DeletedAt,
+		"tag_name":          pt.Name,
+		"tag_created_at":    pt.CreatedAt,
+		"tag_updated_at":    pt.UpdatedAt,
+		"cat_name":          pc.Name,
+		"cat_slug":          pc.Slug,
+		"cat_description":   pc.Description,
+		"brand_name":        pb.Name,
+		"brand_slug":        pb.Slug,
+		"brand_type":        pb.Type,
+		"brand_description": pb.Description,
+		"brand_website_url": pb.WebsiteURL,
+		"brand_email":       pb.Email,
+		"brand_created_at":  pb.CreatedAt,
+		"brand_updated_at":  pb.UpdatedAt,
+	}
+
+	q := `WITH product_insert AS (
+		INSERT INTO public.product (name, slug, image_url, description, price, stock, sku, is_featured, created_at, updated_at, deleted_at) 
+		VALUES (:name, :slug, :image_url, :description, :price, :stock, :sku, :is_featured, :created_at, :updated_at, :deleted_at) 
+		RETURNING id as product_id
+		),
+		tag_insert AS (
+		INSERT INTO public.product_tag (product_id, name, created_at, updated_at) 
+		VALUES ((SELECT product_id FROM product_insert), :tag_name, :tag_created_at, :tag_updated_at) 
+		RETURNING id
+		), 
+		category_insert AS (
+		INSERT INTO public.product_category (product_id, name, slug, description) 
+		VALUES ((SELECT product_id FROM product_insert), :cat_name, :cat_slug, :cat_description) 
+		RETURNING id
+		) 
+		INSERT INTO public.product_brand (product_id, name, slug, type, description, email, website_url, created_at, updated_at) 
+		VALUES ((SELECT product_id FROM product_insert), :brand_name, :brand_slug, :brand_type, :brand_description, :brand_email, :brand_website_url, :brand_created_at, :brand_updated_at) 
+		RETURNING product_id
+ `
 
 	var id int64
-	rows, err := s.db.NamedQuery(q, product)
+	rows, err := s.db.NamedQuery(q, m)
 	defer rows.Close()
 	if err != nil {
 		return nil, model.NewAppErr("PgProductStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveProduct, http.StatusInternalServerError, nil)
@@ -42,14 +87,16 @@ func (s PgProductStore) Save(product *model.Product) (*model.Product, *model.App
 	for rows.Next() {
 		rows.Scan(&id)
 	}
+
 	if err := rows.Err(); err != nil {
 		if IsUniqueConstraintError(err) {
 			return nil, model.NewAppErr("PgProductStore.Save", model.ErrConflict, locale.GetUserLocalizer("en"), msgUniqueConstraint, http.StatusInternalServerError, nil)
 		}
 		return nil, model.NewAppErr("PgProductStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveProduct, http.StatusInternalServerError, nil)
 	}
-	product.ID = id
-	return product, nil
+
+	p.ID = id
+	return p, nil
 }
 
 // Get gets one product by id
@@ -70,31 +117,4 @@ func (s PgProductStore) Update(id int64, u *model.Product) (*model.Product, *mod
 // Delete ...
 func (s PgProductStore) Delete(id int64) (*model.Product, *model.AppErr) {
 	return &model.Product{}, nil
-}
-
-// InsertTag saves the product tag info
-func (s PgProductStore) InsertTag(tag *model.ProductTag) *model.AppErr {
-	q := `INSERT INTO public.product_tag (product_id, name, created_at, updated_at) VALUES (:product_id, :name, :created_at, :updated_at)`
-	if _, err := s.db.NamedExec(q, tag); err != nil {
-		return model.NewAppErr("PgProduct.InsertTag", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveProduct, http.StatusInternalServerError, nil)
-	}
-	return nil
-}
-
-// InsertCategory saves the product category info
-func (s PgProductStore) InsertCategory(category *model.ProductCategory) *model.AppErr {
-	q := `INSERT INTO public.product_category (product_id, name, slug, description) VALUES (:product_id, :name, :slug, :description)`
-	if _, err := s.db.NamedExec(q, category); err != nil {
-		return model.NewAppErr("PgProduct.InsertCategory", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveProduct, http.StatusInternalServerError, nil)
-	}
-	return nil
-}
-
-// InsertBrand saves the product brand info
-func (s PgProductStore) InsertBrand(brand *model.ProductBrand) *model.AppErr {
-	q := `INSERT INTO public.product_brand (product_id, name, slug, type, description, email, website_url) VALUES (:product_id, :name, :slug, :type, :description, :email, :website_url)`
-	if _, err := s.db.NamedExec(q, brand); err != nil {
-		return model.NewAppErr("PgProduct.InsertBrand", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveProduct, http.StatusInternalServerError, nil)
-	}
-	return nil
 }

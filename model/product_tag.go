@@ -26,11 +26,6 @@ type ProductTag struct {
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at" schema:"-"`
 }
 
-// SetProductID sets product id
-func (pt *ProductTag) SetProductID(pid int64) {
-	pt.ProductID = pid
-}
-
 // PreSave will fill timestamps
 func (pt *ProductTag) PreSave() {
 	pt.CreatedAt = time.Now()

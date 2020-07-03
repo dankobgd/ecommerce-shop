@@ -24,11 +24,6 @@ type ProductCategory struct {
 	Description string `json:"description" db:"description" schema:"category_description"`
 }
 
-// SetProductID sets product id
-func (pc *ProductCategory) SetProductID(pid int64) {
-	pc.ProductID = pid
-}
-
 // Validate validates the user and returns an error if it doesn't pass criteria
 func (pc *ProductCategory) Validate() *AppErr {
 	var errs ValidationErrors

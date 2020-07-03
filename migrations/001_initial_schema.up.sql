@@ -122,6 +122,8 @@ create table public.product_brand (
   description text,
   email text not null,
   website_url text not null,
+  created_at timestamptz not null,
+  updated_at timestamptz not null,
   foreign key (product_id) references public.product (id)
 );
 
