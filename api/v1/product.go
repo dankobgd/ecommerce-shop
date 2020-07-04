@@ -26,24 +26,24 @@ func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var p model.Product
-	var pTag model.ProductTag
-	var pCat model.ProductCategory
-	var pBrand model.ProductBrand
+	var pc model.ProductCategory
+	var pb model.ProductBrand
+	var pt model.ProductTag
 
+	mpf := r.MultipartForm
 	model.SchemaDecoder.IgnoreUnknownKeys(true)
-	hasError := false
-	vals := r.MultipartForm.Value
 
-	if err := model.SchemaDecoder.Decode(&p, vals); err != nil {
+	hasError := false
+	if err := model.SchemaDecoder.Decode(&p, mpf.Value); err != nil {
 		hasError = true
 	}
-	if err := model.SchemaDecoder.Decode(&pTag, vals); err != nil {
+	if err := model.SchemaDecoder.Decode(&pt, mpf.Value); err != nil {
 		hasError = true
 	}
-	if err := model.SchemaDecoder.Decode(&pCat, vals); err != nil {
+	if err := model.SchemaDecoder.Decode(&pc, mpf.Value); err != nil {
 		hasError = true
 	}
-	if err := model.SchemaDecoder.Decode(&pBrand, vals); err != nil {
+	if err := model.SchemaDecoder.Decode(&pb, mpf.Value); err != nil {
 		hasError = true
 	}
 
@@ -52,14 +52,20 @@ func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, header, err := r.FormFile("image")
-	if err != nil {
-		respondError(w, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductFileErr, http.StatusInternalServerError, nil))
-		return
-	}
-	defer file.Close()
+	fh := mpf.File["image"]
+	headers := mpf.File["images"]
 
-	product, productError := a.app.CreateProduct(&p, &pTag, &pCat, &pBrand, file, header)
+	data := &model.ProductCreateData{
+		P:            &p,
+		Brand:        &pb,
+		Cat:          &pc,
+		Tag:          &pt,
+		ImgFH:        fh[0],
+		ImageHeaders: headers,
+		TagNames:     mpf.Value["tag_name"],
+	}
+
+	product, productError := a.app.CreateProduct(data)
 	if productError != nil {
 		respondError(w, productError)
 		return

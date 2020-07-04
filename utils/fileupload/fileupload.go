@@ -1,9 +1,7 @@
 package fileupload
 
 import (
-	"bytes"
-	"fmt"
-	"mime/multipart"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -14,6 +12,8 @@ import (
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
+const baseCloudinaryDir = "ecommerce"
+
 var (
 	msgCloudinaryDial           = &i18n.Message{ID: "cloudinary.dial.app_error", Other: "could not connect to cloudinary service"}
 	msgCloudinaryUploadImage    = &i18n.Message{ID: "cloudinary.upload.image.app_error", Other: "could not upload image"}
@@ -21,22 +21,20 @@ var (
 )
 
 // UploadImageToCloudinary uploads the image and returns the preview url
-func UploadImageToCloudinary(fileBytes []byte, fh *multipart.FileHeader, cloudEnvURI string) (string, *model.AppErr) {
+func UploadImageToCloudinary(data io.Reader, filename string, cloudEnvURI string) (string, *model.AppErr) {
 	cloudinary, err := gocloudinary.Dial(cloudEnvURI)
 	if err != nil {
 		return "", model.NewAppErr("UploadImageToCloudinary", model.ErrInternal, locale.GetUserLocalizer("en"), msgCloudinaryDial, http.StatusInternalServerError, "")
 	}
 
-	imageName := strconv.FormatInt(time.Now().Unix(), 10) + "-" + fh.Filename
-	publicID, err := cloudinary.UploadImage(imageName, bytes.NewBuffer(fileBytes), "ecommerce")
+	imageName := strconv.FormatInt(time.Now().Unix(), 10) + "-" + filename
+	publicID, err := cloudinary.UploadImage(imageName, data, baseCloudinaryDir)
 	if err != nil {
-		fmt.Printf("upload err: %v\n", err)
 		return "", model.NewAppErr("UploadImageToCloudinary", model.ErrInternal, locale.GetUserLocalizer("en"), msgCloudinaryUploadImage, http.StatusInternalServerError, "")
 	}
 
 	details, err := cloudinary.ResourceDetails(publicID)
 	if err != nil {
-		fmt.Printf("resource info err: %v\n", err)
 		return "", model.NewAppErr("UploadImageToCloudinary", model.ErrInternal, locale.GetUserLocalizer("en"), msgCloudinaryRecieveDetails, http.StatusInternalServerError, nil)
 	}
 

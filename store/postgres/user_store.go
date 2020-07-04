@@ -30,7 +30,7 @@ var (
 	msgUpdatePassword   = &i18n.Message{ID: "store.postgres.user.update_password.app_error", Other: "could not update password"}
 )
 
-// BulkInsert inserts multiple users into db
+// BulkInsert inserts multiple users in the db
 func (s PgUserStore) BulkInsert(users []*model.User) *model.AppErr {
 	q := `INSERT INTO public.user(first_name, last_name, username, email, password, role, gender, locale, avatar_url, active, email_verified, failed_attempts, last_login_at, created_at, updated_at, deleted_at) 
 	VALUES(:first_name, :last_name, :username, :email, :password, :role, :gender, :locale, :avatar_url, :active, :email_verified, :failed_attempts, :last_login_at, :created_at, :updated_at, :deleted_at) RETURNING id`

@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"mime/multipart"
 	"time"
 
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
@@ -40,6 +41,17 @@ type Product struct {
 	CreatedAt   time.Time  `json:"created_at" db:"created_at" schema:"-"`
 	UpdatedAt   time.Time  `json:"updated_at" db:"updated_at" schema:"-"`
 	DeletedAt   *time.Time `json:"deleted_at" db:"deleted_at" schema:"-"`
+}
+
+// ProductCreateData is used when creating new products
+type ProductCreateData struct {
+	P            *Product
+	Cat          *ProductCategory
+	Brand        *ProductBrand
+	Tag          *ProductTag
+	TagNames     []string
+	ImgFH        *multipart.FileHeader
+	ImageHeaders []*multipart.FileHeader
 }
 
 // SetImageURL sets the product image url
