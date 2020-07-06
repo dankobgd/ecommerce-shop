@@ -3,7 +3,6 @@ package model
 import (
 	"encoding/json"
 	"io"
-	"mime/multipart"
 	"time"
 
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
@@ -41,17 +40,11 @@ type Product struct {
 	CreatedAt   time.Time  `json:"created_at" db:"created_at" schema:"-"`
 	UpdatedAt   time.Time  `json:"updated_at" db:"updated_at" schema:"-"`
 	DeletedAt   *time.Time `json:"deleted_at" db:"deleted_at" schema:"-"`
-}
 
-// ProductCreateData is used when creating new products
-type ProductCreateData struct {
-	P            *Product
-	Cat          *ProductCategory
-	Brand        *ProductBrand
-	Tag          *ProductTag
-	TagNames     []string
-	ImgFH        *multipart.FileHeader
-	ImageHeaders []*multipart.FileHeader
+	Brand    *ProductBrand
+	Category *ProductCategory
+	Tags     []*ProductTag
+	Images   []*ProductImage
 }
 
 // SetImageURL sets the product image url
@@ -76,6 +69,7 @@ func (p *Product) ToJSON() string {
 func (p *Product) PreSave() {
 	p.CreatedAt = time.Now()
 	p.UpdatedAt = p.CreatedAt
+	p.Brand.PreSave()
 }
 
 // PreUpdate sets the update timestamp
@@ -111,6 +105,13 @@ func (p *Product) Validate() *AppErr {
 	}
 	if p.UpdatedAt.IsZero() {
 		errs.Add(Invalid("updated_at", l, msgValidateProductUpAt))
+	}
+
+	if err := p.Brand.Validate(); err != nil {
+		return err
+	}
+	if err := p.Category.Validate(); err != nil {
+		return err
 	}
 
 	if !errs.IsZero() {

@@ -25,13 +25,13 @@ var (
 // ProductBrand is the brand of the product
 type ProductBrand struct {
 	ID          int64     `json:"id" db:"id" schema:"-"`
-	ProductID   int64     `json:"product_id" db:"product_id" schema:"-"`
-	Name        string    `json:"name" db:"name" schema:"brand_name"`
-	Slug        string    `json:"slug" db:"slug" schema:"brand_slug"`
-	Type        string    `json:"type" db:"type" schema:"brand_type"`
-	Description string    `json:"description" db:"description" schema:"brand_description"`
-	Email       string    `json:"email" db:"email" schema:"brand_email"`
-	WebsiteURL  string    `json:"website_url" db:"website_url" schema:"brand_website_url"`
+	ProductID   int64     `json:"-" db:"product_id" schema:"-"`
+	Name        string    `json:"name" db:"name" schema:"name"`
+	Slug        string    `json:"slug" db:"slug" schema:"slug"`
+	Type        string    `json:"type" db:"type" schema:"type"`
+	Description string    `json:"description" db:"description" schema:"description"`
+	Email       string    `json:"email" db:"email" schema:"email"`
+	WebsiteURL  string    `json:"website_url" db:"website_url" schema:"website_url"`
 	CreatedAt   time.Time `json:"created_at" db:"created_at" schema:"-"`
 	UpdatedAt   time.Time `json:"updated_at" db:"updated_at" schema:"-"`
 }

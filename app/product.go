@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
-	"time"
 
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/utils/fileupload"
@@ -20,11 +20,11 @@ var (
 )
 
 // CreateProduct creates the new product in the system
-func (a *App) CreateProduct(data *model.ProductCreateData) (*model.Product, *model.AppErr) {
-	if data.ImgFH.Size > model.FileUploadSizeLimit {
+func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers []*multipart.FileHeader) (*model.Product, *model.AppErr) {
+	if fh.Size > model.FileUploadSizeLimit {
 		return nil, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductSizeExceeded, http.StatusInternalServerError, nil)
 	}
-	thumbnail, err := data.ImgFH.Open()
+	thumbnail, err := fh.Open()
 	if err != nil {
 		return nil, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductSizeExceeded, http.StatusInternalServerError, nil)
 	}
@@ -33,48 +33,30 @@ func (a *App) CreateProduct(data *model.ProductCreateData) (*model.Product, *mod
 		return nil, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductFileErr, http.StatusInternalServerError, nil)
 	}
 
-	data.P.PreSave()
-	if err := data.P.Validate(); err != nil {
-		return nil, err
-	}
-	data.Tag.PreSave()
-	if err := data.Tag.Validate(); err != nil {
-		return nil, err
-	}
-	data.Brand.PreSave()
-	if err := data.Brand.Validate(); err != nil {
-		return nil, err
-	}
-	if err := data.Cat.Validate(); err != nil {
+	p.PreSave()
+	if err := p.Validate(); err != nil {
 		return nil, err
 	}
 
-	url, uErr := a.UploadProductImage(bytes.NewBuffer(b), data.ImgFH.Filename)
+	url, uErr := a.UploadProductImage(bytes.NewBuffer(b), fh.Filename)
 	if uErr != nil {
 		return nil, uErr
 	}
-	data.P.SetImageURL(url)
+	p.SetImageURL(url)
 
-	product, pErr := a.Srv().Store.Product().Save(data.P, data.Brand, data.Cat)
+	product, pErr := a.Srv().Store.Product().Save(p)
 	if pErr != nil {
 		a.log.Error(err.Error(), zlog.Err(pErr))
 		return nil, pErr
 	}
 
-	var productTags = make([]*model.ProductTag, 0)
-	var productImages = make([]*model.ProductImage, 0)
-
-	for _, tn := range data.TagNames {
-		tag := &model.ProductTag{
-			ProductID: product.ID,
-			Name:      tn,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		}
-		productTags = append(productTags, tag)
+	p.Category.ProductID = product.ID
+	p.Brand.ProductID = product.ID
+	for _, t := range p.Tags {
+		t.ProductID = product.ID
 	}
 
-	for _, fh := range data.ImageHeaders {
+	for _, fh := range headers {
 		f, err := fh.Open()
 		defer f.Close()
 		if err != nil {
@@ -90,20 +72,32 @@ func (a *App) CreateProduct(data *model.ProductCreateData) (*model.Product, *mod
 			return nil, uErr
 		}
 		img := &model.ProductImage{ProductID: product.ID, URL: url}
-		productImages = append(productImages, img)
+		p.Images = append(p.Images, img)
 	}
 
-	if len(productTags) > 0 {
-		if err := a.Srv().Store.Product().BulkInsertTags(productTags); err != nil {
+	if len(p.Tags) > 0 {
+		for _, t := range p.Tags {
+			t.PreSave()
+		}
+
+		tagids, err := a.Srv().Store.Product().BulkInsertTags(p.Tags)
+		if err != nil {
 			a.log.Error(err.Error(), zlog.Err(err))
 			return nil, err
 		}
+		for i, id := range tagids {
+			p.Tags[i].ID = id
+		}
 	}
 
-	if len(productImages) > 0 {
-		if err := a.Srv().Store.Product().BulkInsertImages(productImages); err != nil {
+	if len(p.Images) > 0 {
+		imgids, err := a.Srv().Store.Product().BulkInsertImages(p.Images)
+		if err != nil {
 			a.log.Error(err.Error(), zlog.Err(err))
 			return nil, err
+		}
+		for i, id := range imgids {
+			p.Images[i].ID = id
 		}
 	}
 

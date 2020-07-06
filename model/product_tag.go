@@ -20,8 +20,8 @@ var (
 // ProductTag is the product tag
 type ProductTag struct {
 	ID        int64     `json:"id" db:"id" schema:"-"`
-	ProductID int64     `json:"product_id" db:"product_id" schema:"-"`
-	Name      string    `json:"name" db:"name" schema:"tag_name"`
+	ProductID int64     `json:"-" db:"product_id" schema:"-"`
+	Name      string    `json:"name" db:"name" schema:"name"`
 	CreatedAt time.Time `json:"created_at" db:"created_at" schema:"-"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at" schema:"-"`
 }

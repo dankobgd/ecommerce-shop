@@ -25,47 +25,19 @@ func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var p model.Product
-	var pc model.ProductCategory
-	var pb model.ProductBrand
-	var pt model.ProductTag
-
 	mpf := r.MultipartForm
 	model.SchemaDecoder.IgnoreUnknownKeys(true)
 
-	hasError := false
+	var p model.Product
 	if err := model.SchemaDecoder.Decode(&p, mpf.Value); err != nil {
-		hasError = true
-	}
-	if err := model.SchemaDecoder.Decode(&pt, mpf.Value); err != nil {
-		hasError = true
-	}
-	if err := model.SchemaDecoder.Decode(&pc, mpf.Value); err != nil {
-		hasError = true
-	}
-	if err := model.SchemaDecoder.Decode(&pb, mpf.Value); err != nil {
-		hasError = true
-	}
-
-	if hasError {
 		respondError(w, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductMultipart, http.StatusInternalServerError, nil))
 		return
 	}
 
-	fh := mpf.File["image"]
+	fh := mpf.File["image"][0]
 	headers := mpf.File["images"]
 
-	data := &model.ProductCreateData{
-		P:            &p,
-		Brand:        &pb,
-		Cat:          &pc,
-		Tag:          &pt,
-		ImgFH:        fh[0],
-		ImageHeaders: headers,
-		TagNames:     mpf.Value["tag_name"],
-	}
-
-	product, productError := a.app.CreateProduct(data)
+	product, productError := a.app.CreateProduct(&p, fh, headers)
 	if productError != nil {
 		respondError(w, productError)
 		return

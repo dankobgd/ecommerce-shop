@@ -18,10 +18,10 @@ var (
 // ProductCategory is the category of the product
 type ProductCategory struct {
 	ID          int64  `json:"id" db:"id" schema:"-"`
-	ProductID   int64  `json:"product_id" db:"product_id" schema:"-"`
-	Name        string `json:"name" db:"name" schema:"category_name"`
-	Slug        string `json:"slug" db:"slug" schema:"category_slug"`
-	Description string `json:"description" db:"description" schema:"category_description"`
+	ProductID   int64  `json:"-" db:"product_id" schema:"-"`
+	Name        string `json:"name" db:"name" schema:"name"`
+	Slug        string `json:"slug" db:"slug" schema:"slug"`
+	Description string `json:"description" db:"description" schema:"description"`
 }
 
 // Validate validates the user and returns an error if it doesn't pass criteria

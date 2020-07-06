@@ -43,12 +43,13 @@ type TokenStore interface {
 
 // ProductStore is the product store
 type ProductStore interface {
-	Save(p *model.Product, pb *model.ProductBrand, pc *model.ProductCategory) (*model.Product, *model.AppErr)
+	BulkInsert([]*model.Product) *model.AppErr
+	Save(p *model.Product) (*model.Product, *model.AppErr)
 	Get(id int64) (*model.Product, *model.AppErr)
 	GetAll() ([]*model.Product, *model.AppErr)
 	Update(id int64, u *model.Product) (*model.Product, *model.AppErr)
 	Delete(id int64) (*model.Product, *model.AppErr)
-	BulkInsert([]*model.Product) *model.AppErr
-	BulkInsertImages([]*model.ProductImage) *model.AppErr
-	BulkInsertTags([]*model.ProductTag) *model.AppErr
+
+	BulkInsertImages([]*model.ProductImage) ([]int64, *model.AppErr)
+	BulkInsertTags([]*model.ProductTag) ([]int64, *model.AppErr)
 }

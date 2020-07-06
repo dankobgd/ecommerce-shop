@@ -42,7 +42,7 @@ create table public.user (
   active bool not null,
   email_verified bool default false not null,
   failed_attempts int default 0 not null,
-  last_login_at timestamptz,
+  last_login_at timestamptz not null,
   created_at timestamptz not null,
   updated_at timestamptz not null,
   deleted_at timestamptz
