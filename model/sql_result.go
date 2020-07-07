@@ -2,8 +2,6 @@ package model
 
 import (
 	"time"
-
-	"github.com/jmoiron/sqlx/types"
 )
 
 // ProductSQL ...
@@ -23,8 +21,6 @@ type ProductSQL struct {
 
 	*BrandSQL
 	*CategorySQL
-	Tags   types.JSONText `db:"tags"`
-	images types.JSONText `db:"images"`
 }
 
 // BrandSQL ...

@@ -49,14 +49,14 @@ type Product struct {
 
 // ProductPatch is the product patch model
 type ProductPatch struct {
-	Name        *string `json:"name" db:"name"`
-	Slug        *string `json:"slug" db:"slug"`
-	ImageURL    *string `json:"image_url" db:"image_url"`
-	Description *string `json:"description" db:"description"`
-	Price       *int    `json:"price" db:"price"`
-	Stock       *int    `json:"stock" db:"stock"`
-	SKU         *string `json:"sku" db:"sku"`
-	IsFeatured  *bool   `json:"is_featured" db:"is_featured"`
+	Name        *string `json:"name"`
+	Slug        *string `json:"slug"`
+	ImageURL    *string `json:"image_url"`
+	Description *string `json:"description"`
+	Price       *int    `json:"price"`
+	Stock       *int    `json:"stock"`
+	SKU         *string `json:"sku"`
+	IsFeatured  *bool   `json:"is_featured"`
 }
 
 // Patch patches the product fields that are provided
