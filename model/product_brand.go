@@ -24,16 +24,16 @@ var (
 
 // ProductBrand is the brand of the product
 type ProductBrand struct {
-	ID          int64     `json:"id" db:"id" schema:"-"`
-	ProductID   int64     `json:"-" db:"product_id" schema:"-"`
-	Name        string    `json:"name" db:"name" schema:"name"`
-	Slug        string    `json:"slug" db:"slug" schema:"slug"`
-	Type        string    `json:"type" db:"type" schema:"type"`
-	Description string    `json:"description" db:"description" schema:"description"`
-	Email       string    `json:"email" db:"email" schema:"email"`
-	WebsiteURL  string    `json:"website_url" db:"website_url" schema:"website_url"`
-	CreatedAt   time.Time `json:"created_at" db:"created_at" schema:"-"`
-	UpdatedAt   time.Time `json:"updated_at" db:"updated_at" schema:"-"`
+	ID          int64     `json:"id" db:"brand_id" schema:"-"`
+	ProductID   int64     `json:"-" db:"brand_product_id" schema:"-"`
+	Name        string    `json:"name" db:"brand_name" schema:"name"`
+	Slug        string    `json:"slug" db:"brand_slug" schema:"slug"`
+	Type        string    `json:"type" db:"brand_type" schema:"type"`
+	Description string    `json:"description" db:"brand_description" schema:"description"`
+	Email       string    `json:"email" db:"brand_email" schema:"email"`
+	WebsiteURL  string    `json:"website_url" db:"brand_website_url" schema:"website_url"`
+	CreatedAt   time.Time `json:"created_at" db:"brand_created_at" schema:"-"`
+	UpdatedAt   time.Time `json:"updated_at" db:"brand_updated_at" schema:"-"`
 }
 
 // PreSave will fill timestamps and will set productID

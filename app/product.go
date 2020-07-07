@@ -80,7 +80,7 @@ func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers 
 			t.PreSave()
 		}
 
-		tagids, err := a.Srv().Store.Product().BulkInsertTags(p.Tags)
+		tagids, err := a.Srv().Store.ProductTag().BulkInsert(p.Tags)
 		if err != nil {
 			a.log.Error(err.Error(), zlog.Err(err))
 			return nil, err
@@ -91,7 +91,7 @@ func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers 
 	}
 
 	if len(p.Images) > 0 {
-		imgids, err := a.Srv().Store.Product().BulkInsertImages(p.Images)
+		imgids, err := a.Srv().Store.ProductImage().BulkInsert(p.Images)
 		if err != nil {
 			a.log.Error(err.Error(), zlog.Err(err))
 			return nil, err
@@ -102,6 +102,23 @@ func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers 
 	}
 
 	return product, nil
+}
+
+// PatchProduct patches the product
+func (a *App) PatchProduct(pid int64, patch *model.ProductPatch) (*model.Product, *model.AppErr) {
+	old, err := a.Srv().Store.Product().Get(pid)
+	if err != nil {
+		return nil, err
+	}
+
+	old.Patch(patch)
+	old.PreUpdate()
+	uprod, err := a.Srv().Store.Product().Update(pid, old)
+	if err != nil {
+		return nil, err
+	}
+
+	return uprod, nil
 }
 
 func (a *App) uploadImageToCloudinary(data io.Reader, filename string) (string, *model.AppErr) {

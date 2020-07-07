@@ -27,7 +27,17 @@ func (s *Supplier) Token() store.TokenStore {
 	return postgres.NewPgTokenStore(s.Pgst)
 }
 
-// Product returns the Product store implementation
+// Product returns the Product tag store implementation
 func (s *Supplier) Product() store.ProductStore {
 	return postgres.NewPgProductStore(s.Pgst)
+}
+
+// ProductTag returns the Product store implementation
+func (s *Supplier) ProductTag() store.ProductTagStore {
+	return postgres.NewPgProductTagStore(s.Pgst)
+}
+
+// ProductImage returns the Product image store implementation
+func (s *Supplier) ProductImage() store.ProductImageStore {
+	return postgres.NewPgProductImageStore(s.Pgst)
 }

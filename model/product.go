@@ -41,10 +41,57 @@ type Product struct {
 	UpdatedAt   time.Time  `json:"updated_at" db:"updated_at" schema:"-"`
 	DeletedAt   *time.Time `json:"deleted_at" db:"deleted_at" schema:"-"`
 
-	Brand    *ProductBrand
-	Category *ProductCategory
-	Tags     []*ProductTag
-	Images   []*ProductImage
+	Brand    *ProductBrand    `json:"brand"`
+	Category *ProductCategory `json:"category"`
+	Tags     []*ProductTag    `json:"tags"`
+	Images   []*ProductImage  `json:"images"`
+}
+
+// ProductPatch is the product patch model
+type ProductPatch struct {
+	Name        *string `json:"name" db:"name"`
+	Slug        *string `json:"slug" db:"slug"`
+	ImageURL    *string `json:"image_url" db:"image_url"`
+	Description *string `json:"description" db:"description"`
+	Price       *int    `json:"price" db:"price"`
+	Stock       *int    `json:"stock" db:"stock"`
+	SKU         *string `json:"sku" db:"sku"`
+	IsFeatured  *bool   `json:"is_featured" db:"is_featured"`
+}
+
+// Patch patches the product fields that are provided
+func (p *Product) Patch(patch *ProductPatch) {
+	if patch.Name != nil {
+		p.Name = *patch.Name
+	}
+	if patch.Slug != nil {
+		p.Slug = *patch.Slug
+	}
+	if patch.ImageURL != nil {
+		p.ImageURL = *patch.ImageURL
+	}
+	if patch.Description != nil {
+		p.Description = *patch.Description
+	}
+	if patch.Price != nil {
+		p.Price = *patch.Price
+	}
+	if patch.Stock != nil {
+		p.Stock = *patch.Stock
+	}
+	if patch.SKU != nil {
+		p.SKU = *patch.SKU
+	}
+	if patch.IsFeatured != nil {
+		p.IsFeatured = *patch.IsFeatured
+	}
+}
+
+// ProductPatchFromJSON decodes the input and returns the ProductPatch
+func ProductPatchFromJSON(data io.Reader) (*ProductPatch, error) {
+	var pp *ProductPatch
+	err := json.NewDecoder(data).Decode(&pp)
+	return pp, err
 }
 
 // SetImageURL sets the product image url
@@ -52,7 +99,7 @@ func (p *Product) SetImageURL(url string) {
 	p.ImageURL = url
 }
 
-// ProductFromJSON decodes the input and return the Product
+// ProductFromJSON decodes the input and returns the Product
 func ProductFromJSON(data io.Reader) (*Product, error) {
 	var p *Product
 	err := json.NewDecoder(data).Decode(&p)

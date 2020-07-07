@@ -10,6 +10,8 @@ type Store interface {
 	User() UserStore
 	Token() TokenStore
 	Product() ProductStore
+	ProductTag() ProductTagStore
+	ProductImage() ProductImageStore
 }
 
 // UserStore ris the user store
@@ -49,7 +51,14 @@ type ProductStore interface {
 	GetAll() ([]*model.Product, *model.AppErr)
 	Update(id int64, u *model.Product) (*model.Product, *model.AppErr)
 	Delete(id int64) (*model.Product, *model.AppErr)
+}
 
-	BulkInsertImages([]*model.ProductImage) ([]int64, *model.AppErr)
-	BulkInsertTags([]*model.ProductTag) ([]int64, *model.AppErr)
+// ProductTagStore is the product tag store
+type ProductTagStore interface {
+	BulkInsert([]*model.ProductTag) ([]int64, *model.AppErr)
+}
+
+// ProductImageStore is the product image store
+type ProductImageStore interface {
+	BulkInsert([]*model.ProductImage) ([]int64, *model.AppErr)
 }
