@@ -186,3 +186,8 @@ func (a *App) createTokenAndPersist(userID int64, tokenType model.TokenType, exp
 	}
 	return token, nil
 }
+
+// DeleteUser soft deletes the user account
+func (a *App) DeleteUser(id int64) *model.AppErr {
+	return a.Srv().Store.User().Delete(id)
+}

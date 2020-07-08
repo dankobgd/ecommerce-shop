@@ -2,9 +2,11 @@ package apiv1
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/go-chi/chi"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -14,6 +16,7 @@ var (
 	msgRefreshTokenFromJSON = &i18n.Message{ID: "api.user.create_user.json.app_error", Other: "could not decode token json data"}
 	msgInvalidEmail         = &i18n.Message{ID: "api.sendUserVerificationEmail.email.app_error", Other: "invalid email provided"}
 	msgInvalidPassword      = &i18n.Message{ID: "api.resetUserPassword.password.app_error", Other: "invalid password provided"}
+	msgUserURLParams        = &i18n.Message{ID: "api.deleteUser.app_error", Other: "invalid user_id url param"}
 )
 
 // InitUser inits the user routes
@@ -26,6 +29,7 @@ func InitUser(a *API) {
 	a.BaseRoutes.Users.Post("/email/verify/send", a.sendVerificationEmail)
 	a.BaseRoutes.Users.Post("/password/reset", a.resetUserPassword)
 	a.BaseRoutes.Users.Post("/password/reset/send", a.sendPasswordResetEmail)
+	a.BaseRoutes.User.Delete("/", a.deleteUser)
 
 	a.BaseRoutes.Users.Get("/protected", a.AuthRequired(a.protected))
 }
@@ -197,6 +201,20 @@ func (a *API) resetUserPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.app.ResetUserPassword(token, oldPassword, newPassword); err != nil {
+		respondError(w, err)
+		return
+	}
+	respondOK(w)
+}
+
+func (a *API) deleteUser(w http.ResponseWriter, r *http.Request) {
+	uid, err := strconv.ParseInt(chi.URLParam(r, "user_id"), 10, 64)
+	if err != nil {
+		respondError(w, model.NewAppErr("deleteUser", model.ErrInternal, locale.GetUserLocalizer("en"), msgUserURLParams, http.StatusInternalServerError, nil))
+		return
+	}
+
+	if err := a.app.DeleteUser(uid); err != nil {
 		respondError(w, err)
 		return
 	}

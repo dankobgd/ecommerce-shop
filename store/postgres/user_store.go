@@ -28,6 +28,7 @@ var (
 	msgVerifyEmail      = &i18n.Message{ID: "store.postgres.user.verify_email.app_error", Other: "could not verify email"}
 	msgDeleteToken      = &i18n.Message{ID: "store.postgres.user.verify_email.delete_token.app_error", Other: "could not delete verify token"}
 	msgUpdatePassword   = &i18n.Message{ID: "store.postgres.user.update_password.app_error", Other: "could not update password"}
+	msgDeleteUser       = &i18n.Message{ID: "store.postgres.user.delete.app_error", Other: "could not delete user"}
 )
 
 // BulkInsert inserts multiple users in the db
@@ -111,7 +112,11 @@ func (s PgUserStore) Update(id int64, u *model.User) (*model.User, *model.AppErr
 	return &model.User{}, nil
 }
 
-// Delete ...
-func (s PgUserStore) Delete(id int64) (*model.User, *model.AppErr) {
-	return &model.User{}, nil
+// Delete soft deletes the user
+func (s PgUserStore) Delete(id int64) *model.AppErr {
+	m := map[string]interface{}{"id": id, "deleted_at": time.Now()}
+	if _, err := s.db.NamedExec("UPDATE public.user SET deleted_at = :deleted_at WHERE id = :id", m); err != nil {
+		return model.NewAppErr("PgUserStore.Delete", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteUser, http.StatusInternalServerError, nil)
+	}
+	return nil
 }
