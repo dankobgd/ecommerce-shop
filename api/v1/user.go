@@ -29,6 +29,7 @@ func InitUser(a *API) {
 	a.BaseRoutes.Users.Post("/email/verify/send", a.sendVerificationEmail)
 	a.BaseRoutes.Users.Post("/password/reset", a.resetUserPassword)
 	a.BaseRoutes.Users.Post("/password/reset/send", a.sendPasswordResetEmail)
+	a.BaseRoutes.User.Get("/", a.getUser)
 	a.BaseRoutes.User.Delete("/", a.deleteUser)
 
 	a.BaseRoutes.Users.Get("/protected", a.AuthRequired(a.protected))
@@ -207,9 +208,24 @@ func (a *API) resetUserPassword(w http.ResponseWriter, r *http.Request) {
 	respondOK(w)
 }
 
-func (a *API) deleteUser(w http.ResponseWriter, r *http.Request) {
-	uid, err := strconv.ParseInt(chi.URLParam(r, "user_id"), 10, 64)
+func (a *API) getUser(w http.ResponseWriter, r *http.Request) {
+	uid, e := strconv.ParseInt(chi.URLParam(r, "user_id"), 10, 64)
+	if e != nil {
+		respondError(w, model.NewAppErr("getUser", model.ErrInternal, locale.GetUserLocalizer("en"), msgUserURLParams, http.StatusInternalServerError, nil))
+		return
+	}
+
+	user, err := a.app.GetUserByID(uid)
 	if err != nil {
+		respondError(w, err)
+		return
+	}
+	respondJSON(w, http.StatusOK, user)
+}
+
+func (a *API) deleteUser(w http.ResponseWriter, r *http.Request) {
+	uid, e := strconv.ParseInt(chi.URLParam(r, "user_id"), 10, 64)
+	if e != nil {
 		respondError(w, model.NewAppErr("deleteUser", model.ErrInternal, locale.GetUserLocalizer("en"), msgUserURLParams, http.StatusInternalServerError, nil))
 		return
 	}

@@ -141,7 +141,7 @@ func (a *App) ResetUserPassword(tokenString, oldPassword, newPassword string) *m
 		return model.NewAppErr("app.ResetUserPassword", model.ErrInternal, locale.GetUserLocalizer("en"), msgTokenExpired, http.StatusInternalServerError, nil)
 	}
 
-	user, err := a.Srv().Store.User().Get(token.UserID)
+	user, err := a.GetUserByID(token.UserID)
 	if err != nil {
 		return err
 	}

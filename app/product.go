@@ -121,6 +121,7 @@ func (a *App) PatchProduct(pid int64, patch *model.ProductPatch) (*model.Product
 	return uprod, nil
 }
 
+// DeleteProduct hard deletes the product from the db
 func (a *App) DeleteProduct(pid int64) *model.AppErr {
 	return a.Srv().Store.Product().Delete(pid)
 }

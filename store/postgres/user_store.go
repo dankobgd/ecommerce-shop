@@ -24,7 +24,7 @@ var (
 	msgUniqueConstraint = &i18n.Message{ID: "store.postgres.user.save.unique_constraint.app_error", Other: "invalid credentials"}
 	msgSaveUser         = &i18n.Message{ID: "store.postgres.user.save.app_error", Other: "could not save user to db"}
 	msgBulkInsertUsers  = &i18n.Message{ID: "store.postgres.user.bulk.insert.app_error", Other: "could not bulk insert users"}
-	msgGetUser          = &i18n.Message{ID: "store.postgres.user.login.app_error", Other: "could not get the user from db"}
+	msgGetUser          = &i18n.Message{ID: "store.postgres.user.get.app_error", Other: "could not get the user from db"}
 	msgVerifyEmail      = &i18n.Message{ID: "store.postgres.user.verify_email.app_error", Other: "could not verify email"}
 	msgDeleteToken      = &i18n.Message{ID: "store.postgres.user.verify_email.delete_token.app_error", Other: "could not delete verify token"}
 	msgUpdatePassword   = &i18n.Message{ID: "store.postgres.user.update_password.app_error", Other: "could not update password"}
@@ -69,8 +69,17 @@ func (s PgUserStore) Save(user *model.User) (*model.User, *model.AppErr) {
 // Get gets one user by id
 func (s PgUserStore) Get(id int64) (*model.User, *model.AppErr) {
 	var user model.User
-	if err := s.db.Get(&user, "SELECT * FROM public.user where id = $1", id); err != nil {
+	if err := s.db.Get(&user, "SELECT * FROM public.user WHERE id = $1 AND deleted_at IS NULL", id); err != nil {
 		return nil, model.NewAppErr("PgUserStore.Get", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetUser, http.StatusInternalServerError, nil)
+	}
+	return &user, nil
+}
+
+// GetByEmail gets one user by email
+func (s PgUserStore) GetByEmail(email string) (*model.User, *model.AppErr) {
+	var user model.User
+	if err := s.db.Get(&user, "SELECT * FROM public.user WHERE email = $1 AND deleted_at IS NULL", email); err != nil {
+		return nil, model.NewAppErr("PgUserStore.GetByEmail", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetUser, http.StatusInternalServerError, nil)
 	}
 	return &user, nil
 }
@@ -78,15 +87,6 @@ func (s PgUserStore) Get(id int64) (*model.User, *model.AppErr) {
 // GetAll returns all users
 func (s PgUserStore) GetAll() ([]*model.User, *model.AppErr) {
 	return []*model.User{}, nil
-}
-
-// GetByEmail gets one user by email
-func (s PgUserStore) GetByEmail(email string) (*model.User, *model.AppErr) {
-	var user model.User
-	if err := s.db.Get(&user, "SELECT * FROM public.user where email = $1", email); err != nil {
-		return nil, model.NewAppErr("PgUserStore.GetByEmail", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetUser, http.StatusInternalServerError, nil)
-	}
-	return &user, nil
 }
 
 // VerifyEmail updates the email_verified field
