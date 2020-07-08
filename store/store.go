@@ -50,7 +50,7 @@ type ProductStore interface {
 	Get(id int64) (*model.Product, *model.AppErr)
 	GetAll() ([]*model.Product, *model.AppErr)
 	Update(id int64, u *model.Product) (*model.Product, *model.AppErr)
-	Delete(id int64) (*model.Product, *model.AppErr)
+	Delete(id int64) *model.AppErr
 }
 
 // ProductTagStore is the product tag store

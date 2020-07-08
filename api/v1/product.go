@@ -23,6 +23,7 @@ func InitProducts(a *API) {
 	a.BaseRoutes.Products.Post("/", a.createProduct)
 	a.BaseRoutes.Products.Get("/", a.getProducts)
 	a.BaseRoutes.Product.Patch("/", a.patchProduct)
+	a.BaseRoutes.Product.Delete("/", a.deleteProduct)
 }
 
 func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
@@ -73,4 +74,18 @@ func (a *API) patchProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondJSON(w, http.StatusOK, uprod)
+}
+
+func (a *API) deleteProduct(w http.ResponseWriter, r *http.Request) {
+	pid, err := strconv.ParseInt(chi.URLParam(r, "product_id"), 10, 64)
+	if err != nil {
+		respondError(w, model.NewAppErr("deleteProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductURLParams, http.StatusInternalServerError, nil))
+		return
+	}
+	if err := a.app.DeleteProduct(pid); err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondOK(w)
 }

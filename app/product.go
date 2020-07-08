@@ -121,6 +121,10 @@ func (a *App) PatchProduct(pid int64, patch *model.ProductPatch) (*model.Product
 	return uprod, nil
 }
 
+func (a *App) DeleteProduct(pid int64) *model.AppErr {
+	return a.Srv().Store.Product().Delete(pid)
+}
+
 func (a *App) uploadImageToCloudinary(data io.Reader, filename string) (string, *model.AppErr) {
 	return fileupload.UploadImageToCloudinary(data, filename, a.Cfg().CloudinarySettings.EnvURI)
 }

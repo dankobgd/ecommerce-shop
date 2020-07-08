@@ -28,18 +28,17 @@ var (
 
 // Product represents the shop product model
 type Product struct {
-	ID          int64      `json:"id" db:"id" schema:"-"`
-	Name        string     `json:"name" db:"name" schema:"name"`
-	Slug        string     `json:"slug" db:"slug" schema:"slug"`
-	ImageURL    string     `json:"image_url" db:"image_url" schema:"-"`
-	Description string     `json:"description" db:"description" schema:"description"`
-	Price       int        `json:"price" db:"price" schema:"price"`
-	Stock       int        `json:"stock" db:"stock" schema:"stock"`
-	SKU         string     `json:"sku" db:"sku" schema:"sku"`
-	IsFeatured  bool       `json:"is_featured" db:"is_featured" schema:"is_featured"`
-	CreatedAt   time.Time  `json:"created_at" db:"created_at" schema:"-"`
-	UpdatedAt   time.Time  `json:"updated_at" db:"updated_at" schema:"-"`
-	DeletedAt   *time.Time `json:"deleted_at" db:"deleted_at" schema:"-"`
+	ID          int64     `json:"id" db:"id" schema:"-"`
+	Name        string    `json:"name" db:"name" schema:"name"`
+	Slug        string    `json:"slug" db:"slug" schema:"slug"`
+	ImageURL    string    `json:"image_url" db:"image_url" schema:"-"`
+	Description string    `json:"description" db:"description" schema:"description"`
+	Price       int       `json:"price" db:"price" schema:"price"`
+	Stock       int       `json:"stock" db:"stock" schema:"stock"`
+	SKU         string    `json:"sku" db:"sku" schema:"sku"`
+	IsFeatured  bool      `json:"is_featured" db:"is_featured" schema:"is_featured"`
+	CreatedAt   time.Time `json:"created_at" db:"created_at" schema:"-"`
+	UpdatedAt   time.Time `json:"updated_at" db:"updated_at" schema:"-"`
 
 	Brand    *ProductBrand    `json:"brand"`
 	Category *ProductCategory `json:"category"`

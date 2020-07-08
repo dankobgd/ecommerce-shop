@@ -25,12 +25,13 @@ var (
 	msgSaveProduct        = &i18n.Message{ID: "store.postgres.product.save.app_error", Other: "could not save product to db"}
 	msgGetProduct         = &i18n.Message{ID: "store.postgres.product.get.app_error", Other: "could not get product from db"}
 	msgUpdateProduct      = &i18n.Message{ID: "store.postgres.product.update.app_error", Other: "could not update product"}
+	msgDeleteProduct      = &i18n.Message{ID: "store.postgres.product.delete.app_error", Other: "could not delete product"}
 )
 
 // BulkInsert inserts multiple products into db
 func (s PgProductStore) BulkInsert(products []*model.Product) *model.AppErr {
-	q := `INSERT INTO public.product (name, slug, image_url, description, price, stock, sku, is_featured, created_at, updated_at, deleted_at)
-	VALUES (:name, :slug, :image_url, :description, :price, :stock, :sku, :is_featured, :created_at, :updated_at, :deleted_at)`
+	q := `INSERT INTO public.product (name, slug, image_url, description, price, stock, sku, is_featured, created_at, updated_at)
+	VALUES (:name, :slug, :image_url, :description, :price, :stock, :sku, :is_featured, :created_at, :updated_at)`
 
 	if _, err := s.db.NamedExec(q, products); err != nil {
 		return model.NewAppErr("PgProductStore.BulkInsert", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkInsertProducts, http.StatusInternalServerError, nil)
@@ -51,7 +52,6 @@ func (s PgProductStore) Save(p *model.Product) (*model.Product, *model.AppErr) {
 		"is_featured":       p.IsFeatured,
 		"created_at":        p.CreatedAt,
 		"updated_at":        p.UpdatedAt,
-		"deleted_at":        p.DeletedAt,
 		"cat_name":          p.Category.Name,
 		"cat_slug":          p.Category.Slug,
 		"cat_description":   p.Category.Description,
@@ -66,8 +66,8 @@ func (s PgProductStore) Save(p *model.Product) (*model.Product, *model.AppErr) {
 	}
 
 	q := `WITH prod_ins AS (
-		INSERT INTO public.product (name, slug, image_url, description, price, stock, sku, is_featured, created_at, updated_at, deleted_at)
-		VALUES (:name, :slug, :image_url, :description, :price, :stock, :sku, :is_featured, :created_at, :updated_at, :deleted_at)
+		INSERT INTO public.product (name, slug, image_url, description, price, stock, sku, is_featured, created_at, updated_at)
+		VALUES (:name, :slug, :image_url, :description, :price, :stock, :sku, :is_featured, :created_at, :updated_at)
 		RETURNING id as pid
 		),
 		cat_ins AS (
@@ -159,15 +159,18 @@ func (s PgProductStore) GetAll() ([]*model.Product, *model.AppErr) {
 
 // Update updates the product
 func (s PgProductStore) Update(id int64, p *model.Product) (*model.Product, *model.AppErr) {
-	q := `UPDATE public.product SET name=:name, slug=:slug, image_url=:image_url, description=:description, price=:price, stock=:stock, sku=:sku, is_featured=:is_featured, created_at=:created_at, updated_at=:updated_at, deleted_at=:deleted_at WHERE id=:id`
+	q := `UPDATE public.product SET name=:name, slug=:slug, image_url=:image_url, description=:description, price=:price, stock=:stock, sku=:sku, is_featured=:is_featured, created_at=:created_at, updated_at=:updated_at WHERE id=:id`
 	if _, err := s.db.NamedExec(q, p); err != nil {
-		fmt.Printf("SQL UPDATE ERR: %v\n", err)
 		return nil, model.NewAppErr("PgProductStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateProduct, http.StatusInternalServerError, nil)
 	}
 	return p, nil
 }
 
 // Delete ...
-func (s PgProductStore) Delete(id int64) (*model.Product, *model.AppErr) {
-	return &model.Product{}, nil
+func (s PgProductStore) Delete(id int64) *model.AppErr {
+	m := map[string]interface{}{"id": id}
+	if _, err := s.db.NamedExec(`DELETE FROM public.product WHERE id = :id`, m); err != nil {
+		return model.NewAppErr("PgProductStore.Delete", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteProduct, http.StatusInternalServerError, nil)
+	}
+	return nil
 }

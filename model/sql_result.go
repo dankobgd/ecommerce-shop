@@ -6,18 +6,17 @@ import (
 
 // ProductSQL ...
 type ProductSQL struct {
-	ID          int64      `db:"id"`
-	Name        string     `db:"name"`
-	Slug        string     `db:"slug"`
-	ImageURL    string     `db:"image_url"`
-	Description string     `db:"description"`
-	Price       int        `db:"price"`
-	Stock       int        `db:"stock"`
-	SKU         string     `db:"sku"`
-	IsFeatured  bool       `db:"is_featured"`
-	CreatedAt   time.Time  `db:"created_at"`
-	UpdatedAt   time.Time  `db:"updated_at"`
-	DeletedAt   *time.Time `db:"deleted_at"`
+	ID          int64     `db:"id"`
+	Name        string    `db:"name"`
+	Slug        string    `db:"slug"`
+	ImageURL    string    `db:"image_url"`
+	Description string    `db:"description"`
+	Price       int       `db:"price"`
+	Stock       int       `db:"stock"`
+	SKU         string    `db:"sku"`
+	IsFeatured  bool      `db:"is_featured"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
 
 	*BrandSQL
 	*CategorySQL
@@ -60,7 +59,6 @@ func (psql *ProductSQL) ToProduct() *Product {
 		IsFeatured:  psql.IsFeatured,
 		CreatedAt:   psql.CreatedAt,
 		UpdatedAt:   psql.UpdatedAt,
-		DeletedAt:   psql.DeletedAt,
 		Brand: &ProductBrand{
 			ID:          psql.BID,
 			ProductID:   psql.BProductID,

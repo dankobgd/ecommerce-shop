@@ -83,8 +83,7 @@ create table public.product (
   sku text not null,
   is_featured bool default false not null,
   created_at timestamptz not null,
-  updated_at timestamptz not null,
-  deleted_at timestamptz
+  updated_at timestamptz not null
 );
 
 create table public.product_info (
@@ -100,8 +99,8 @@ create table public.product_category (
   name varchar(50),
   slug varchar(50),
   description text,
-  foreign key (product_id) references public.product (id),
-  foreign key (name) references public.category (name) on delete cascade
+  foreign key (name) references public.category (name),
+  foreign key (product_id) references public.product (id) on delete cascade
 );
 
 create table public.product_tag (
@@ -110,7 +109,7 @@ create table public.product_tag (
   name varchar(255) not null,
   created_at timestamptz not null,
   updated_at timestamptz not null,
-  foreign key (product_id) references public.product (id)
+  foreign key (product_id) references public.product (id) on delete cascade
 );
 
 create table public.product_brand (
@@ -124,14 +123,14 @@ create table public.product_brand (
   website_url text not null,
   created_at timestamptz not null,
   updated_at timestamptz not null,
-  foreign key (product_id) references public.product (id)
+  foreign key (product_id) references public.product (id) on delete cascade
 );
 
 create table public.product_image (
   id int generated always as identity primary key,
   product_id int not null,
   url text not null,
-  foreign key (product_id) references public.product (id)
+  foreign key (product_id) references public.product (id) on delete cascade
 );
 
 create table public.product_discount (
@@ -142,7 +141,7 @@ create table public.product_discount (
   description text,
   starts_at timestamptz,
   ends_at timestamptz,
-  foreign key (product_id) references public.product (id)
+  foreign key (product_id) references public.product (id) on delete cascade
 );
 
 create table public.related_product (
