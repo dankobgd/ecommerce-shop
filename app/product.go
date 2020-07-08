@@ -46,7 +46,7 @@ func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers 
 
 	product, pErr := a.Srv().Store.Product().Save(p)
 	if pErr != nil {
-		a.log.Error(err.Error(), zlog.Err(pErr))
+		a.log.Error(pErr.Error(), zlog.Err(pErr))
 		return nil, pErr
 	}
 

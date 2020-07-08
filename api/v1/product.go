@@ -44,9 +44,9 @@ func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
 	fh := mpf.File["image"][0]
 	headers := mpf.File["images"]
 
-	product, productError := a.app.CreateProduct(&p, fh, headers)
-	if productError != nil {
-		respondError(w, productError)
+	product, pErr := a.app.CreateProduct(&p, fh, headers)
+	if pErr != nil {
+		respondError(w, pErr)
 		return
 	}
 	respondJSON(w, http.StatusCreated, product)

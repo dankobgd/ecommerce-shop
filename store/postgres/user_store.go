@@ -21,14 +21,14 @@ func NewPgUserStore(pgst *PgStore) store.UserStore {
 }
 
 var (
-	msgUniqueConstraint = &i18n.Message{ID: "store.postgres.user.save.unique_constraint.app_error", Other: "invalid credentials"}
-	msgSaveUser         = &i18n.Message{ID: "store.postgres.user.save.app_error", Other: "could not save user to db"}
-	msgBulkInsertUsers  = &i18n.Message{ID: "store.postgres.user.bulk.insert.app_error", Other: "could not bulk insert users"}
-	msgGetUser          = &i18n.Message{ID: "store.postgres.user.get.app_error", Other: "could not get the user from db"}
-	msgVerifyEmail      = &i18n.Message{ID: "store.postgres.user.verify_email.app_error", Other: "could not verify email"}
-	msgDeleteToken      = &i18n.Message{ID: "store.postgres.user.verify_email.delete_token.app_error", Other: "could not delete verify token"}
-	msgUpdatePassword   = &i18n.Message{ID: "store.postgres.user.update_password.app_error", Other: "could not update password"}
-	msgDeleteUser       = &i18n.Message{ID: "store.postgres.user.delete.app_error", Other: "could not delete user"}
+	msgUniqueConstraintUser = &i18n.Message{ID: "store.postgres.user.save.unique_constraint.app_error", Other: "invalid credentials"}
+	msgSaveUser             = &i18n.Message{ID: "store.postgres.user.save.app_error", Other: "could not save user to db"}
+	msgBulkInsertUsers      = &i18n.Message{ID: "store.postgres.user.bulk.insert.app_error", Other: "could not bulk insert users"}
+	msgGetUser              = &i18n.Message{ID: "store.postgres.user.get.app_error", Other: "could not get the user from db"}
+	msgVerifyEmail          = &i18n.Message{ID: "store.postgres.user.verify_email.app_error", Other: "could not verify email"}
+	msgDeleteToken          = &i18n.Message{ID: "store.postgres.user.verify_email.delete_token.app_error", Other: "could not delete verify token"}
+	msgUpdatePassword       = &i18n.Message{ID: "store.postgres.user.update_password.app_error", Other: "could not update password"}
+	msgDeleteUser           = &i18n.Message{ID: "store.postgres.user.delete.app_error", Other: "could not delete user"}
 )
 
 // BulkInsert inserts multiple users in the db
@@ -57,8 +57,8 @@ func (s PgUserStore) Save(user *model.User) (*model.User, *model.AppErr) {
 		rows.Scan(&id)
 	}
 	if err := rows.Err(); err != nil {
-		if IsUniqueConstraintError(err) {
-			return nil, model.NewAppErr("PgUserStore.Save", model.ErrConflict, locale.GetUserLocalizer("en"), msgUniqueConstraint, http.StatusInternalServerError, nil)
+		if IsUniqueConstraintViolationError(err) {
+			return nil, model.NewAppErr("PgUserStore.Save", model.ErrConflict, locale.GetUserLocalizer("en"), msgUniqueConstraintUser, http.StatusInternalServerError, nil)
 		}
 		return nil, model.NewAppErr("PgUserStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveUser, http.StatusInternalServerError, nil)
 	}

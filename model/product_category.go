@@ -1,6 +1,10 @@
 package model
 
 import (
+	"encoding/csv"
+	"io"
+	"os"
+
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
@@ -24,6 +28,25 @@ type ProductCategory struct {
 	Description string `json:"description" db:"category_description" schema:"description"`
 }
 
+func isValidCategoryName(s string) bool {
+	var categories []string
+	f, _ := os.Open("./migrations/data/category.csv")
+	reader := csv.NewReader(f)
+	for {
+		line, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		categories = append(categories, line[0])
+	}
+	for _, cat := range categories {
+		if cat == s {
+			return true
+		}
+	}
+	return false
+}
+
 // Validate validates the user and returns an error if it doesn't pass criteria
 func (pc *ProductCategory) Validate() *AppErr {
 	var errs ValidationErrors
@@ -35,7 +58,7 @@ func (pc *ProductCategory) Validate() *AppErr {
 	if pc.ProductID != 0 {
 		errs.Add(Invalid("category.product_id", l, msgValidateCategoryProductID))
 	}
-	if pc.Name == "" {
+	if pc.Name == "" || !isValidCategoryName(pc.Name) {
 		errs.Add(Invalid("category.name", l, msgValidateCategoryName))
 	}
 	if pc.Slug == "" {
