@@ -1,5 +1,8 @@
+-- custom types
 create type gender AS ENUM ('m', 'f');
 
+
+-- valid possible reference table values
 create table public.category (
   id int generated always as identity primary key,
   name varchar(50) unique
@@ -21,13 +24,8 @@ create table public.jeans_size (
   value varchar(20) unique
 );
 
-insert into public.category (name) values ('shirt'), ('tshirt'), ('shorts'), ('jeans'), ('shoes'), ('jacket');
-insert into public.size (value) values ('xs'), ('s'), ('sm'), ('m'), ('md'), ('l'), ('xl'), ('2xl'), ('3xl'), ('4xl'), ('5xl');
-insert into public.shoe_size (value) values ('20'), ('21'), ('22'), ('23'), ('24'), ('25'), ('26'), ('27'), ('28'), ('29'), ('30'), ('31'), ('32'), ('33'), ('34'), ('35'), ('36'), ('37'), ('38'), ('39'), ('40'), ('41'), ('42'), ('43'), ('44'), ('45'), ('46'), ('47'), ('48'), ('49'), ('50');
-insert into public.jeans_size (value) values ('28/28'), ('30/28'), ('32/28'), ('34/28'), ('36/28'), ('38/28'), ('40/28'), ('30/30'), ('32/30'), ('34/30'), ('36/30'), ('38/30'), ('40/30'), ('32/32'), ('34/32'), ('36/32'), ('38/32'), ('40/32'), ('34/34'), ('36/36'), ('38/36'), ('40/36');
-insert into public.color (value) values ('white'), ('black'), ('grey'), ('brown'), ('yellow'), ('red'), ('green'), ('blue'), ('orange'), ('purple'), ('pink');
 
-
+-- app tables
 create table public.user (
   id int generated always as identity primary key,
   first_name varchar(255),
@@ -180,3 +178,11 @@ create table public.invoice (
   code text not null,
   foreign key (order_id) references public.order (id)
 );
+
+
+-- populate tables
+COPY public.category (name) FROM '/datasource/category.csv';
+COPY public.size (value) FROM '/datasource/size.csv';
+COPY public.shoe_size (value) FROM '/datasource/shoe_size.csv';
+COPY public.jeans_size (value) FROM '/datasource/jeans_size.csv';
+COPY public.color (value) FROM '/datasource/color.csv';
