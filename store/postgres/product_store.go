@@ -1,12 +1,12 @@
 package postgres
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/store"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/jackskj/carta"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -89,6 +89,7 @@ func (s PgProductStore) Save(p *model.Product) (*model.Product, *model.AppErr) {
 	for rows.Next() {
 		rows.Scan(&pid, &cid, &bid)
 	}
+
 	if err := rows.Err(); err != nil {
 		if IsForeignKeyConstraintViolationError(err) {
 			return nil, model.NewAppErr("PgProductStore.Save", model.ErrConflict, locale.GetUserLocalizer("en"), msgInvalidColumn, http.StatusInternalServerError, nil)
@@ -105,48 +106,46 @@ func (s PgProductStore) Save(p *model.Product) (*model.Product, *model.AppErr) {
 
 // Get gets one product by id
 func (s PgProductStore) Get(id int64) (*model.Product, *model.AppErr) {
-	q := `SELECT 
-	  p.*,
-		br.id AS brand_id,
-		br.product_id AS brand_product_id,
-		br.name AS brand_name,
-		br.slug AS brand_slug,
-		br.type AS brand_type,
-		br.description AS brand_description,
-		br.email AS brand_email,
-		br.website_url AS brand_website_url,
-		br.created_at AS brand_created_at,
-		br.updated_at AS brand_updated_at,	
-		cat.id AS category_id,
-		cat.product_id AS category_product_id,
-		cat.name AS category_name,
-		cat.slug AS category_slug,
-		cat.description AS category_description		
-		FROM public.product AS p
-		LEFT JOIN product_brand AS br ON p.id = br.product_id
-		LEFT JOIN product_category AS cat ON p.id = cat.product_id
-		WHERE p.id = $1
-		GROUP BY p.id, br.id, cat.id`
+	q := `SELECT p.*,
+	b.id AS brand_id,
+	b.product_id AS brand_product_id,
+	b.name AS brand_name,
+	b.slug AS brand_slug,
+	b.type AS brand_type,
+	b.description AS brand_description,
+	b.email AS brand_email,
+	b.website_url AS brand_website_url,
+	b.created_at AS brand_created_at,
+	b.updated_at AS brand_updated_at,
+	c.id AS category_id,
+	c.product_id AS category_product_id,
+	c.name AS category_name,
+	c.slug AS category_slug,
+	c.description AS category_description
+	FROM public.product p
+	LEFT JOIN product_brand b ON p.id = b.product_id
+	LEFT JOIN product_category c ON p.id = c.product_id
+	WHERE p.id = $1
+	GROUP BY p.id, b.id, c.id`
 
-	var psql model.ProductSQL
-	if err := s.db.Get(&psql, q, id); err != nil {
-		fmt.Println(err)
+	var pj productJoin
+	if err := s.db.Get(&pj, q, id); err != nil {
 		return nil, model.NewAppErr("PgProductStore.Get", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
 	}
 
-	qtags := `SELECT * FROM public.product_tag WHERE public.product_tag.product_id = $1`
+	qtags := `SELECT t.id AS tag_id, t.name AS tag_name, t.created_at AS tag_created_at, t.updated_at AS tag_updated_at FROM public.product_tag t WHERE t.product_id = $1`
 	var tags []*model.ProductTag
 	if err := s.db.Select(&tags, qtags, id); err != nil {
 		return nil, model.NewAppErr("PgProductStore.Get", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
 	}
 
-	qimgs := `SELECT * FROM public.product_image WHERE public.product_image.product_id = $1`
+	qimgs := `SELECT i.id AS img_id, i.url AS img_url FROM public.product_image i WHERE i.product_id = $1`
 	var imgs []*model.ProductImage
 	if err := s.db.Select(&imgs, qimgs, id); err != nil {
 		return nil, model.NewAppErr("PgProductStore.Get", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
 	}
 
-	p := psql.ToProduct()
+	p := pj.ToProduct()
 	p.Tags = tags
 	p.Images = imgs
 
@@ -155,7 +154,43 @@ func (s PgProductStore) Get(id int64) (*model.Product, *model.AppErr) {
 
 // GetAll returns all products
 func (s PgProductStore) GetAll() ([]*model.Product, *model.AppErr) {
-	return []*model.Product{}, nil
+	q := `SELECT p.*,
+	b.id AS brand_id,
+	b.product_id AS brand_product_id,
+	b.name AS brand_name,
+	b.slug AS brand_slug,
+	b.type AS brand_type,
+	b.description AS brand_description,
+	b.email AS brand_email,
+	b.website_url AS brand_website_url,
+	b.created_at AS brand_created_at,
+	b.updated_at AS brand_updated_at,
+	c.id AS category_id,
+	c.product_id AS category_product_id,
+	c.name AS category_name,
+	c.slug AS category_slug,
+	c.description AS category_description,
+	tag.id AS tag_id,
+	tag.name AS tag_name,
+	tag.created_at AS tag_created_at,
+	tag.updated_at AS tag_updated_at,
+	img.id AS img_id,
+	img.url AS img_url
+	FROM public.product p
+	LEFT JOIN product_brand b ON p.id = b.product_id
+	LEFT JOIN product_category c ON p.id = c.product_id
+	LEFT JOIN product_tag tag ON p.id = tag.product_id
+	LEFT JOIN product_image img ON p.id = img.product_id`
+
+	rows, err := s.db.Query(q)
+	if err != nil {
+		return nil, model.NewAppErr("PgProductStore.Get", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
+	}
+
+	var products []*model.Product
+	carta.Map(rows, &products)
+
+	return products, nil
 }
 
 // Update updates the product

@@ -29,6 +29,7 @@ func InitUser(a *API) {
 	a.BaseRoutes.Users.Post("/email/verify/send", a.sendVerificationEmail)
 	a.BaseRoutes.Users.Post("/password/reset", a.resetUserPassword)
 	a.BaseRoutes.Users.Post("/password/reset/send", a.sendPasswordResetEmail)
+
 	a.BaseRoutes.User.Get("/", a.getUser)
 	a.BaseRoutes.User.Delete("/", a.deleteUser)
 

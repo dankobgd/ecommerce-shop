@@ -22,6 +22,8 @@ var (
 func InitProducts(a *API) {
 	a.BaseRoutes.Products.Post("/", a.createProduct)
 	a.BaseRoutes.Products.Get("/", a.getProducts)
+
+	a.BaseRoutes.Product.Get("/", a.getProduct)
 	a.BaseRoutes.Product.Patch("/", a.patchProduct)
 	a.BaseRoutes.Product.Delete("/", a.deleteProduct)
 }
@@ -51,8 +53,6 @@ func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
 	}
 	respondJSON(w, http.StatusCreated, product)
 }
-
-func (a *API) getProducts(w http.ResponseWriter, r *http.Request) {}
 
 func (a *API) patchProduct(w http.ResponseWriter, r *http.Request) {
 	pid, err := strconv.ParseInt(chi.URLParam(r, "product_id"), 10, 64)
@@ -88,4 +88,27 @@ func (a *API) deleteProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondOK(w)
+}
+
+func (a *API) getProduct(w http.ResponseWriter, r *http.Request) {
+	pid, e := strconv.ParseInt(chi.URLParam(r, "product_id"), 10, 64)
+	if e != nil {
+		respondError(w, model.NewAppErr("getProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductURLParams, http.StatusInternalServerError, nil))
+		return
+	}
+	p, err := a.app.GetProduct(pid)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+	respondJSON(w, http.StatusOK, p)
+}
+
+func (a *API) getProducts(w http.ResponseWriter, r *http.Request) {
+	products, err := a.app.GetProducts()
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+	respondJSON(w, http.StatusOK, products)
 }

@@ -19,11 +19,11 @@ var (
 
 // ProductTag is the product tag
 type ProductTag struct {
-	ID        int64     `json:"id" db:"id" schema:"-"`
-	ProductID int64     `json:"-" db:"product_id" schema:"-"`
-	Name      string    `json:"name" db:"name" schema:"name"`
-	CreatedAt time.Time `json:"created_at" db:"created_at" schema:"-"`
-	UpdatedAt time.Time `json:"updated_at" db:"updated_at" schema:"-"`
+	ID        int64     `json:"id" db:"tag_id" schema:"-"`
+	ProductID int64     `json:"-" db:"tag_product_id" schema:"-"`
+	Name      string    `json:"name" db:"tag_name" schema:"name"`
+	CreatedAt time.Time `json:"created_at" db:"tag_created_at" schema:"-"`
+	UpdatedAt time.Time `json:"updated_at" db:"tag_updated_at" schema:"-"`
 }
 
 // PreSave will fill timestamps

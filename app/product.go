@@ -126,6 +126,16 @@ func (a *App) DeleteProduct(pid int64) *model.AppErr {
 	return a.Srv().Store.Product().Delete(pid)
 }
 
+// GetProduct gets the product by the id
+func (a *App) GetProduct(pid int64) (*model.Product, *model.AppErr) {
+	return a.Srv().Store.Product().Get(pid)
+}
+
+// GetProducts gets all products from the db
+func (a *App) GetProducts() ([]*model.Product, *model.AppErr) {
+	return a.Srv().Store.Product().GetAll()
+}
+
 func (a *App) uploadImageToCloudinary(data io.Reader, filename string) (string, *model.AppErr) {
 	return fileupload.UploadImageToCloudinary(data, filename, a.Cfg().CloudinarySettings.EnvURI)
 }

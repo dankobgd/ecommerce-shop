@@ -25,7 +25,7 @@ var (
 
 // BulkInsert inserts multiple images in the db
 func (s PgProductImageStore) BulkInsert(images []*model.ProductImage) ([]int64, *model.AppErr) {
-	q := `INSERT INTO public.product_image (product_id, url) VALUES(:product_id, :url) RETURNING id`
+	q := `INSERT INTO public.product_image (product_id, url) VALUES(:img_product_id, :img_url) RETURNING id`
 
 	var ids []int64
 	rows, err := s.db.NamedQuery(q, images)

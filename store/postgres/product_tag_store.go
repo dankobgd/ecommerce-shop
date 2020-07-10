@@ -25,7 +25,7 @@ var (
 
 // BulkInsert multiple tags in the db
 func (s PgProductTagStore) BulkInsert(tags []*model.ProductTag) ([]int64, *model.AppErr) {
-	q := `INSERT INTO public.product_tag (product_id, name, created_at, updated_at) VALUES(:product_id, :name, :created_at, :updated_at) RETURNING id`
+	q := `INSERT INTO public.product_tag (product_id, name, created_at, updated_at) VALUES(:tag_product_id, :tag_name, :tag_created_at, :tag_updated_at) RETURNING id`
 
 	var ids []int64
 	rows, err := s.db.NamedQuery(q, tags)

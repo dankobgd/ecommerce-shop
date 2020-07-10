@@ -12,6 +12,7 @@ require (
 	github.com/gorilla/schema v1.1.0
 	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
 	github.com/jackc/pgx v3.6.2+incompatible
+	github.com/jackskj/carta v0.2.0
 	github.com/jmoiron/sqlx v1.2.1-0.20200615141059-0794cb1f47ee
 	github.com/joho/godotenv v1.3.0
 	github.com/jordan-wright/email v0.0.0-20200602115436-fd8a7622303e
@@ -28,9 +29,7 @@ require (
 	github.com/stretchr/testify v1.5.1 // indirect
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37
-	golang.org/x/net v0.0.0-20200202094626-16171245cfb2 // indirect
 	golang.org/x/text v0.3.2
-	golang.org/x/tools v0.0.0-20191112195655-aa38f8e97acc // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 	jaytaylor.com/html2text v0.0.0-20200412013138-3577fbdbcff7
