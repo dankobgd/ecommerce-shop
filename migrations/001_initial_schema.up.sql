@@ -128,6 +128,8 @@ create table public.product_image (
   id int generated always as identity primary key,
   product_id int not null,
   url text not null,
+  created_at timestamptz not null,
+  updated_at timestamptz not null,
   foreign key (product_id) references public.product (id) on delete cascade
 );
 

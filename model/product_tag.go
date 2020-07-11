@@ -19,22 +19,24 @@ var (
 
 // ProductTag is the product tag
 type ProductTag struct {
-	ID        int64     `json:"id" db:"tag_id" schema:"-"`
-	ProductID int64     `json:"-" db:"tag_product_id" schema:"-"`
-	Name      string    `json:"name" db:"tag_name" schema:"name"`
-	CreatedAt time.Time `json:"created_at" db:"tag_created_at" schema:"-"`
-	UpdatedAt time.Time `json:"updated_at" db:"tag_updated_at" schema:"-"`
+	ID        *int64     `json:"id" db:"tag_id" schema:"-"`
+	ProductID *int64     `json:"-" db:"tag_product_id" schema:"-"`
+	Name      *string    `json:"name" db:"tag_name" schema:"name"`
+	CreatedAt *time.Time `json:"created_at" db:"tag_created_at" schema:"-"`
+	UpdatedAt *time.Time `json:"updated_at" db:"tag_updated_at" schema:"-"`
 }
 
 // PreSave will fill timestamps
 func (pt *ProductTag) PreSave() {
-	pt.CreatedAt = time.Now()
+	now := time.Now()
+	pt.CreatedAt = &now
 	pt.UpdatedAt = pt.CreatedAt
 }
 
 // PreUpdate sets the update timestamp
 func (pt *ProductTag) PreUpdate() {
-	pt.UpdatedAt = time.Now()
+	now := time.Now()
+	pt.UpdatedAt = &now
 }
 
 // Validate validates the tag and returns an error if it doesn't pass criteria
@@ -42,13 +44,13 @@ func (pt *ProductTag) Validate() *AppErr {
 	var errs ValidationErrors
 	l := locale.GetUserLocalizer("en")
 
-	if pt.ID != 0 {
+	if pt.ID != nil {
 		errs.Add(Invalid("tag.id", l, msgValidateTagID))
 	}
-	if pt.ProductID != 0 {
+	if pt.ProductID != nil {
 		errs.Add(Invalid("tag.product_id", l, msgValidateTagProductID))
 	}
-	if pt.Name == "" {
+	if pt.Name == nil {
 		errs.Add(Invalid("tag.name", l, msgValidateTagName))
 	}
 	if pt.CreatedAt.IsZero() {

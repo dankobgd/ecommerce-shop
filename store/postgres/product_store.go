@@ -6,6 +6,7 @@ import (
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/store"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/dankobgd/ecommerce-shop/utils/pretty"
 	"github.com/jackskj/carta"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
@@ -134,13 +135,13 @@ func (s PgProductStore) Get(id int64) (*model.Product, *model.AppErr) {
 	}
 
 	qtags := `SELECT t.id AS tag_id, t.name AS tag_name, t.created_at AS tag_created_at, t.updated_at AS tag_updated_at FROM public.product_tag t WHERE t.product_id = $1`
-	var tags []*model.ProductTag
+	tags := make([]*model.ProductTag, 0)
 	if err := s.db.Select(&tags, qtags, id); err != nil {
 		return nil, model.NewAppErr("PgProductStore.Get", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
 	}
 
-	qimgs := `SELECT i.id AS img_id, i.url AS img_url FROM public.product_image i WHERE i.product_id = $1`
-	var imgs []*model.ProductImage
+	qimgs := `SELECT i.id AS img_id, i.url AS img_url, i.created_at AS img_created_at, i.updated_at AS img_updated_at FROM public.product_image i WHERE i.product_id = $1`
+	imgs := make([]*model.ProductImage, 0)
 	if err := s.db.Select(&imgs, qimgs, id); err != nil {
 		return nil, model.NewAppErr("PgProductStore.Get", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
 	}
@@ -184,11 +185,28 @@ func (s PgProductStore) GetAll() ([]*model.Product, *model.AppErr) {
 
 	rows, err := s.db.Query(q)
 	if err != nil {
-		return nil, model.NewAppErr("PgProductStore.Get", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
+		return nil, model.NewAppErr("PgProductStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
 	}
 
 	var products []*model.Product
-	carta.Map(rows, &products)
+	if err := carta.Map(rows, &products); err != nil {
+		return nil, model.NewAppErr("PgProductStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
+	}
+
+	for _, p := range products {
+		for _, tag := range p.Tags {
+			if tag.ID == nil {
+				p.Tags = make([]*model.ProductTag, 0)
+			}
+		}
+		for _, img := range p.Images {
+			if img.ID == nil {
+				p.Images = make([]*model.ProductImage, 0)
+			}
+		}
+	}
+
+	pretty.PrintJSON(products)
 
 	return products, nil
 }

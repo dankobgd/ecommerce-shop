@@ -53,7 +53,7 @@ func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers 
 	p.Category.ProductID = product.ID
 	p.Brand.ProductID = product.ID
 	for _, t := range p.Tags {
-		t.ProductID = product.ID
+		t.ProductID = model.NewInt64(product.ID)
 	}
 
 	for _, fh := range headers {
@@ -71,13 +71,13 @@ func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers 
 		if uErr != nil {
 			return nil, uErr
 		}
-		img := &model.ProductImage{ProductID: product.ID, URL: url}
+		img := &model.ProductImage{ProductID: model.NewInt64(product.ID), URL: model.NewString(url)}
 		p.Images = append(p.Images, img)
 	}
 
 	if len(p.Tags) > 0 {
-		for _, t := range p.Tags {
-			t.PreSave()
+		for _, tag := range p.Tags {
+			tag.PreSave()
 		}
 
 		tagids, err := a.Srv().Store.ProductTag().BulkInsert(p.Tags)
@@ -86,19 +86,27 @@ func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers 
 			return nil, err
 		}
 		for i, id := range tagids {
-			p.Tags[i].ID = id
+			p.Tags[i].ID = model.NewInt64(id)
 		}
+	} else {
+		p.Tags = make([]*model.ProductTag, 0)
 	}
 
 	if len(p.Images) > 0 {
+		for _, img := range p.Images {
+			img.PreSave()
+		}
+
 		imgids, err := a.Srv().Store.ProductImage().BulkInsert(p.Images)
 		if err != nil {
 			a.log.Error(err.Error(), zlog.Err(err))
 			return nil, err
 		}
 		for i, id := range imgids {
-			p.Images[i].ID = id
+			p.Images[i].ID = model.NewInt64(id)
 		}
+	} else {
+		p.Images = make([]*model.ProductImage, 0)
 	}
 
 	return product, nil
