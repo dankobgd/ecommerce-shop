@@ -6,11 +6,14 @@ import (
 	"github.com/dankobgd/ecommerce-shop/model"
 )
 
+// productJoin is temp join type
 type productJoin struct {
 	model.Product
 	*BrandJoin
 	*CategoryJoin
 }
+
+// BrandJoin is temp join type
 type BrandJoin struct {
 	BID          int64     `db:"brand_id"`
 	BProductID   int64     `db:"brand_product_id"`
@@ -23,6 +26,8 @@ type BrandJoin struct {
 	BCreatedAt   time.Time `db:"brand_created_at"`
 	BUpdatedAt   time.Time `db:"brand_updated_at"`
 }
+
+// CategoryJoin is temp join type
 type CategoryJoin struct {
 	CID          int64  `db:"category_id"`
 	CProductID   int64  `db:"category_product_id"`

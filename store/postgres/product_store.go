@@ -193,15 +193,18 @@ func (s PgProductStore) GetAll() ([]*model.Product, *model.AppErr) {
 		return nil, model.NewAppErr("PgProductStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
 	}
 
+	etags := make([]*model.ProductTag, 0)
+	eimgs := make([]*model.ProductImage, 0)
+
 	for _, p := range products {
 		for _, tag := range p.Tags {
 			if tag.ID == nil {
-				p.Tags = make([]*model.ProductTag, 0)
+				p.Tags = etags
 			}
 		}
 		for _, img := range p.Images {
 			if img.ID == nil {
-				p.Images = make([]*model.ProductImage, 0)
+				p.Images = eimgs
 			}
 		}
 	}
