@@ -82,7 +82,7 @@ func createSuperAdminFn(command *cobra.Command, args []string) error {
 		Password:        password,
 		ConfirmPassword: password,
 		Email:           email,
-		Role:            "admin",
+		Role:            model.AdminRole,
 		EmailVerified:   true,
 	}
 	if _, e := cmdApp.CreateUser(u); e != nil {

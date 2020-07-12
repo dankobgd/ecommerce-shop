@@ -269,8 +269,10 @@ func (u *User) PreSave() {
 	u.UpdatedAt = u.CreatedAt
 	u.LastLoginAt = u.CreatedAt
 	u.Active = true
-	u.EmailVerified = false
 
+	if u.Role == "" {
+		u.Role = UserRole
+	}
 	if u.Locale == "" {
 		u.Locale = userDefaultLocale
 	}

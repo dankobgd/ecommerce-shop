@@ -8,6 +8,12 @@ import (
 	"github.com/dgrijalva/jwt-go/v4"
 )
 
+// user roles
+const (
+	UserRole  = "user"
+	AdminRole = "admin"
+)
+
 // AccessTokenLocation is the location from where the access token is retrieved
 type AccessTokenLocation int
 
@@ -56,6 +62,7 @@ type RefreshToken struct {
 type AccessData struct {
 	AccessUUID string
 	UserID     int64
+	Role       string
 }
 
 // TokenMetadata holds the tokens details

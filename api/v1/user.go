@@ -23,7 +23,7 @@ var (
 func InitUser(a *API) {
 	a.BaseRoutes.Users.Post("/", a.createUser)
 	a.BaseRoutes.Users.Post("/login", a.login)
-	a.BaseRoutes.Users.Post("/logout", a.AuthRequired(a.logout))
+	a.BaseRoutes.Users.Post("/logout", a.SessionRequired(a.logout))
 	a.BaseRoutes.Users.Post("/token/refresh", a.refresh)
 	a.BaseRoutes.Users.Post("/email/verify", a.verifyUserEmail)
 	a.BaseRoutes.Users.Post("/email/verify/send", a.sendVerificationEmail)
@@ -33,7 +33,12 @@ func InitUser(a *API) {
 	a.BaseRoutes.User.Get("/", a.getUser)
 	a.BaseRoutes.User.Delete("/", a.deleteUser)
 
-	a.BaseRoutes.Users.Get("/protected", a.AuthRequired(a.protected))
+	a.BaseRoutes.Users.Get("/protected", a.SessionRequired(a.protected))
+}
+
+func (a *API) protected(w http.ResponseWriter, r *http.Request) {
+	uid := a.app.GetUserIDFromContext(r.Context())
+	respondJSON(w, http.StatusOK, map[string]interface{}{"userID": uid})
 }
 
 func (a *API) createUser(w http.ResponseWriter, r *http.Request) {
@@ -114,21 +119,6 @@ func (a *API) refresh(w http.ResponseWriter, r *http.Request) {
 
 	a.app.AttachSessionCookies(w, meta)
 	respondOK(w)
-}
-
-func (a *API) protected(w http.ResponseWriter, r *http.Request) {
-	ad, err := a.app.ExtractTokenMetadata(r)
-	if err != nil {
-		respondError(w, err)
-		return
-	}
-	userID, err := a.app.GetAuth(ad)
-	if err != nil {
-		respondError(w, err)
-		return
-	}
-
-	respondJSON(w, http.StatusOK, map[string]interface{}{"userID": userID})
 }
 
 func (a *API) sendVerificationEmail(w http.ResponseWriter, r *http.Request) {

@@ -167,7 +167,7 @@ create table public.order_detail (
   subtotal int not null,
   total int not null,
   provider varchar(50) not null,
-  charge_ammount int not null,
+  charge_amount int not null,
   stripe_token text not null,
   stripe_token_type text not null,
   receipt_url text not null,

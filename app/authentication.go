@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"strings"
@@ -12,6 +13,13 @@ import (
 	"github.com/dgrijalva/jwt-go/v4"
 	"github.com/google/uuid"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
+)
+
+type contextKey string
+
+// context keys
+const (
+	AccessDataCtxKey contextKey = "access_data"
 )
 
 var (
@@ -167,13 +175,13 @@ func VerifyToken(r *http.Request, settings *config.AuthSettings) (*jwt.Token, *m
 	tokenString, _ := ExtractAuthTokenFromRequest(r)
 	token, err := jwt.ParseWithClaims(tokenString, &model.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, model.NewAppErr("VerifyToken", model.ErrUnauthorized, locale.GetUserLocalizer("en"), msgVerifyTokenMethod, http.StatusUnauthorized, nil)
+			return nil, model.NewAppErr("VerifyToken", model.ErrUnauthenticated, locale.GetUserLocalizer("en"), msgVerifyTokenMethod, http.StatusUnauthorized, nil)
 		}
 		return []byte(settings.AccessTokenSecret), nil
 	})
 
 	if err != nil {
-		return nil, model.NewAppErr("VerifyToken", model.ErrUnauthorized, locale.GetUserLocalizer("en"), msgVerifyToken, http.StatusUnauthorized, nil)
+		return nil, model.NewAppErr("VerifyToken", model.ErrUnauthenticated, locale.GetUserLocalizer("en"), msgVerifyToken, http.StatusUnauthorized, nil)
 	}
 	return token, nil
 }
@@ -206,6 +214,7 @@ func (a *App) ExtractTokenMetadata(r *http.Request) (*model.AccessData, *model.A
 		ad := &model.AccessData{
 			AccessUUID: claims.ID,
 			UserID:     userID,
+			Role:       claims.Role,
 		}
 
 		return ad, nil
@@ -218,24 +227,24 @@ func (a *App) RefreshToken(rt *model.RefreshToken) (*model.TokenMetadata, *model
 	l := locale.GetUserLocalizer("en")
 	token, err := jwt.ParseWithClaims(rt.RefreshToken, &model.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, model.NewAppErr("RefreshToken", model.ErrInvalid, l, msgRefreshTokenMethod, http.StatusUnauthorized, nil)
+			return nil, model.NewAppErr("RefreshToken", model.ErrUnauthenticated, l, msgRefreshTokenMethod, http.StatusUnauthorized, nil)
 		}
 		return []byte(a.Cfg().AuthSettings.RefreshTokenSecret), nil
 	})
 
 	if err != nil {
-		return nil, model.NewAppErr("RefreshToken", model.ErrInvalid, l, msgRefreshToken, http.StatusUnauthorized, nil)
+		return nil, model.NewAppErr("RefreshToken", model.ErrUnauthenticated, l, msgRefreshToken, http.StatusUnauthorized, nil)
 	}
 
 	if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
-		return nil, model.NewAppErr("RefreshToken", model.ErrInvalid, l, msgRefreshToken, http.StatusUnauthorized, nil)
+		return nil, model.NewAppErr("RefreshToken", model.ErrUnauthenticated, l, msgRefreshToken, http.StatusUnauthorized, nil)
 	}
 
 	claims, ok := token.Claims.(*model.Claims)
 	if ok && token.Valid {
 		deleted, err := a.DeleteAuth(claims.ID)
 		if err != nil || deleted == 0 {
-			return nil, model.NewAppErr("RefreshToken", model.ErrInvalid, l, msgDeleteToken, http.StatusUnauthorized, nil)
+			return nil, model.NewAppErr("RefreshToken", model.ErrUnauthenticated, l, msgDeleteToken, http.StatusUnauthorized, nil)
 		}
 
 		userID, _ := strconv.ParseInt(claims.Subject, 10, 64)
@@ -243,15 +252,26 @@ func (a *App) RefreshToken(rt *model.RefreshToken) (*model.TokenMetadata, *model
 
 		meta, err := a.IssueTokens(udata)
 		if err != nil {
-			return nil, model.NewAppErr("RefreshToken", model.ErrInvalid, l, msgRefreshToken, http.StatusUnauthorized, nil)
+			return nil, model.NewAppErr("RefreshToken", model.ErrUnauthenticated, l, msgRefreshToken, http.StatusUnauthorized, nil)
 		}
 
 		if err := a.SaveAuth(userID, meta); err != nil {
-			return nil, model.NewAppErr("RefreshToken", model.ErrInvalid, l, msgRefreshToken, http.StatusUnauthorized, nil)
+			return nil, model.NewAppErr("RefreshToken", model.ErrUnauthenticated, l, msgRefreshToken, http.StatusUnauthorized, nil)
 		}
 
 		return meta, nil
 	}
 
-	return nil, model.NewAppErr("RefreshToken", model.ErrInvalid, l, msgRefreshToken, http.StatusUnauthorized, nil)
+	return nil, model.NewAppErr("RefreshToken", model.ErrUnauthenticated, l, msgRefreshToken, http.StatusUnauthorized, nil)
+}
+
+// GetUserIDFromContext gets the user from ctx
+func (a *App) GetUserIDFromContext(ctx context.Context) int64 {
+	ad := ctx.Value(AccessDataCtxKey).(*model.AccessData)
+	return ad.UserID
+}
+
+// GetAccessDataFromContext gets the access data from ctx
+func (a *App) GetAccessDataFromContext(ctx context.Context) *model.AccessData {
+	return ctx.Value(AccessDataCtxKey).(*model.AccessData)
 }

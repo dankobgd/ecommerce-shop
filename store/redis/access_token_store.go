@@ -14,7 +14,7 @@ import (
 
 var (
 	msgSaveAuth   = &i18n.Message{ID: "store.redis.access_token.save_auth.app_error", Other: "could not save auth data"}
-	msgGetAuth    = &i18n.Message{ID: "store.redis.access_token.get_auth.app_error", Other: "could not get auth data"}
+	msgGetAuth    = &i18n.Message{ID: "store.redis.access_token.get_auth.app_error", Other: "auth token is invalid or has already expired"}
 	msgDeleteAuth = &i18n.Message{ID: "store.redis.access_token.delete_auth.app_error", Other: "could not delete auth data"}
 )
 

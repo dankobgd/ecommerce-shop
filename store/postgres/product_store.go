@@ -6,7 +6,6 @@ import (
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/store"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
-	"github.com/dankobgd/ecommerce-shop/utils/pretty"
 	"github.com/jackskj/carta"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
@@ -208,8 +207,6 @@ func (s PgProductStore) GetAll() ([]*model.Product, *model.AppErr) {
 			}
 		}
 	}
-
-	pretty.PrintJSON(products)
 
 	return products, nil
 }
