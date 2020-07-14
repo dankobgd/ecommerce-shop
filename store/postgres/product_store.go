@@ -175,7 +175,9 @@ func (s PgProductStore) GetAll() ([]*model.Product, *model.AppErr) {
 	tag.created_at AS tag_created_at,
 	tag.updated_at AS tag_updated_at,
 	img.id AS img_id,
-	img.url AS img_url
+	img.url AS img_url,
+	img.created_at AS img_created_at,
+	img.updated_at AS img_updated_at
 	FROM public.product p
 	LEFT JOIN product_brand b ON p.id = b.product_id
 	LEFT JOIN product_category c ON p.id = c.product_id
