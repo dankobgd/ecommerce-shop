@@ -56,9 +56,15 @@ type ProductStore interface {
 // ProductTagStore is the product tag store
 type ProductTagStore interface {
 	BulkInsert([]*model.ProductTag) ([]int64, *model.AppErr)
+	Get(id int64) (*model.ProductTag, *model.AppErr)
+	GetAll(pid int64) ([]*model.ProductTag, *model.AppErr)
+	Update(id int64, tag *model.ProductTag) (*model.ProductTag, *model.AppErr)
 }
 
 // ProductImageStore is the product image store
 type ProductImageStore interface {
 	BulkInsert([]*model.ProductImage) ([]int64, *model.AppErr)
+	Get(id int64) (*model.ProductImage, *model.AppErr)
+	GetAll(pid int64) ([]*model.ProductImage, *model.AppErr)
+	Update(id int64, img *model.ProductImage) (*model.ProductImage, *model.AppErr)
 }

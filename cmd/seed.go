@@ -74,27 +74,28 @@ func seedUsers() error {
 
 // seedProducts populates the product tables together with related brand, categories, imgs, and tags
 func seedProducts() error {
-	products := parseProducts()
-	for _, p := range products {
-		p.PreSave()
-		newProd, err := cmdApp.Srv().Store.Product().Save(p)
+	data := parseProducts()
+
+	for _, d := range data {
+		d.P.PreSave()
+		newProd, err := cmdApp.Srv().Store.Product().Save(d.P)
 		if err != nil {
 			cmdApp.Log().Error("could not seed save product", zlog.String("err: ", err.Message))
 		}
 
-		for _, tag := range p.Tags {
+		for _, tag := range d.Tags {
 			tag.ProductID = &newProd.ID
 			tag.PreSave()
 		}
-		if _, err := cmdApp.Srv().Store.ProductTag().BulkInsert(p.Tags); err != nil {
+		if _, err := cmdApp.Srv().Store.ProductTag().BulkInsert(d.Tags); err != nil {
 			cmdApp.Log().Error("could not seed bulk insert tags", zlog.String("err: ", err.Message))
 		}
 
-		for _, img := range p.Images {
+		for _, img := range d.Imgs {
 			img.ProductID = &newProd.ID
 			img.PreSave()
 		}
-		if _, err := cmdApp.Srv().Store.ProductImage().BulkInsert(p.Images); err != nil {
+		if _, err := cmdApp.Srv().Store.ProductImage().BulkInsert(d.Imgs); err != nil {
 			cmdApp.Log().Error("could not seed bulk insert images", zlog.String("err: ", err.Message))
 		}
 	}
@@ -128,7 +129,7 @@ func readCSVFile(filePath string) ([][]string, error) {
 
 // parseUsers parses read csv lines and creates the list of users
 func parseUsers() []*model.User {
-	records, err := readCSVFile("./seeds/users.csv")
+	records, err := readCSVFile("./data/seeds/users.csv")
 	if err != nil {
 		log.Fatalf("error parsing users from CSV: %v", err)
 	}
@@ -146,16 +147,25 @@ func parseUsers() []*model.User {
 	return userList
 }
 
+type prodData struct {
+	P    *model.Product
+	Tags []*model.ProductTag
+	Imgs []*model.ProductImage
+}
+
 // parseUsers parses read csv lines and creates the list of products
-func parseProducts() []*model.Product {
-	records, err := readCSVFile("./seeds/products.csv")
+func parseProducts() []*prodData {
+	records, err := readCSVFile("./data/seeds/products.csv")
 	if err != nil {
 		log.Fatalf("error parsing products from CSV: %v", err)
 	}
-	productList := make([]*model.Product, 0)
+
+	prodList := make([]*prodData, 0)
 
 	for _, line := range records {
 		p := &model.Product{}
+		data := &prodData{}
+
 		p.Name = line[0]
 		p.Slug = line[1]
 		p.ImageURL = line[2]
@@ -189,34 +199,35 @@ func parseProducts() []*model.Product {
 			WebsiteURL:  line[16],
 		}
 
-		tagList := strings.Split(line[17], " ")
-		imgList := strings.Split(line[18], " ")
+		tagSlice := strings.Split(line[17], " ")
+		imgSlice := strings.Split(line[18], " ")
 
-		tags := make([]*model.ProductTag, 0)
-		imgs := make([]*model.ProductImage, 0)
+		tagList := make([]*model.ProductTag, 0)
+		imgList := make([]*model.ProductImage, 0)
 
-		for _, tag := range tagList {
+		for _, tag := range tagSlice {
 			now := time.Now()
-			tags = append(tags, &model.ProductTag{
+			tagList = append(tagList, &model.ProductTag{
 				Name:      model.NewString(tag),
 				CreatedAt: &now,
 				UpdatedAt: &now,
 			})
 		}
-		for _, img := range imgList {
+		for _, img := range imgSlice {
 			now := time.Now()
-			imgs = append(imgs, &model.ProductImage{
+			imgList = append(imgList, &model.ProductImage{
 				URL:       model.NewString(img),
 				CreatedAt: &now,
 				UpdatedAt: &now,
 			})
 		}
 
-		p.Tags = tags
-		p.Images = imgs
+		data.P = p
+		data.Tags = tagList
+		data.Imgs = imgList
 
-		productList = append(productList, p)
+		prodList = append(prodList, data)
 	}
 
-	return productList
+	return prodList
 }

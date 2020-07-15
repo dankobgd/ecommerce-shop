@@ -6,7 +6,6 @@ import (
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/store"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
-	"github.com/jackskj/carta"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -31,8 +30,7 @@ var (
 
 // BulkInsert inserts multiple products into db
 func (s PgProductStore) BulkInsert(products []*model.Product) *model.AppErr {
-	q := `INSERT INTO public.product (name, slug, image_url, description, price, stock, sku, is_featured, created_at, updated_at)
-	VALUES (:name, :slug, :image_url, :description, :price, :stock, :sku, :is_featured, :created_at, :updated_at)`
+	q := `INSERT INTO public.product (name, slug, image_url, description, price, stock, sku, is_featured, created_at, updated_at) VALUES (:name, :slug, :image_url, :description, :price, :stock, :sku, :is_featured, :created_at, :updated_at)`
 
 	if _, err := s.db.NamedExec(q, products); err != nil {
 		return model.NewAppErr("PgProductStore.BulkInsert", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkInsertProducts, http.StatusInternalServerError, nil)
@@ -133,23 +131,7 @@ func (s PgProductStore) Get(id int64) (*model.Product, *model.AppErr) {
 		return nil, model.NewAppErr("PgProductStore.Get", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
 	}
 
-	qtags := `SELECT t.id AS tag_id, t.name AS tag_name, t.created_at AS tag_created_at, t.updated_at AS tag_updated_at FROM public.product_tag t WHERE t.product_id = $1`
-	tags := make([]*model.ProductTag, 0)
-	if err := s.db.Select(&tags, qtags, id); err != nil {
-		return nil, model.NewAppErr("PgProductStore.Get", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
-	}
-
-	qimgs := `SELECT i.id AS img_id, i.url AS img_url, i.created_at AS img_created_at, i.updated_at AS img_updated_at FROM public.product_image i WHERE i.product_id = $1`
-	imgs := make([]*model.ProductImage, 0)
-	if err := s.db.Select(&imgs, qimgs, id); err != nil {
-		return nil, model.NewAppErr("PgProductStore.Get", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
-	}
-
-	p := pj.ToProduct()
-	p.Tags = tags
-	p.Images = imgs
-
-	return p, nil
+	return pj.ToProduct(), nil
 }
 
 // GetAll returns all products
@@ -169,45 +151,19 @@ func (s PgProductStore) GetAll() ([]*model.Product, *model.AppErr) {
 	c.product_id AS category_product_id,
 	c.name AS category_name,
 	c.slug AS category_slug,
-	c.description AS category_description,
-	tag.id AS tag_id,
-	tag.name AS tag_name,
-	tag.created_at AS tag_created_at,
-	tag.updated_at AS tag_updated_at,
-	img.id AS img_id,
-	img.url AS img_url,
-	img.created_at AS img_created_at,
-	img.updated_at AS img_updated_at
+	c.description AS category_description	
 	FROM public.product p
 	LEFT JOIN product_brand b ON p.id = b.product_id
-	LEFT JOIN product_category c ON p.id = c.product_id
-	LEFT JOIN product_tag tag ON p.id = tag.product_id
-	LEFT JOIN product_image img ON p.id = img.product_id`
+	LEFT JOIN product_category c ON p.id = c.product_id`
 
-	rows, err := s.db.Query(q)
-	if err != nil {
+	var pj []productJoin
+	if err := s.db.Select(&pj, q); err != nil {
 		return nil, model.NewAppErr("PgProductStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
 	}
 
-	var products []*model.Product
-	if err := carta.Map(rows, &products); err != nil {
-		return nil, model.NewAppErr("PgProductStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
-	}
-
-	etags := make([]*model.ProductTag, 0)
-	eimgs := make([]*model.ProductImage, 0)
-
-	for _, p := range products {
-		for _, tag := range p.Tags {
-			if tag.ID == nil {
-				p.Tags = etags
-			}
-		}
-		for _, img := range p.Images {
-			if img.ID == nil {
-				p.Images = eimgs
-			}
-		}
+	products := make([]*model.Product, 0)
+	for _, x := range pj {
+		products = append(products, x.ToProduct())
 	}
 
 	return products, nil

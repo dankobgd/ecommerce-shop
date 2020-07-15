@@ -1,6 +1,8 @@
 package model
 
 import (
+	"encoding/json"
+	"io"
 	"time"
 
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
@@ -26,37 +28,56 @@ type ProductTag struct {
 	UpdatedAt *time.Time `json:"updated_at" db:"tag_updated_at" schema:"-"`
 }
 
+// ProductTagPatch is the patch for product tag
+type ProductTagPatch struct {
+	Name *string `json:"name"`
+}
+
+// Patch patches the product tag
+func (tag *ProductTag) Patch(patch *ProductTagPatch) {
+	if tag.Name != nil {
+		tag.Name = patch.Name
+	}
+}
+
+// ProductTagPatchFromJSON decodes the input and returns the ProductTagPatch
+func ProductTagPatchFromJSON(data io.Reader) (*ProductTagPatch, error) {
+	var p *ProductTagPatch
+	err := json.NewDecoder(data).Decode(&p)
+	return p, err
+}
+
 // PreSave will fill timestamps
-func (pt *ProductTag) PreSave() {
+func (tag *ProductTag) PreSave() {
 	now := time.Now()
-	pt.CreatedAt = &now
-	pt.UpdatedAt = pt.CreatedAt
+	tag.CreatedAt = &now
+	tag.UpdatedAt = tag.CreatedAt
 }
 
 // PreUpdate sets the update timestamp
-func (pt *ProductTag) PreUpdate() {
+func (tag *ProductTag) PreUpdate() {
 	now := time.Now()
-	pt.UpdatedAt = &now
+	tag.UpdatedAt = &now
 }
 
 // Validate validates the tag and returns an error if it doesn't pass criteria
-func (pt *ProductTag) Validate() *AppErr {
+func (tag *ProductTag) Validate() *AppErr {
 	var errs ValidationErrors
 	l := locale.GetUserLocalizer("en")
 
-	if pt.ID != nil {
+	if tag.ID != nil {
 		errs.Add(Invalid("tag.id", l, msgValidateTagID))
 	}
-	if pt.ProductID != nil {
+	if tag.ProductID != nil {
 		errs.Add(Invalid("tag.product_id", l, msgValidateTagProductID))
 	}
-	if pt.Name == nil {
+	if tag.Name == nil {
 		errs.Add(Invalid("tag.name", l, msgValidateTagName))
 	}
-	if pt.CreatedAt.IsZero() {
+	if tag.CreatedAt.IsZero() {
 		errs.Add(Invalid("tag.created_at", l, msgValidateTagCrAt))
 	}
-	if pt.UpdatedAt.IsZero() {
+	if tag.UpdatedAt.IsZero() {
 		errs.Add(Invalid("tag.updated_at", l, msgValidateTagUpAt))
 	}
 

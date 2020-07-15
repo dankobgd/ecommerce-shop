@@ -20,7 +20,7 @@ var (
 )
 
 // CreateProduct creates the new product in the system
-func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers []*multipart.FileHeader) (*model.Product, *model.AppErr) {
+func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers []*multipart.FileHeader, tags []*model.ProductTag) (*model.Product, *model.AppErr) {
 	if fh.Size > model.FileUploadSizeLimit {
 		return nil, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductSizeExceeded, http.StatusInternalServerError, nil)
 	}
@@ -52,9 +52,11 @@ func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers 
 
 	p.Category.ProductID = product.ID
 	p.Brand.ProductID = product.ID
-	for _, t := range p.Tags {
+	for _, t := range tags {
 		t.ProductID = model.NewInt64(product.ID)
 	}
+
+	images := make([]*model.ProductImage, 0)
 
 	for _, fh := range headers {
 		f, err := fh.Open()
@@ -72,41 +74,41 @@ func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers 
 			return nil, uErr
 		}
 		img := &model.ProductImage{ProductID: model.NewInt64(product.ID), URL: model.NewString(url)}
-		p.Images = append(p.Images, img)
+		images = append(images, img)
 	}
 
-	if len(p.Tags) > 0 {
-		for _, tag := range p.Tags {
+	if len(tags) > 0 {
+		for _, tag := range tags {
 			tag.PreSave()
 		}
 
-		tagids, err := a.Srv().Store.ProductTag().BulkInsert(p.Tags)
+		tagids, err := a.Srv().Store.ProductTag().BulkInsert(tags)
 		if err != nil {
 			a.log.Error(err.Error(), zlog.Err(err))
 			return nil, err
 		}
 		for i, id := range tagids {
-			p.Tags[i].ID = model.NewInt64(id)
+			tags[i].ID = model.NewInt64(id)
 		}
 	} else {
-		p.Tags = make([]*model.ProductTag, 0)
+		tags = make([]*model.ProductTag, 0)
 	}
 
-	if len(p.Images) > 0 {
-		for _, img := range p.Images {
+	if len(images) > 0 {
+		for _, img := range images {
 			img.PreSave()
 		}
 
-		imgids, err := a.Srv().Store.ProductImage().BulkInsert(p.Images)
+		imgids, err := a.Srv().Store.ProductImage().BulkInsert(images)
 		if err != nil {
 			a.log.Error(err.Error(), zlog.Err(err))
 			return nil, err
 		}
 		for i, id := range imgids {
-			p.Images[i].ID = model.NewInt64(id)
+			images[i].ID = model.NewInt64(id)
 		}
 	} else {
-		p.Images = make([]*model.ProductImage, 0)
+		images = make([]*model.ProductImage, 0)
 	}
 
 	return product, nil
@@ -142,6 +144,60 @@ func (a *App) GetProduct(pid int64) (*model.Product, *model.AppErr) {
 // GetProducts gets all products from the db
 func (a *App) GetProducts() ([]*model.Product, *model.AppErr) {
 	return a.Srv().Store.Product().GetAll()
+}
+
+// GetProductTags gets all tags for the product
+func (a *App) GetProductTags(pid int64) ([]*model.ProductTag, *model.AppErr) {
+	return a.Srv().Store.ProductTag().GetAll(pid)
+}
+
+// GetProductImages gets all images for the product
+func (a *App) GetProductImages(pid int64) ([]*model.ProductImage, *model.AppErr) {
+	return a.Srv().Store.ProductImage().GetAll(pid)
+}
+
+// GetTag gets the tag by id
+func (a *App) GetTag(id int64) (*model.ProductTag, *model.AppErr) {
+	return a.Srv().Store.ProductTag().Get(id)
+}
+
+// GetImage gets the image by id
+func (a *App) GetImage(id int64) (*model.ProductImage, *model.AppErr) {
+	return a.Srv().Store.ProductImage().Get(id)
+}
+
+// PatchProductTag patches the product tag
+func (a *App) PatchProductTag(tid int64, patch *model.ProductTagPatch) (*model.ProductTag, *model.AppErr) {
+	old, err := a.Srv().Store.ProductTag().Get(tid)
+	if err != nil {
+		return nil, err
+	}
+
+	old.Patch(patch)
+	old.PreUpdate()
+	utag, err := a.Srv().Store.ProductTag().Update(tid, old)
+	if err != nil {
+		return nil, err
+	}
+
+	return utag, nil
+}
+
+// PatchProductImage patches the product image
+func (a *App) PatchProductImage(imgID int64, patch *model.ProductImagePatch) (*model.ProductImage, *model.AppErr) {
+	old, err := a.Srv().Store.ProductImage().Get(imgID)
+	if err != nil {
+		return nil, err
+	}
+
+	old.Patch(patch)
+	old.PreUpdate()
+	uimg, err := a.Srv().Store.ProductImage().Update(imgID, old)
+	if err != nil {
+		return nil, err
+	}
+
+	return uimg, nil
 }
 
 func (a *App) uploadImageToCloudinary(data io.Reader, filename string) (string, *model.AppErr) {

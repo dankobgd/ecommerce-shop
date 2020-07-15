@@ -256,7 +256,7 @@ func (s *Service) uploadFile(fullPath string, data io.Reader, randomPublicID boo
 	fi, err := os.Stat(fullPath)
 	if err == nil && fi.Size() == 0 {
 		if s.verbose {
-			fmt.Println("Not uploading empty file: ", fullPath)
+			log.Printf("Not uploading empty file: %v\n", fullPath)
 		}
 		return fullPath, nil
 	}
@@ -490,12 +490,12 @@ func (s *Service) Delete(publicID, prepend string, rtype ResourceType) error {
 	}
 	if s.keepFilesPattern != nil {
 		if s.keepFilesPattern.MatchString(prepend + publicID) {
-			fmt.Println("keep")
+			log.Println("keep")
 			return nil
 		}
 	}
 	if s.simulate {
-		fmt.Println("ok")
+		log.Println("ok")
 		return nil
 	}
 
@@ -519,7 +519,7 @@ func (s *Service) Delete(publicID, prepend string, rtype ResourceType) error {
 		return err
 	}
 	if e, ok := m["result"]; ok {
-		fmt.Println(e.(string))
+		log.Println(e.(string))
 	}
 	return nil
 }

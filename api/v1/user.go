@@ -21,19 +21,19 @@ var (
 
 // InitUser inits the user routes
 func InitUser(a *API) {
-	a.BaseRoutes.Users.Post("/", a.createUser)
-	a.BaseRoutes.Users.Post("/login", a.login)
-	a.BaseRoutes.Users.Post("/logout", a.SessionRequired(a.logout))
-	a.BaseRoutes.Users.Post("/token/refresh", a.refresh)
-	a.BaseRoutes.Users.Post("/email/verify", a.verifyUserEmail)
-	a.BaseRoutes.Users.Post("/email/verify/send", a.sendVerificationEmail)
-	a.BaseRoutes.Users.Post("/password/reset", a.resetUserPassword)
-	a.BaseRoutes.Users.Post("/password/reset/send", a.sendPasswordResetEmail)
+	a.Routes.Users.Post("/", a.createUser)
+	a.Routes.Users.Post("/login", a.login)
+	a.Routes.Users.Post("/logout", a.SessionRequired(a.logout))
+	a.Routes.Users.Post("/token/refresh", a.refresh)
+	a.Routes.Users.Post("/email/verify", a.verifyUserEmail)
+	a.Routes.Users.Post("/email/verify/send", a.sendVerificationEmail)
+	a.Routes.Users.Post("/password/reset", a.resetUserPassword)
+	a.Routes.Users.Post("/password/reset/send", a.sendPasswordResetEmail)
 
-	a.BaseRoutes.User.Get("/", a.getUser)
-	a.BaseRoutes.User.Delete("/", a.deleteUser)
+	a.Routes.User.Get("/", a.getUser)
+	a.Routes.User.Delete("/", a.deleteUser)
 
-	a.BaseRoutes.Users.Get("/protected", a.SessionRequired(a.protected))
+	a.Routes.Users.Get("/protected", a.SessionRequired(a.protected))
 }
 
 func (a *API) protected(w http.ResponseWriter, r *http.Request) {

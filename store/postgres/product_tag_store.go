@@ -31,7 +31,7 @@ func (s PgProductTagStore) BulkInsert(tags []*model.ProductTag) ([]int64, *model
 	rows, err := s.db.NamedQuery(q, tags)
 	defer rows.Close()
 	if err != nil {
-		return nil, model.NewAppErr("PgProductStore.BulkInsertTags", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveProduct, http.StatusInternalServerError, nil)
+		return nil, model.NewAppErr("PgProductTagStore.BulkInsertTags", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveProduct, http.StatusInternalServerError, nil)
 	}
 	for rows.Next() {
 		var id int64
@@ -39,8 +39,37 @@ func (s PgProductTagStore) BulkInsert(tags []*model.ProductTag) ([]int64, *model
 		ids = append(ids, id)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, model.NewAppErr("PgProductStore.BulkInsertTags", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveProduct, http.StatusInternalServerError, nil)
+		return nil, model.NewAppErr("PgProductTagStore.BulkInsertTags", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveProduct, http.StatusInternalServerError, nil)
 	}
 
 	return ids, nil
+}
+
+// Update updates the tag
+func (s PgProductTagStore) Update(id int64, pt *model.ProductTag) (*model.ProductTag, *model.AppErr) {
+	q := `UPDATE public.product_tag SET name=:tag_name, created_at=:tag_created_at, updated_at=:tag_updated_at WHERE id=:tag_id`
+	if _, err := s.db.NamedExec(q, pt); err != nil {
+		return nil, model.NewAppErr("PgProductTagStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
+	}
+	return pt, nil
+}
+
+// Get gets single tag by id
+func (s PgProductTagStore) Get(id int64) (*model.ProductTag, *model.AppErr) {
+	q := `SELECT tag.id AS tag_id, tag.name AS tag_name, tag.created_at AS tag_created_at, tag.updated_at AS tag_updated_at FROM public.product_tag tag WHERE tag.id = $1`
+	var tag model.ProductTag
+	if err := s.db.Get(&tag, q, id); err != nil {
+		return nil, model.NewAppErr("PgProductTagStore.Get", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
+	}
+	return &tag, nil
+}
+
+// GetAll gets all product's tags
+func (s PgProductTagStore) GetAll(pid int64) ([]*model.ProductTag, *model.AppErr) {
+	q := `SELECT tag.id AS tag_id, tag.name AS tag_name, tag.created_at AS tag_created_at, tag.updated_at AS tag_updated_at FROM public.product_tag tag WHERE tag.product_id = $1`
+	var tags []*model.ProductTag
+	if err := s.db.Select(&tags, q, pid); err != nil {
+		return nil, model.NewAppErr("PgProductTagStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
+	}
+	return tags, nil
 }
