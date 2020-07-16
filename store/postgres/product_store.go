@@ -22,10 +22,11 @@ func NewPgProductStore(pgst *PgStore) store.ProductStore {
 var (
 	msgBulkInsertProducts = &i18n.Message{ID: "store.postgres.product.bulk_insert.app_error", Other: "could not bulk insert products"}
 	msgSaveProduct        = &i18n.Message{ID: "store.postgres.product.save.app_error", Other: "could not save product to db"}
-	msgInvalidColumn      = &i18n.Message{ID: "store.postgres.product.save.app_error", Other: "could not save product to db, tried to insert non existing column name"}
 	msgGetProduct         = &i18n.Message{ID: "store.postgres.product.get.app_error", Other: "could not get product from db"}
+	msgGetProducts        = &i18n.Message{ID: "store.postgres.product.get_all.app_error", Other: "could not get products from db"}
 	msgUpdateProduct      = &i18n.Message{ID: "store.postgres.product.update.app_error", Other: "could not update product"}
 	msgDeleteProduct      = &i18n.Message{ID: "store.postgres.product.delete.app_error", Other: "could not delete product"}
+	msgInvalidColumn      = &i18n.Message{ID: "store.postgres.product.save.app_error", Other: "could not save product to db, tried to insert non existing column name"}
 )
 
 // BulkInsert inserts multiple products into db
@@ -158,7 +159,7 @@ func (s PgProductStore) GetAll() ([]*model.Product, *model.AppErr) {
 
 	var pj []productJoin
 	if err := s.db.Select(&pj, q); err != nil {
-		return nil, model.NewAppErr("PgProductStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProduct, http.StatusInternalServerError, nil)
+		return nil, model.NewAppErr("PgProductStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProducts, http.StatusInternalServerError, nil)
 	}
 
 	products := make([]*model.Product, 0)
@@ -180,8 +181,7 @@ func (s PgProductStore) Update(id int64, p *model.Product) (*model.Product, *mod
 
 // Delete ...
 func (s PgProductStore) Delete(id int64) *model.AppErr {
-	m := map[string]interface{}{"id": id}
-	if _, err := s.db.NamedExec(`DELETE FROM public.product WHERE id = :id`, m); err != nil {
+	if _, err := s.db.NamedExec(`DELETE FROM public.product WHERE id = :id`, map[string]interface{}{"id": id}); err != nil {
 		return model.NewAppErr("PgProductStore.Delete", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteProduct, http.StatusInternalServerError, nil)
 	}
 	return nil

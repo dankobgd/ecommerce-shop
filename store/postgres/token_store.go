@@ -46,8 +46,7 @@ func (s PgTokenStore) GetByToken(token string) (*model.Token, *model.AppErr) {
 
 // Delete deletes the single token
 func (s PgTokenStore) Delete(token string) *model.AppErr {
-	m := map[string]interface{}{"token": token}
-	if _, err := s.db.NamedExec("DELETE FROM public.token WHERE token = :token", m); err != nil {
+	if _, err := s.db.NamedExec("DELETE FROM public.token WHERE token = :token", map[string]interface{}{"token": token}); err != nil {
 		return model.NewAppErr("PgTokenStore.DeleteToken", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteToken, http.StatusInternalServerError, nil)
 	}
 	return nil
@@ -63,8 +62,7 @@ func (s PgTokenStore) Cleanup() *model.AppErr {
 
 // RemoveByType deletes all tokens of same type
 func (s PgTokenStore) RemoveByType(tokenType model.TokenType) *model.AppErr {
-	m := map[string]interface{}{"type": tokenType.String()}
-	if _, err := s.db.Exec("DELETE FROM public.token WHERE type = :type", m); err != nil {
+	if _, err := s.db.Exec("DELETE FROM public.token WHERE type = :type", map[string]interface{}{"type": tokenType.String()}); err != nil {
 		return model.NewAppErr("PgTokenStore.RemoveByType", model.ErrInternal, locale.GetUserLocalizer("en"), msgRemoveAllTokensType, http.StatusInternalServerError, nil)
 	}
 	return nil

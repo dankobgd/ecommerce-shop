@@ -25,7 +25,7 @@ var (
 // ProductBrand is the brand of the product
 type ProductBrand struct {
 	ID          int64     `json:"id" db:"brand_id" schema:"-"`
-	ProductID   int64     `json:"-" db:"brand_product_id" schema:"-"`
+	ProductID   int64     `json:"product_id" db:"brand_product_id" schema:"-"`
 	Name        string    `json:"name" db:"brand_name" schema:"name"`
 	Slug        string    `json:"slug" db:"brand_slug" schema:"slug"`
 	Type        string    `json:"type" db:"brand_type" schema:"type"`

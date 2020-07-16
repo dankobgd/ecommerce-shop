@@ -200,6 +200,16 @@ func (a *App) PatchProductImage(imgID int64, patch *model.ProductImagePatch) (*m
 	return uimg, nil
 }
 
+// DeleteProductTag deletes the product tag
+func (a *App) DeleteProductTag(tid int64) *model.AppErr {
+	return a.Srv().Store.ProductTag().Delete(tid)
+}
+
+// DeleteProductImage deletes the product image
+func (a *App) DeleteProductImage(imgID int64) *model.AppErr {
+	return a.Srv().Store.ProductImage().Delete(imgID)
+}
+
 func (a *App) uploadImageToCloudinary(data io.Reader, filename string) (string, *model.AppErr) {
 	return fileupload.UploadImageToCloudinary(data, filename, a.Cfg().CloudinarySettings.EnvURI)
 }

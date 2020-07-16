@@ -59,6 +59,7 @@ type ProductTagStore interface {
 	Get(id int64) (*model.ProductTag, *model.AppErr)
 	GetAll(pid int64) ([]*model.ProductTag, *model.AppErr)
 	Update(id int64, tag *model.ProductTag) (*model.ProductTag, *model.AppErr)
+	Delete(id int64) *model.AppErr
 }
 
 // ProductImageStore is the product image store
@@ -67,4 +68,5 @@ type ProductImageStore interface {
 	Get(id int64) (*model.ProductImage, *model.AppErr)
 	GetAll(pid int64) ([]*model.ProductImage, *model.AppErr)
 	Update(id int64, img *model.ProductImage) (*model.ProductImage, *model.AppErr)
+	Delete(id int64) *model.AppErr
 }

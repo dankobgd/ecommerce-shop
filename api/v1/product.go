@@ -26,6 +26,8 @@ func InitProducts(a *API) {
 	a.Routes.Products.Get("/images/{image_id:[A-Za-z0-9]+}", a.getSingleImage)
 	a.Routes.Products.Patch("/tags/{tag_id:[A-Za-z0-9]+}", a.patchProductTag)
 	a.Routes.Products.Patch("/images/{image_id:[A-Za-z0-9]+}", a.patchProductImage)
+	a.Routes.Products.Delete("/tags/{tag_id:[A-Za-z0-9]+}", a.deleteProductTag)
+	a.Routes.Products.Delete("/images/{image_id:[A-Za-z0-9]+}", a.deleteProductImage)
 
 	a.Routes.Product.Get("/", a.getProduct)
 	a.Routes.Product.Patch("/", a.patchProduct)
@@ -223,4 +225,30 @@ func (a *API) patchProductImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondJSON(w, http.StatusOK, uprod)
+}
+
+func (a *API) deleteProductTag(w http.ResponseWriter, r *http.Request) {
+	tid, err := strconv.ParseInt(chi.URLParam(r, "tag_id"), 10, 64)
+	if err != nil {
+		respondError(w, model.NewAppErr("deleteProductTag", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
+		return
+	}
+	if err := a.app.DeleteProductTag(tid); err != nil {
+		respondError(w, err)
+		return
+	}
+	respondOK(w)
+}
+
+func (a *API) deleteProductImage(w http.ResponseWriter, r *http.Request) {
+	imgID, err := strconv.ParseInt(chi.URLParam(r, "image_id"), 10, 64)
+	if err != nil {
+		respondError(w, model.NewAppErr("deleteProductImage", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
+		return
+	}
+	if err := a.app.DeleteProductImage(imgID); err != nil {
+		respondError(w, err)
+		return
+	}
+	respondOK(w)
 }
