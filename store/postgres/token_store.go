@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	msgGetToken            = &i18n.Message{ID: "store.postgres.token.get_by_token.app_error", Other: "could not get token from db"}
-	msgSaveToken           = &i18n.Message{ID: "store.postgres.token.save.app_error", Other: "could not save token to db"}
+	msgGetToken            = &i18n.Message{ID: "store.postgres.token.get_by_token.app_error", Other: "could not get token"}
+	msgSaveToken           = &i18n.Message{ID: "store.postgres.token.save.app_error", Other: "could not save token"}
 	msgCleanup             = &i18n.Message{ID: "store.postgres.token.cleanup.app_error", Other: "could not cleanup all tokens"}
 	msgRemoveAllTokensType = &i18n.Message{ID: "store.postgres.token.RemoveAllTokensByType.app_error", Other: "could not remove all tokens by type"}
 )

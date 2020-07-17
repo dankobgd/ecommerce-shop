@@ -12,6 +12,8 @@ type Store interface {
 	Product() ProductStore
 	ProductTag() ProductTagStore
 	ProductImage() ProductImageStore
+	Order() OrderStore
+	OrderDetail() OrderDetailStore
 }
 
 // UserStore ris the user store
@@ -48,6 +50,7 @@ type ProductStore interface {
 	BulkInsert([]*model.Product) *model.AppErr
 	Save(p *model.Product) (*model.Product, *model.AppErr)
 	Get(id int64) (*model.Product, *model.AppErr)
+	ListByIDS(ids []int64) ([]*model.Product, *model.AppErr)
 	GetAll() ([]*model.Product, *model.AppErr)
 	Update(id int64, u *model.Product) (*model.Product, *model.AppErr)
 	Delete(id int64) *model.AppErr
@@ -55,7 +58,7 @@ type ProductStore interface {
 
 // ProductTagStore is the product tag store
 type ProductTagStore interface {
-	BulkInsert([]*model.ProductTag) ([]int64, *model.AppErr)
+	BulkInsert(tags []*model.ProductTag) ([]int64, *model.AppErr)
 	Get(id int64) (*model.ProductTag, *model.AppErr)
 	GetAll(pid int64) ([]*model.ProductTag, *model.AppErr)
 	Update(id int64, tag *model.ProductTag) (*model.ProductTag, *model.AppErr)
@@ -64,9 +67,23 @@ type ProductTagStore interface {
 
 // ProductImageStore is the product image store
 type ProductImageStore interface {
-	BulkInsert([]*model.ProductImage) ([]int64, *model.AppErr)
+	BulkInsert(imgs []*model.ProductImage) ([]int64, *model.AppErr)
 	Get(id int64) (*model.ProductImage, *model.AppErr)
 	GetAll(pid int64) ([]*model.ProductImage, *model.AppErr)
 	Update(id int64, img *model.ProductImage) (*model.ProductImage, *model.AppErr)
 	Delete(id int64) *model.AppErr
+}
+
+// OrderStore is the order store
+type OrderStore interface {
+	Save(order *model.Order) (*model.Order, *model.AppErr)
+	Get(id int64) (*model.Order, *model.AppErr)
+	Update(id int64, o *model.Order) (*model.Order, *model.AppErr)
+}
+
+// OrderDetailStore is the order detail store
+type OrderDetailStore interface {
+	BulkInsert(items []*model.OrderDetail) *model.AppErr
+	Save(od *model.OrderDetail) (*model.OrderDetail, *model.AppErr)
+	Get(id int64) (*model.OrderDetail, *model.AppErr)
 }

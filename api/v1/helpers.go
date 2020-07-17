@@ -37,4 +37,5 @@ func respondError(w http.ResponseWriter, appErr *model.AppErr) error {
 func respondOK(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"status": "success"}`))
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/store"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/jmoiron/sqlx"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -21,12 +22,12 @@ func NewPgProductStore(pgst *PgStore) store.ProductStore {
 
 var (
 	msgBulkInsertProducts = &i18n.Message{ID: "store.postgres.product.bulk_insert.app_error", Other: "could not bulk insert products"}
-	msgSaveProduct        = &i18n.Message{ID: "store.postgres.product.save.app_error", Other: "could not save product to db"}
-	msgGetProduct         = &i18n.Message{ID: "store.postgres.product.get.app_error", Other: "could not get product from db"}
-	msgGetProducts        = &i18n.Message{ID: "store.postgres.product.get_all.app_error", Other: "could not get products from db"}
+	msgSaveProduct        = &i18n.Message{ID: "store.postgres.product.save.app_error", Other: "could not save product"}
+	msgGetProduct         = &i18n.Message{ID: "store.postgres.product.get.app_error", Other: "could not get product"}
+	msgGetProducts        = &i18n.Message{ID: "store.postgres.product.get_all.app_error", Other: "could not get products"}
 	msgUpdateProduct      = &i18n.Message{ID: "store.postgres.product.update.app_error", Other: "could not update product"}
 	msgDeleteProduct      = &i18n.Message{ID: "store.postgres.product.delete.app_error", Other: "could not delete product"}
-	msgInvalidColumn      = &i18n.Message{ID: "store.postgres.product.save.app_error", Other: "could not save product to db, tried to insert non existing column name"}
+	msgInvalidColumn      = &i18n.Message{ID: "store.postgres.product.save.app_error", Other: "could not save product, invalid column name"}
 )
 
 // BulkInsert inserts multiple products into db
@@ -81,10 +82,10 @@ func (s PgProductStore) Save(p *model.Product) (*model.Product, *model.AppErr) {
 
 	var pid, cid, bid int64
 	rows, err := s.db.NamedQuery(q, m)
-	defer rows.Close()
 	if err != nil {
 		return nil, model.NewAppErr("PgProductStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveProduct, http.StatusInternalServerError, nil)
 	}
+	defer rows.Close()
 	for rows.Next() {
 		rows.Scan(&pid, &cid, &bid)
 	}
@@ -159,6 +160,47 @@ func (s PgProductStore) GetAll() ([]*model.Product, *model.AppErr) {
 
 	var pj []productJoin
 	if err := s.db.Select(&pj, q); err != nil {
+		return nil, model.NewAppErr("PgProductStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProducts, http.StatusInternalServerError, nil)
+	}
+
+	products := make([]*model.Product, 0)
+	for _, x := range pj {
+		products = append(products, x.ToProduct())
+	}
+
+	return products, nil
+}
+
+// ListByIDS returns all products where ids are in slice
+func (s PgProductStore) ListByIDS(ids []int64) ([]*model.Product, *model.AppErr) {
+	q, args, err := sqlx.In(`
+	SELECT p.*,
+	b.id AS brand_id,
+	b.product_id AS brand_product_id,
+	b.name AS brand_name,
+	b.slug AS brand_slug,
+	b.type AS brand_type,
+	b.description AS brand_description,
+	b.email AS brand_email,
+	b.website_url AS brand_website_url,
+	b.created_at AS brand_created_at,
+	b.updated_at AS brand_updated_at,
+	c.id AS category_id,
+	c.product_id AS category_product_id,
+	c.name AS category_name,
+	c.slug AS category_slug,
+	c.description AS category_description	
+	FROM public.product p
+	LEFT JOIN product_brand b ON p.id = b.product_id
+	LEFT JOIN product_category c ON p.id = c.product_id
+	WHERE p.id IN (?)`, ids)
+
+	if err != nil {
+		return nil, model.NewAppErr("PgProductStore.ListByIDS", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProducts, http.StatusInternalServerError, nil)
+	}
+
+	var pj []productJoin
+	if err := s.db.Select(&pj, s.db.Rebind(q), args...); err != nil {
 		return nil, model.NewAppErr("PgProductStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProducts, http.StatusInternalServerError, nil)
 	}
 

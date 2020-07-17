@@ -41,3 +41,13 @@ func (s *Supplier) ProductTag() store.ProductTagStore {
 func (s *Supplier) ProductImage() store.ProductImageStore {
 	return postgres.NewPgProductImageStore(s.Pgst)
 }
+
+// Order returns the Order store implementation
+func (s *Supplier) Order() store.OrderStore {
+	return postgres.NewPgOrderStore(s.Pgst)
+}
+
+// OrderDetail returns the OrderDetail store implementation
+func (s *Supplier) OrderDetail() store.OrderDetailStore {
+	return postgres.NewPgOrderDetailStore(s.Pgst)
+}

@@ -50,7 +50,7 @@ func (a *App) CheckUserPassword(user *model.User, password string) *model.AppErr
 func (a *App) IssueTokens(user *model.User) (*model.TokenMetadata, *model.AppErr) {
 	settings := &a.Cfg().AuthSettings
 	atID := uuid.New().String()
-	atExp := time.Now().Add(time.Minute * 15)
+	atExp := time.Now().Add(time.Minute * 100000) // TODO: change later to small amount
 	atClaims := model.Claims{
 		Role: user.Role,
 		StandardClaims: jwt.StandardClaims{

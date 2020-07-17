@@ -154,8 +154,10 @@ create table public.related_product (
 
 create table public.order (
   id int generated always as identity primary key,
-  user_id int not null,
-  shipping_address text not null,
+  user_id int not null,  
+  status varchar(30) default 'pending' not null,
+  total int,
+  shipped_at timestamptz,
   created_at timestamptz not null,
   foreign key (user_id) references public.user (id)
 );
@@ -164,13 +166,8 @@ create table public.order_detail (
   order_id int,
   product_id int,
   quantity int not null,
-  subtotal int not null,
-  total int not null,
-  provider varchar(50) not null,
-  charge_amount int not null,
-  stripe_token text not null,
-  stripe_token_type text not null,
-  receipt_url text not null,
+  original_price int not null,
+  original_sku text not null,
   constraint pk_order_detail primary key(order_id, product_id)
 );
 

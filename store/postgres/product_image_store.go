@@ -21,8 +21,8 @@ func NewPgProductImageStore(pgst *PgStore) store.ProductImageStore {
 
 var (
 	msgBulkInsertImages   = &i18n.Message{ID: "store.postgres.product_image.bulk_insert.app_error", Other: "could not bulk insert product images"}
-	msgGetProductImage    = &i18n.Message{ID: "store.postgres.product_image.get.app_error", Other: "could not get product image from db"}
-	msgGetProductImages   = &i18n.Message{ID: "store.postgres.product_image.get_all.app_error", Other: "could not get product images from db"}
+	msgGetProductImage    = &i18n.Message{ID: "store.postgres.product_image.get.app_error", Other: "could not get product image"}
+	msgGetProductImages   = &i18n.Message{ID: "store.postgres.product_image.get_all.app_error", Other: "could not get product images"}
 	msgUpdateProductImage = &i18n.Message{ID: "store.postgres.product_image.update.app_error", Other: "could not update product image"}
 	msgDeleteProductImage = &i18n.Message{ID: "store.postgres.product_image.delete.app_error", Other: "could not delete product image"}
 )
@@ -33,10 +33,10 @@ func (s PgProductImageStore) BulkInsert(images []*model.ProductImage) ([]int64, 
 
 	var ids []int64
 	rows, err := s.db.NamedQuery(q, images)
-	defer rows.Close()
 	if err != nil {
 		return nil, model.NewAppErr("PgProductImageStore.BulkInsertImages", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkInsertImages, http.StatusInternalServerError, nil)
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var id int64
 		rows.Scan(&id)

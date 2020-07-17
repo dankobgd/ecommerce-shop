@@ -21,8 +21,8 @@ func NewPgProductTagStore(pgst *PgStore) store.ProductTagStore {
 
 var (
 	msgBUlkInsertTags   = &i18n.Message{ID: "store.postgres.product_tag.bulk_insert.app_error", Other: "could not bulk insert product tags"}
-	msgGetProductTag    = &i18n.Message{ID: "store.postgres.product_tag.get.app_error", Other: "could not get product tag from db"}
-	msgGetProductTags   = &i18n.Message{ID: "store.postgres.product_tag.get_all.app_error", Other: "could not get product tags from db"}
+	msgGetProductTag    = &i18n.Message{ID: "store.postgres.product_tag.get.app_error", Other: "could not get product tag"}
+	msgGetProductTags   = &i18n.Message{ID: "store.postgres.product_tag.get_all.app_error", Other: "could not get product tags"}
 	msgUpdateProductTag = &i18n.Message{ID: "store.postgres.product_tag.update.app_error", Other: "could not update product tag"}
 	msgDeleteProductTag = &i18n.Message{ID: "store.postgres.product_tag.delete.app_error", Other: "could not delete product tag"}
 )
@@ -33,10 +33,10 @@ func (s PgProductTagStore) BulkInsert(tags []*model.ProductTag) ([]int64, *model
 
 	var ids []int64
 	rows, err := s.db.NamedQuery(q, tags)
-	defer rows.Close()
 	if err != nil {
 		return nil, model.NewAppErr("PgProductTagStore.BulkInsertTags", model.ErrInternal, locale.GetUserLocalizer("en"), msgBUlkInsertTags, http.StatusInternalServerError, nil)
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var id int64
 		rows.Scan(&id)

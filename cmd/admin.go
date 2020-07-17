@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/dankobgd/ecommerce-shop/app"
 	"github.com/dankobgd/ecommerce-shop/model"
+	"github.com/dankobgd/ecommerce-shop/zlog"
 	"github.com/spf13/cobra"
 )
 
@@ -57,7 +57,7 @@ func init() {
 func loadApp(command *cobra.Command, args []string) {
 	appl, err := setupApp()
 	if err != nil {
-		fmt.Println(err)
+		cmdApp.Log().Info("cmd app setup err", zlog.Err(err))
 	}
 	cmdApp = appl
 	go runServer(appl.Srv())
@@ -107,7 +107,7 @@ func createUserFn(command *cobra.Command, args []string) error {
 		return errors.New("Password is required")
 	}
 
-	fmt.Println("CREATE USER")
+	cmdApp.Log().Info("created user")
 	return nil
 }
 
@@ -116,6 +116,7 @@ func deleteUserFn(command *cobra.Command, args []string) error {
 	if err != nil || email == 0 {
 		return errors.New("ID is required")
 	}
-	fmt.Println("DELETE USER")
+
+	cmdApp.Log().Info("deleted user")
 	return nil
 }

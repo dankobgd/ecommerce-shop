@@ -60,10 +60,10 @@ func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers 
 
 	for _, fh := range headers {
 		f, err := fh.Open()
-		defer f.Close()
 		if err != nil {
 			return nil, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductFileErr, http.StatusInternalServerError, nil)
 		}
+		defer f.Close()
 		b, err := ioutil.ReadAll(f)
 		if err != nil {
 			return nil, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductFileErr, http.StatusInternalServerError, nil)
@@ -198,6 +198,11 @@ func (a *App) PatchProductImage(imgID int64, patch *model.ProductImagePatch) (*m
 	}
 
 	return uimg, nil
+}
+
+// GetProductsbyIDS gets products with specified ids slice
+func (a *App) GetProductsbyIDS(ids []int64) ([]*model.Product, *model.AppErr) {
+	return a.Srv().Store.Product().ListByIDS(ids)
 }
 
 // DeleteProductTag deletes the product tag
