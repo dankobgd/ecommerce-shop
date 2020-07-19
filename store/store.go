@@ -14,6 +14,7 @@ type Store interface {
 	ProductImage() ProductImageStore
 	Order() OrderStore
 	OrderDetail() OrderDetailStore
+	Address() AddressStore
 }
 
 // UserStore ris the user store
@@ -76,7 +77,7 @@ type ProductImageStore interface {
 
 // OrderStore is the order store
 type OrderStore interface {
-	Save(order *model.Order) (*model.Order, *model.AppErr)
+	Save(order *model.Order, shipAddr *model.Address, billAddr *model.Address) (*model.Order, *model.AppErr)
 	Get(id int64) (*model.Order, *model.AppErr)
 	Update(id int64, o *model.Order) (*model.Order, *model.AppErr)
 }
@@ -86,4 +87,12 @@ type OrderDetailStore interface {
 	BulkInsert(items []*model.OrderDetail) *model.AppErr
 	Save(od *model.OrderDetail) (*model.OrderDetail, *model.AppErr)
 	Get(id int64) (*model.OrderDetail, *model.AppErr)
+}
+
+// AddressStore is the contact address store
+type AddressStore interface {
+	Save(addr *model.Address, userID int64, addrType model.AddrType) (*model.Address, *model.AppErr)
+	Get(id int64) (*model.Address, *model.AppErr)
+	Update(id int64, addr *model.Address) (*model.Address, *model.AppErr)
+	Delete(id int64) *model.AppErr
 }

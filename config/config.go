@@ -94,6 +94,11 @@ type CloudinarySettings struct {
 	EnvURI string `envconfig:"CLOUDINARY_ENV_URI"`
 }
 
+// GeocodingSettings containts the geocoding settings
+type GeocodingSettings struct {
+	ApiKey string `envconfig:"GEOCODING_API_KEY"`
+}
+
 // Config represents the app config
 type Config struct {
 	AppSettings
@@ -104,6 +109,7 @@ type Config struct {
 	PasswordSettings   PasswordSettings
 	LoggerSettings     LoggerSettings
 	CloudinarySettings CloudinarySettings
+	GeocodingSettings  GeocodingSettings
 }
 
 func loadEnvironment() {

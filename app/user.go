@@ -191,3 +191,36 @@ func (a *App) createTokenAndPersist(userID int64, tokenType model.TokenType, exp
 func (a *App) DeleteUser(id int64) *model.AppErr {
 	return a.Srv().Store.User().Delete(id)
 }
+
+// CreateUserAddress creates the user addresss
+func (a *App) CreateUserAddress(addr *model.Address, userID int64, addrType model.AddrType) (*model.Address, *model.AppErr) {
+	addr.PreSave()
+	return a.Srv().Store.Address().Save(addr, userID, addrType)
+}
+
+// GetUserAddress gets the user addresss
+func (a *App) GetUserAddress(id int64) (*model.Address, *model.AppErr) {
+	return a.Srv().Store.Address().Get(id)
+}
+
+// PatchUserAddress patches the user addresss
+func (a *App) PatchUserAddress(id int64, patch *model.AddressPatch) (*model.Address, *model.AppErr) {
+	old, err := a.Srv().Store.Address().Get(id)
+	if err != nil {
+		return nil, err
+	}
+
+	old.Patch(patch)
+	old.PreUpdate()
+	uprod, err := a.Srv().Store.Address().Update(id, old)
+	if err != nil {
+		return nil, err
+	}
+
+	return uprod, nil
+}
+
+// DeleteUserAddress hard deletes the user address
+func (a *App) DeleteUserAddress(id int64) *model.AppErr {
+	return a.Srv().Store.Address().Delete(id)
+}

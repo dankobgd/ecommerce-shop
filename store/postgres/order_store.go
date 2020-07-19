@@ -26,11 +26,36 @@ var (
 )
 
 // Save creates the new order
-func (s *PgOrderStore) Save(o *model.Order) (*model.Order, *model.AppErr) {
-	q := `INSERT INTO public.order (user_id, status, total, shipped_at, created_at) VALUES (:user_id, :status, :total, :shipped_at, :created_at) RETURNING id`
+func (s *PgOrderStore) Save(o *model.Order, shipAddr *model.Address, billAddr *model.Address) (*model.Order, *model.AppErr) {
+	q := `INSERT INTO public.order (user_id, status, total, shipped_at, created_at, billing_address_line_1, billing_address_line_2, billing_address_city, billing_address_country, billing_address_state, billing_address_zip, billing_address_latitude, billing_address_longitude, shipping_address_line_1, shipping_address_line_2, shipping_address_city, shipping_address_country, shipping_address_state, shipping_address_zip, shipping_address_latitude, shipping_address_longitude) 
+	VALUES (:user_id, :status, :total, :shipped_at, :created_at, :billing_address_line_1, :billing_address_line_2, :billing_address_city, :billing_address_country, :billing_address_state, :billing_address_zip, :billing_address_latitude, :billing_address_longitude, :shipping_address_line_1, :shipping_address_line_2, :shipping_address_city, :shipping_address_country, :shipping_address_state, :shipping_address_zip, :shipping_address_latitude, :shipping_address_longitude) RETURNING id`
+
+	m := map[string]interface{}{
+		"user_id":                    o.UserID,
+		"status":                     o.Status,
+		"total":                      o.Total,
+		"shipped_at":                 o.ShippedAt,
+		"created_at":                 o.CreatedAt,
+		"billing_address_line_1":     billAddr.Line1,
+		"billing_address_line_2":     billAddr.Line2,
+		"billing_address_city":       billAddr.City,
+		"billing_address_country":    billAddr.Country,
+		"billing_address_state":      billAddr.State,
+		"billing_address_zip":        billAddr.ZIP,
+		"billing_address_latitude":   billAddr.Latitude,
+		"billing_address_longitude":  billAddr.Longitude,
+		"shipping_address_line_1":    shipAddr.Line1,
+		"shipping_address_line_2":    shipAddr.Line2,
+		"shipping_address_city":      shipAddr.City,
+		"shipping_address_country":   shipAddr.Country,
+		"shipping_address_state":     shipAddr.State,
+		"shipping_address_zip":       shipAddr.ZIP,
+		"shipping_address_latitude":  shipAddr.Latitude,
+		"shipping_address_longitude": shipAddr.Longitude,
+	}
 
 	var id int64
-	rows, err := s.db.NamedQuery(q, o)
+	rows, err := s.db.NamedQuery(q, m)
 	if err != nil {
 		return nil, model.NewAppErr("PgOrderStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveOrder, http.StatusInternalServerError, nil)
 	}
@@ -46,6 +71,18 @@ func (s *PgOrderStore) Save(o *model.Order) (*model.Order, *model.AppErr) {
 	}
 
 	o.ID = id
+	o.BillingAddressLine1 = billAddr.Line1
+	o.BillingAddressLine2 = billAddr.Line2
+	o.BillingAddressCity = billAddr.City
+	o.BillingAddressCountry = billAddr.Country
+	o.BillingAddressState = billAddr.State
+	o.BillingAddressZIP = billAddr.ZIP
+	o.ShippingAddressLine1 = shipAddr.Line1
+	o.ShippingAddressLine2 = shipAddr.Line2
+	o.ShippingAddressCity = shipAddr.City
+	o.ShippingAddressCountry = shipAddr.Country
+	o.ShippingAddressState = shipAddr.State
+	o.ShippingAddressZIP = shipAddr.ZIP
 	return o, nil
 }
 

@@ -51,3 +51,8 @@ func (s *Supplier) Order() store.OrderStore {
 func (s *Supplier) OrderDetail() store.OrderDetailStore {
 	return postgres.NewPgOrderDetailStore(s.Pgst)
 }
+
+// Address returns the Address store implementation
+func (s *Supplier) Address() store.AddressStore {
+	return postgres.NewPgAddressStore(s.Pgst)
+}

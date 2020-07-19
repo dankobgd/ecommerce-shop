@@ -23,21 +23,21 @@ func InitOrder(a *API) {
 
 func (a *API) createOrder(w http.ResponseWriter, r *http.Request) {
 	uid := a.app.GetUserIDFromContext(r.Context())
-	items, e := model.OrderItemsDataFromJSON(r.Body)
+	props, e := model.OrderRequestDataFromJSON(r.Body)
 	if e != nil {
 		respondError(w, model.NewAppErr("createOrder", model.ErrInternal, locale.GetUserLocalizer("en"), msgOrderItemsDataFromJSON, http.StatusInternalServerError, nil))
 		return
 	}
 
 	o := &model.Order{UserID: uid, CreatedAt: time.Now()}
-	order, err := a.app.CreateOrder(o)
+	order, err := a.app.CreateOrder(o, props.ShippingAddress, props.BillingAddress)
 	if err != nil {
 		respondError(w, err)
 		return
 	}
 
 	ids := make([]int64, 0)
-	for _, x := range items {
+	for _, x := range props.Cart {
 		ids = append(ids, x.ProductID)
 	}
 	products, err := a.app.GetProductsbyIDS(ids)
@@ -53,12 +53,12 @@ func (a *API) createOrder(w http.ResponseWriter, r *http.Request) {
 		dtl := &model.OrderDetail{
 			OrderID:       order.ID,
 			ProductID:     p.ID,
-			Quantity:      items[i].Quantity,
+			Quantity:      props.Cart[i].Quantity,
 			OriginalPrice: p.Price,
 			OriginalSKU:   p.SKU,
 		}
 
-		totalPrice += p.Price * items[i].Quantity
+		totalPrice += p.Price * props.Cart[i].Quantity
 		orderDetails = append(orderDetails, dtl)
 	}
 
@@ -66,6 +66,27 @@ func (a *API) createOrder(w http.ResponseWriter, r *http.Request) {
 		respondError(w, err)
 		return
 	}
+
+	shippingAddressGeocode, err := a.app.GetAddressGeocodeResult(props.ShippingAddress)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+	billingAddressGeocode, err := a.app.GetAddressGeocodeResult(props.BillingAddress)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	sLat, _ := strconv.ParseFloat(shippingAddressGeocode.Lat, 64)
+	sLon, _ := strconv.ParseFloat(shippingAddressGeocode.Lon, 64)
+	order.ShippingAddressLatitude = &sLat
+	order.ShippingAddressLongitude = &sLon
+
+	bLat, _ := strconv.ParseFloat(billingAddressGeocode.Lat, 64)
+	bLon, _ := strconv.ParseFloat(billingAddressGeocode.Lon, 64)
+	order.BillingAddressLatitude = &bLat
+	order.BillingAddressLongitude = &bLon
 
 	order.Total = totalPrice
 	updatedOrder, err := a.app.UpdateOrder(order.ID, order)

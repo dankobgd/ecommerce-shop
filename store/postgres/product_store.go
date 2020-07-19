@@ -214,7 +214,7 @@ func (s PgProductStore) ListByIDS(ids []int64) ([]*model.Product, *model.AppErr)
 
 // Update updates the product
 func (s PgProductStore) Update(id int64, p *model.Product) (*model.Product, *model.AppErr) {
-	q := `UPDATE public.product SET name=:name, slug=:slug, image_url=:image_url, description=:description, price=:price, stock=:stock, sku=:sku, is_featured=:is_featured, created_at=:created_at, updated_at=:updated_at WHERE id=:id`
+	q := `UPDATE public.product SET name=:name, slug=:slug, image_url=:image_url, description=:description, price=:price, stock=:stock, sku=:sku, is_featured=:is_featured, updated_at=:updated_at WHERE id=:id`
 	if _, err := s.db.NamedExec(q, p); err != nil {
 		return nil, model.NewAppErr("PgProductStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateProduct, http.StatusInternalServerError, nil)
 	}

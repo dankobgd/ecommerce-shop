@@ -92,6 +92,13 @@ type UserLogin struct {
 	UpdatedAt       time.Time `json:"updated_at" db:"updated_at"`
 }
 
+// UserAddress is the contact address info
+type UserAddress struct {
+	UserID        int64 `json:"user_id" db:"user_id"`
+	AddressID     int64 `json:"address_id" db:"address_id"`
+	AddressTypeID int64 `json:"address_type_id" db:"address_type_id"`
+}
+
 // ToJSON converts user to json string
 func (u *User) ToJSON() string {
 	b, _ := json.Marshal(u)
