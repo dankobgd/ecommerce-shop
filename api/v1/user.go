@@ -36,11 +36,21 @@ func InitUser(a *API) {
 	a.Routes.Users.Get("/address/{address_id:[A-Za-z0-9]+}", a.SessionRequired(a.getUserAddress))
 	a.Routes.Users.Patch("/address/{address_id:[A-Za-z0-9]+}", a.SessionRequired(a.updateUserAddress))
 	a.Routes.Users.Delete("/address/{address_id:[A-Za-z0-9]+}", a.SessionRequired(a.deleteUserAddress))
+	a.Routes.Users.Get("/me", a.SessionRequired(a.currentUserInfo))
 
 	a.Routes.User.Get("/", a.getUser)
 	a.Routes.User.Delete("/", a.deleteUser)
 
 	a.Routes.Users.Get("/protected", a.SessionRequired(a.protected))
+}
+
+func (a *API) currentUserInfo(w http.ResponseWriter, r *http.Request) {
+	uid := a.app.GetUserIDFromContext(r.Context())
+	user, err := a.app.GetUserByID(uid)
+	if err != nil {
+		respondError(w, err)
+	}
+	respondJSON(w, http.StatusOK, user)
 }
 
 func (a *API) protected(w http.ResponseWriter, r *http.Request) {

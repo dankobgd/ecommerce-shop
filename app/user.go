@@ -72,12 +72,22 @@ func (a *App) DeleteAuth(uuid string) (int64, *model.AppErr) {
 
 // GetUserByID gets the user by his id
 func (a *App) GetUserByID(id int64) (*model.User, *model.AppErr) {
-	return a.Srv().Store.User().Get(id)
+	user, err := a.Srv().Store.User().Get(id)
+	if err != nil {
+		return nil, err
+	}
+	user.Sanitize(map[string]bool{})
+	return user, nil
 }
 
 // GetUserByEmail gets the user by his email
 func (a *App) GetUserByEmail(email string) (*model.User, *model.AppErr) {
-	return a.Srv().Store.User().GetByEmail(email)
+	user, err := a.Srv().Store.User().GetByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+	user.Sanitize(map[string]bool{})
+	return user, nil
 }
 
 // SendVerificationEmail sends the email for veryfing the user account
