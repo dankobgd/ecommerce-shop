@@ -201,15 +201,9 @@ func (a *API) sendPasswordResetEmail(w http.ResponseWriter, r *http.Request) {
 func (a *API) resetUserPassword(w http.ResponseWriter, r *http.Request) {
 	props := model.MapStrStrFromJSON(r.Body)
 	token := props["token"]
-	oldPassword := props["old_password"]
-	newPassword := props["new_password"]
+	newPassword := props["password"]
 
-	if len(oldPassword) == 0 || len(newPassword) == 0 {
-		respondError(w, model.NewAppErr("api.resetUserPassword", model.ErrInvalid, locale.GetUserLocalizer("en"), msgInvalidPassword, http.StatusBadRequest, nil))
-		return
-	}
-
-	if err := a.app.ResetUserPassword(token, oldPassword, newPassword); err != nil {
+	if err := a.app.ResetUserPassword(token, newPassword); err != nil {
 		respondError(w, err)
 		return
 	}

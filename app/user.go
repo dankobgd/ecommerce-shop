@@ -141,7 +141,7 @@ func (a *App) SendPasswordResetEmail(email string) *model.AppErr {
 }
 
 // ResetUserPassword resets the user pwd
-func (a *App) ResetUserPassword(tokenString, oldPassword, newPassword string) *model.AppErr {
+func (a *App) ResetUserPassword(tokenString, newPassword string) *model.AppErr {
 	token, err := a.Srv().Store.Token().GetByToken(tokenString)
 	if err != nil {
 		return err
@@ -153,10 +153,6 @@ func (a *App) ResetUserPassword(tokenString, oldPassword, newPassword string) *m
 
 	user, err := a.GetUserByID(token.UserID)
 	if err != nil {
-		return err
-	}
-
-	if err := a.CheckUserPassword(user, oldPassword); err != nil {
 		return err
 	}
 

@@ -89,7 +89,7 @@ func (a *App) SendPasswordRecoveryEmail(to string, username string, token *model
 		"Token":       token.Token,
 		"DisplayName": displayName,
 		"Hello":       locale.LocalizeDefaultMessage(l, msgTemplateHello),
-		"Link":        fmt.Sprintf("%s/password/forgot?token=%s", siteURL, token.Token),
+		"Link":        fmt.Sprintf("%s/password/reset?token=%s", siteURL, token.Token),
 		"Title":       locale.LocalizeDefaultMessage(l, msgPwdRecoveryTitle),
 		"BodyText":    locale.LocalizeDefaultMessage(l, msgPwdRecoveryBodyText),
 		"ButtonText":  locale.LocalizeDefaultMessage(l, msgPwdRecoveryButtonText),
