@@ -14,7 +14,8 @@ import (
 )
 
 var (
-	msgTokenExpired = &i18n.Message{ID: "model.token.expired.app_error", Other: "token has expired"}
+	msgTokenExpired     = &i18n.Message{ID: "model.token.expired.app_error", Other: "token has expired"}
+	msgUploadUserAvatar = &i18n.Message{ID: "app.upload_user_avatar.app_error", Other: "could not upload user avatar"}
 )
 
 // CreateUser creates the new user in the system
@@ -238,7 +239,7 @@ func (a *App) DeleteUser(id int64) *model.AppErr {
 func (a *App) UploadUserAvatar(userID int64, f multipart.File, fh *multipart.FileHeader) (*string, *string, *model.AppErr) {
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
-		return model.NewString(""), model.NewString(""), model.NewAppErr("uploadUserAvatar", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductFileErr, http.StatusInternalServerError, nil)
+		return model.NewString(""), model.NewString(""), model.NewAppErr("uploadUserAvatar", model.ErrInternal, locale.GetUserLocalizer("en"), msgUploadUserAvatar, http.StatusInternalServerError, nil)
 	}
 
 	details, uErr := a.UploadImage(bytes.NewBuffer(b), fh.Filename)

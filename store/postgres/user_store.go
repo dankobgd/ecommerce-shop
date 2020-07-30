@@ -29,6 +29,8 @@ var (
 	msgDeleteToken          = &i18n.Message{ID: "store.postgres.user.verify_email.delete_token.app_error", Other: "could not delete verify token"}
 	msgUpdatePassword       = &i18n.Message{ID: "store.postgres.user.update_password.app_error", Other: "could not update password"}
 	msgDeleteUser           = &i18n.Message{ID: "store.postgres.user.delete.app_error", Other: "could not delete user"}
+	msgUpdateUserAvatar     = &i18n.Message{ID: "store.postgres.user.update_avatar.app_error", Other: "could not delete user avatar"}
+	msgDeleteUserAvatar     = &i18n.Message{ID: "store.postgres.user.delete_avatar.app_error", Other: "could not delete user avatar"}
 )
 
 // BulkInsert inserts multiple users in the db
@@ -125,7 +127,7 @@ func (s PgUserStore) Delete(id int64) *model.AppErr {
 func (s PgUserStore) UpdateAvatar(id int64, url *string, publicID *string) (*string, *string, *model.AppErr) {
 	m := map[string]interface{}{"id": id, "avatar_url": url, "avatar_public_id": publicID, "updated_at": time.Now()}
 	if _, err := s.db.NamedExec("UPDATE public.user SET avatar_url = :avatar_url, avatar_public_id = :avatar_public_id, updated_at = :updated_at WHERE id = :id", m); err != nil {
-		return model.NewString(""), model.NewString(""), model.NewAppErr("PgUserStore.UpdateAvatar", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteUser, http.StatusInternalServerError, nil)
+		return model.NewString(""), model.NewString(""), model.NewAppErr("PgUserStore.UpdateAvatar", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateUserAvatar, http.StatusInternalServerError, nil)
 	}
 	return url, publicID, nil
 }
@@ -134,7 +136,7 @@ func (s PgUserStore) UpdateAvatar(id int64, url *string, publicID *string) (*str
 func (s PgUserStore) DeleteAvatar(id int64) *model.AppErr {
 	m := map[string]interface{}{"id": id, "updated_at": time.Now()}
 	if _, err := s.db.NamedExec("UPDATE public.user SET avatar_url = NULL, avatar_public_id = NULL, updated_at = :updated_at WHERE id = :id", m); err != nil {
-		return model.NewAppErr("PgUserStore.DeleteAvatar", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteUser, http.StatusInternalServerError, nil)
+		return model.NewAppErr("PgUserStore.DeleteAvatar", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteUserAvatar, http.StatusInternalServerError, nil)
 	}
 	return nil
 }
