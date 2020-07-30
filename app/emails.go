@@ -105,7 +105,7 @@ func (a *App) SendPasswordRecoveryEmail(to string, username string, token *model
 }
 
 // SendPasswordUpdatedEmail sends the pwd reset completed email
-func (a *App) SendPasswordUpdatedEmail(to string, username string, token string, siteURL string, userLocale string) *model.AppErr {
+func (a *App) SendPasswordUpdatedEmail(to string, username string, siteURL string, userLocale string) *model.AppErr {
 	l := locale.GetUserLocalizer(userLocale)
 
 	info := &mailer.Maildata{
@@ -120,7 +120,6 @@ func (a *App) SendPasswordUpdatedEmail(to string, username string, token string,
 
 	data := map[string]string{
 		"Email":          strings.Join(info.To, ","),
-		"Token":          token,
 		"DisplayName":    displayName,
 		"Hello":          locale.LocalizeDefaultMessage(l, msgTemplateHello),
 		"Title":          locale.LocalizeDefaultMessage(l, msgPwdUpdatedTitle),

@@ -51,7 +51,6 @@ func (a *App) Login(u *model.UserLogin) (*model.User, *model.AppErr) {
 		return nil, err
 	}
 
-	user.Sanitize(map[string]bool{})
 	return user, nil
 }
 
@@ -68,6 +67,15 @@ func (a *App) GetAuth(ad *model.AccessData) (int64, *model.AppErr) {
 // DeleteAuth deletes the user auth details
 func (a *App) DeleteAuth(uuid string) (int64, *model.AppErr) {
 	return a.Srv().Store.AccessToken().DeleteAuth(uuid)
+}
+
+// GetUserByIDWithPassword gets the user by his id and includes pwd (for some checks for the old pwd)
+func (a *App) GetUserByIDWithPassword(id int64) (*model.User, *model.AppErr) {
+	user, err := a.Srv().Store.User().Get(id)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 // GetUserByID gets the user by his id
@@ -165,8 +173,32 @@ func (a *App) ResetUserPassword(tokenString, newPassword string) *model.AppErr {
 	}
 
 	go func() {
-		if err := a.SendPasswordUpdatedEmail(user.Email, user.Username, token.Token, a.SiteURL(), user.Locale); err != nil {
+		if err := a.SendPasswordUpdatedEmail(user.Email, user.Username, a.SiteURL(), user.Locale); err != nil {
 			zlog.Error("could not send password reset completed email", zlog.Int64("user_id", token.UserID), zlog.Err(err))
+		}
+	}()
+
+	return nil
+}
+
+// ChangeUserPassword updates the user pwd from the app
+func (a *App) ChangeUserPassword(uid int64, oldPassword, newPassword string) *model.AppErr {
+	user, err := a.GetUserByIDWithPassword(uid)
+	if err != nil {
+		return err
+	}
+
+	if err := a.CheckUserPassword(user, oldPassword); err != nil {
+		return err
+	}
+
+	if err := a.UpdatePassword(user, newPassword); err != nil {
+		return err
+	}
+
+	go func() {
+		if err := a.SendPasswordUpdatedEmail(user.Email, user.Username, a.SiteURL(), user.Locale); err != nil {
+			zlog.Error("could not send password reset completed email", zlog.Int64("user_id", uid), zlog.Err(err))
 		}
 	}()
 

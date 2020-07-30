@@ -32,6 +32,7 @@ func InitUser(a *API) {
 	a.Routes.Users.Post("/email/verify/send", a.sendVerificationEmail)
 	a.Routes.Users.Post("/password/reset", a.resetUserPassword)
 	a.Routes.Users.Post("/password/reset/send", a.sendPasswordResetEmail)
+	a.Routes.Users.Put("/password", a.SessionRequired(a.changeUserPassword))
 	a.Routes.Users.Post("/address", a.SessionRequired(a.createUserAddress))
 	a.Routes.Users.Get("/address/{address_id:[A-Za-z0-9]+}", a.SessionRequired(a.getUserAddress))
 	a.Routes.Users.Patch("/address/{address_id:[A-Za-z0-9]+}", a.SessionRequired(a.updateUserAddress))
@@ -204,6 +205,25 @@ func (a *API) resetUserPassword(w http.ResponseWriter, r *http.Request) {
 	newPassword := props["password"]
 
 	if err := a.app.ResetUserPassword(token, newPassword); err != nil {
+		respondError(w, err)
+		return
+	}
+	respondOK(w)
+}
+
+func (a *API) changeUserPassword(w http.ResponseWriter, r *http.Request) {
+	uid := a.app.GetUserIDFromContext(r.Context())
+	props := model.MapStrStrFromJSON(r.Body)
+	oldPassword := props["old_password"]
+	newPassword := props["new_password"]
+	confirmPassword := props["confirm_password"]
+
+	if len(oldPassword) == 0 || len(newPassword) == 0 || len(confirmPassword) == 0 || newPassword != confirmPassword {
+		respondError(w, model.NewAppErr("api.changeUserPassword", model.ErrInvalid, locale.GetUserLocalizer("en"), msgInvalidPassword, http.StatusBadRequest, nil))
+		return
+	}
+
+	if err := a.app.ChangeUserPassword(uid, oldPassword, newPassword); err != nil {
 		respondError(w, err)
 		return
 	}
