@@ -21,22 +21,36 @@ var (
 )
 
 // UploadImageToCloudinary uploads the image and returns the preview url
-func UploadImageToCloudinary(data io.Reader, filename string, cloudEnvURI string) (string, *model.AppErr) {
+func UploadImageToCloudinary(data io.Reader, filename string, cloudEnvURI string) (*gocloudinary.ResourceDetails, *model.AppErr) {
 	cloudinary, err := gocloudinary.Dial(cloudEnvURI)
 	if err != nil {
-		return "", model.NewAppErr("UploadImageToCloudinary", model.ErrInternal, locale.GetUserLocalizer("en"), msgCloudinaryDial, http.StatusInternalServerError, "")
+		return nil, model.NewAppErr("UploadImageToCloudinary", model.ErrInternal, locale.GetUserLocalizer("en"), msgCloudinaryDial, http.StatusInternalServerError, "")
 	}
 
 	imageName := strconv.FormatInt(time.Now().Unix(), 10) + "-" + filename
 	publicID, err := cloudinary.UploadImage(imageName, data, baseCloudinaryDir)
 	if err != nil {
-		return "", model.NewAppErr("UploadImageToCloudinary", model.ErrInternal, locale.GetUserLocalizer("en"), msgCloudinaryUploadImage, http.StatusInternalServerError, "")
+		return nil, model.NewAppErr("UploadImageToCloudinary", model.ErrInternal, locale.GetUserLocalizer("en"), msgCloudinaryUploadImage, http.StatusInternalServerError, "")
 	}
 
 	details, err := cloudinary.ResourceDetails(publicID)
 	if err != nil {
-		return "", model.NewAppErr("UploadImageToCloudinary", model.ErrInternal, locale.GetUserLocalizer("en"), msgCloudinaryRecieveDetails, http.StatusInternalServerError, nil)
+		return nil, model.NewAppErr("UploadImageToCloudinary", model.ErrInternal, locale.GetUserLocalizer("en"), msgCloudinaryRecieveDetails, http.StatusInternalServerError, nil)
 	}
 
-	return details.SecureURL, nil
+	return details, nil
+}
+
+// DeleteImageFromCloudinary deletes the image from cloudinary
+func DeleteImageFromCloudinary(publicID string, cloudEnvURI string) *model.AppErr {
+	cloudinary, err := gocloudinary.Dial(cloudEnvURI)
+	if err != nil {
+		return model.NewAppErr("DeleteImageFromCloudinary", model.ErrInternal, locale.GetUserLocalizer("en"), msgCloudinaryDial, http.StatusInternalServerError, "")
+	}
+
+	if err := cloudinary.Delete(publicID, "", gocloudinary.ImageType); err != nil {
+		return model.NewAppErr("DeleteImageFromCloudinary", model.ErrInternal, locale.GetUserLocalizer("en"), msgCloudinaryUploadImage, http.StatusInternalServerError, "")
+	}
+
+	return nil
 }

@@ -20,10 +20,12 @@ var (
 	msgAddressFromJSON      = &i18n.Message{ID: "api.deleteUser.app_error", Other: "could not parse address json data"}
 	msgAddressPatchFromJSON = &i18n.Message{ID: "api.deleteUser.app_error", Other: "could not parse address patch data"}
 	msgDeleteUserAddress    = &i18n.Message{ID: "api.deleteUser.app_error", Other: "could not delete address"}
+	msgUserAvatarMultipart  = &i18n.Message{ID: "api.upload_user_avatar.app_error", Other: "could not parse avatar multipart file"}
 )
 
 // InitUser inits the user routes
 func InitUser(a *API) {
+	a.Routes.Users.Get("/me", a.SessionRequired(a.currentUser))
 	a.Routes.Users.Post("/", a.createUser)
 	a.Routes.Users.Post("/login", a.login)
 	a.Routes.Users.Post("/logout", a.SessionRequired(a.logout))
@@ -33,30 +35,25 @@ func InitUser(a *API) {
 	a.Routes.Users.Post("/password/reset", a.resetUserPassword)
 	a.Routes.Users.Post("/password/reset/send", a.sendPasswordResetEmail)
 	a.Routes.Users.Put("/password", a.SessionRequired(a.changeUserPassword))
+	a.Routes.Users.Post("/avatar", a.SessionRequired(a.uploadUserAvatar))
+	a.Routes.Users.Patch("/avatar", a.SessionRequired(a.deleteUserAvatar))
 	a.Routes.Users.Post("/address", a.SessionRequired(a.createUserAddress))
 	a.Routes.Users.Get("/address/{address_id:[A-Za-z0-9]+}", a.SessionRequired(a.getUserAddress))
 	a.Routes.Users.Patch("/address/{address_id:[A-Za-z0-9]+}", a.SessionRequired(a.updateUserAddress))
 	a.Routes.Users.Delete("/address/{address_id:[A-Za-z0-9]+}", a.SessionRequired(a.deleteUserAddress))
-	a.Routes.Users.Get("/me", a.SessionRequired(a.currentUserInfo))
 
 	a.Routes.User.Get("/", a.getUser)
 	a.Routes.User.Delete("/", a.deleteUser)
-
-	a.Routes.Users.Get("/protected", a.SessionRequired(a.protected))
 }
 
-func (a *API) currentUserInfo(w http.ResponseWriter, r *http.Request) {
+func (a *API) currentUser(w http.ResponseWriter, r *http.Request) {
 	uid := a.app.GetUserIDFromContext(r.Context())
 	user, err := a.app.GetUserByID(uid)
 	if err != nil {
 		respondError(w, err)
+		return
 	}
 	respondJSON(w, http.StatusOK, user)
-}
-
-func (a *API) protected(w http.ResponseWriter, r *http.Request) {
-	uid := a.app.GetUserIDFromContext(r.Context())
-	respondJSON(w, http.StatusOK, map[string]interface{}{"userID": uid})
 }
 
 func (a *API) createUser(w http.ResponseWriter, r *http.Request) {
@@ -253,6 +250,42 @@ func (a *API) deleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.app.DeleteUser(uid); err != nil {
+		respondError(w, err)
+		return
+	}
+	respondOK(w)
+}
+func (a *API) uploadUserAvatar(w http.ResponseWriter, r *http.Request) {
+	uid := a.app.GetUserIDFromContext(r.Context())
+	if e := r.ParseMultipartForm(model.FileUploadSizeLimit); e != nil {
+		respondError(w, model.NewAppErr("uploadUserAvatar", model.ErrInternal, locale.GetUserLocalizer("en"), msgUserAvatarMultipart, http.StatusInternalServerError, nil))
+		return
+	}
+
+	f, fh, err := r.FormFile("avatar")
+	if err != nil {
+		respondError(w, model.NewAppErr("uploadUserAvatar", model.ErrInternal, locale.GetUserLocalizer("en"), msgUserAvatarMultipart, http.StatusInternalServerError, nil))
+		return
+	}
+	defer f.Close()
+
+	url, publicID, uErr := a.app.UploadUserAvatar(uid, f, fh)
+	if uErr != nil {
+		respondError(w, uErr)
+		return
+	}
+
+	respondJSON(w, http.StatusCreated, map[string]interface{}{"avatar_url": url, "avatar_public_id": publicID})
+}
+
+func (a *API) deleteUserAvatar(w http.ResponseWriter, r *http.Request) {
+	uid := a.app.GetUserIDFromContext(r.Context())
+	user, err := a.app.GetUserByID(uid)
+	if err != nil {
+		respondError(w, err)
+	}
+
+	if err := a.app.DeleteUserAvatar(uid, *user.AvatarPublicID); err != nil {
 		respondError(w, err)
 		return
 	}

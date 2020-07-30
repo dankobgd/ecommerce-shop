@@ -490,12 +490,10 @@ func (s *Service) Delete(publicID, prepend string, rtype ResourceType) error {
 	}
 	if s.keepFilesPattern != nil {
 		if s.keepFilesPattern.MatchString(prepend + publicID) {
-			log.Println("keep")
 			return nil
 		}
 	}
 	if s.simulate {
-		log.Println("ok")
 		return nil
 	}
 

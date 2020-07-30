@@ -26,6 +26,8 @@ type UserStore interface {
 	GetByEmail(email string) (*model.User, *model.AppErr)
 	Update(id int64, u *model.User) (*model.User, *model.AppErr)
 	Delete(id int64) *model.AppErr
+	UpdateAvatar(id int64, url *string, publicID *string) (*string, *string, *model.AppErr)
+	DeleteAvatar(id int64) *model.AppErr
 	VerifyEmail(usrerID int64) *model.AppErr
 	UpdatePassword(userID int64, hashedPassword string) *model.AppErr
 }

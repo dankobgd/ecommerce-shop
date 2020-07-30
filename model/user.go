@@ -72,7 +72,8 @@ type User struct {
 	Gender          *string    `json:"gender" db:"gender"`
 	Role            string     `json:"role" db:"role"`
 	Locale          string     `json:"locale" db:"locale"`
-	AvatarURL       string     `json:"avatar_url" db:"avatar_url"`
+	AvatarURL       *string    `json:"avatar_url" db:"avatar_url"`
+	AvatarPublicID  *string    `json:"avatar_public_id" db:"avatar_public_id"`
 	Active          bool       `json:"active" db:"active"`
 	EmailVerified   bool       `json:"email_verified" db:"email_verified"`
 	FailedAttempts  int        `json:"failed_attempts,omitempty" db:"failed_attempts"`

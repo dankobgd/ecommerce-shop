@@ -61,6 +61,7 @@ create table public.user (
   gender gender,
   locale varchar(5) default 'en' not null,
   avatar_url text,
+  avatar_public_id text,
   active bool not null,
   email_verified bool default false not null,
   failed_attempts int default 0 not null,

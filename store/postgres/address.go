@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/dankobgd/ecommerce-shop/model"
@@ -70,7 +69,6 @@ func (s *PgAddressStore) Save(addr *model.Address, userID int64, addrType model.
 	}
 
 	if err := rows.Err(); err != nil {
-		fmt.Println(err)
 		if IsForeignKeyConstraintViolationError(err) {
 			return nil, model.NewAppErr("PgAddressStore.Save", model.ErrConflict, locale.GetUserLocalizer("en"), msgInvalidColumn, http.StatusInternalServerError, nil)
 		}

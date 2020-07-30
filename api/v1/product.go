@@ -11,11 +11,11 @@ import (
 )
 
 var (
-	msgProductPatchFromJSON = &i18n.Message{ID: "api.product.patch_product.app_error", Other: "could not decode product patch data"}
-	msgProductFileErr       = &i18n.Message{ID: "api.product.create_product.formfile.app_error", Other: "error parsing files"}
-	msgProductMultipart     = &i18n.Message{ID: "api.product.create_product.multipart.app_error", Other: "could not decode product multipart data"}
-	msgPatchProduct         = &i18n.Message{ID: "api.product.patch_product.app_error", Other: "could not patch product"}
-	msgURLParamErr          = &i18n.Message{ID: "api.product.url.params.app_error", Other: "could not parse URL params"}
+	msgProductPatchFromJSON   = &i18n.Message{ID: "api.product.patch_product.app_error", Other: "could not decode product patch data"}
+	msgProductFileErr         = &i18n.Message{ID: "api.product.create_product.formfile.app_error", Other: "error parsing files"}
+	msgProductAvatarMultipart = &i18n.Message{ID: "api.product.create_product.multipart.app_error", Other: "could not decode product multipart data"}
+	msgPatchProduct           = &i18n.Message{ID: "api.product.patch_product.app_error", Other: "could not patch product"}
+	msgURLParamErr            = &i18n.Message{ID: "api.product.url.params.app_error", Other: "could not parse URL params"}
 )
 
 // InitProducts inits the product routes
@@ -38,7 +38,7 @@ func InitProducts(a *API) {
 
 func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(model.FileUploadSizeLimit); err != nil {
-		respondError(w, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductMultipart, http.StatusInternalServerError, nil))
+		respondError(w, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductAvatarMultipart, http.StatusInternalServerError, nil))
 		return
 	}
 
@@ -47,7 +47,7 @@ func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
 
 	var p model.Product
 	if err := model.SchemaDecoder.Decode(&p, mpf.Value); err != nil {
-		respondError(w, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductMultipart, http.StatusInternalServerError, nil))
+		respondError(w, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductAvatarMultipart, http.StatusInternalServerError, nil))
 		return
 	}
 

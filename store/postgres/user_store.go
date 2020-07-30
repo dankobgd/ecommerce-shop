@@ -120,3 +120,21 @@ func (s PgUserStore) Delete(id int64) *model.AppErr {
 	}
 	return nil
 }
+
+// UpdateAvatar updates the user avatar image
+func (s PgUserStore) UpdateAvatar(id int64, url *string, publicID *string) (*string, *string, *model.AppErr) {
+	m := map[string]interface{}{"id": id, "avatar_url": url, "avatar_public_id": publicID, "updated_at": time.Now()}
+	if _, err := s.db.NamedExec("UPDATE public.user SET avatar_url = :avatar_url, avatar_public_id = :avatar_public_id, updated_at = :updated_at WHERE id = :id", m); err != nil {
+		return model.NewString(""), model.NewString(""), model.NewAppErr("PgUserStore.UpdateAvatar", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteUser, http.StatusInternalServerError, nil)
+	}
+	return url, publicID, nil
+}
+
+// DeleteAvatar deletes the user avatar image
+func (s PgUserStore) DeleteAvatar(id int64) *model.AppErr {
+	m := map[string]interface{}{"id": id, "updated_at": time.Now()}
+	if _, err := s.db.NamedExec("UPDATE public.user SET avatar_url = NULL, avatar_public_id = NULL, updated_at = :updated_at WHERE id = :id", m); err != nil {
+		return model.NewAppErr("PgUserStore.DeleteAvatar", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteUser, http.StatusInternalServerError, nil)
+	}
+	return nil
+}

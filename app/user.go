@@ -1,6 +1,9 @@
 package app
 
 import (
+	"bytes"
+	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"time"
 
@@ -28,7 +31,7 @@ func (a *App) CreateUser(u *model.User) (*model.User, *model.AppErr) {
 	user, err := a.Srv().Store.User().Save(u)
 
 	if err != nil {
-		a.log.Error(err.Error(), zlog.Err(err))
+		a.Log().Error(err.Error(), zlog.Err(err))
 		return nil, err
 	}
 
@@ -44,7 +47,7 @@ func (a *App) Login(u *model.UserLogin) (*model.User, *model.AppErr) {
 
 	user, err := a.Srv().Store.User().GetByEmail(u.Email)
 	if err != nil {
-		a.log.Error(err.Error(), zlog.Err(err))
+		a.Log().Error(err.Error(), zlog.Err(err))
 		return nil, err
 	}
 	if err := a.CheckUserPassword(user, u.Password); err != nil {
@@ -169,7 +172,7 @@ func (a *App) ResetUserPassword(tokenString, newPassword string) *model.AppErr {
 	}
 
 	if err := a.Srv().Store.Token().Delete(token.Token); err != nil {
-		zlog.Error("could not delete token", zlog.Int64("user_id", token.UserID), zlog.String("token_type", token.Type), zlog.Err(err))
+		a.Log().Error("could not delete token", zlog.Int64("user_id", token.UserID), zlog.String("token_type", token.Type), zlog.Err(err))
 	}
 
 	go func() {
@@ -198,7 +201,7 @@ func (a *App) ChangeUserPassword(uid int64, oldPassword, newPassword string) *mo
 
 	go func() {
 		if err := a.SendPasswordUpdatedEmail(user.Email, user.Username, a.SiteURL(), user.Locale); err != nil {
-			zlog.Error("could not send password reset completed email", zlog.Int64("user_id", uid), zlog.Err(err))
+			a.Log().Error("could not send password reset completed email", zlog.Int64("user_id", uid), zlog.Err(err))
 		}
 	}()
 
@@ -228,6 +231,33 @@ func (a *App) createTokenAndPersist(userID int64, tokenType model.TokenType, exp
 // DeleteUser soft deletes the user account
 func (a *App) DeleteUser(id int64) *model.AppErr {
 	return a.Srv().Store.User().Delete(id)
+}
+
+// UploadUserAvatar uploads the user profile image and returns the avatar url
+// it returns the url, public id and error
+func (a *App) UploadUserAvatar(userID int64, f multipart.File, fh *multipart.FileHeader) (*string, *string, *model.AppErr) {
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		return model.NewString(""), model.NewString(""), model.NewAppErr("uploadUserAvatar", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductFileErr, http.StatusInternalServerError, nil)
+	}
+
+	details, uErr := a.UploadImage(bytes.NewBuffer(b), fh.Filename)
+	if uErr != nil {
+		return model.NewString(""), model.NewString(""), uErr
+	}
+
+	return a.Srv().Store.User().UpdateAvatar(userID, model.NewString(details.SecureURL), model.NewString(details.PublicID))
+}
+
+// DeleteUserAvatar deletes the user profile image
+func (a *App) DeleteUserAvatar(userID int64, publicID string) *model.AppErr {
+	go func() {
+		if err := a.DeleteImage(publicID); err != nil {
+			a.Log().Error("could not delete user avatar from cloudinary", zlog.Int64("user_id", userID), zlog.String("public_id", publicID), zlog.Err(err))
+		}
+	}()
+
+	return a.Srv().Store.User().DeleteAvatar(userID)
 }
 
 // CreateUserAddress creates the user addresss

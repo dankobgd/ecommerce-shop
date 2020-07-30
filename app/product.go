@@ -2,13 +2,11 @@ package app
 
 import (
 	"bytes"
-	"io"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 
 	"github.com/dankobgd/ecommerce-shop/model"
-	"github.com/dankobgd/ecommerce-shop/utils/fileupload"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
 	"github.com/dankobgd/ecommerce-shop/zlog"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -38,15 +36,15 @@ func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers 
 		return nil, err
 	}
 
-	url, uErr := a.UploadProductImage(bytes.NewBuffer(b), fh.Filename)
+	details, uErr := a.UploadImage(bytes.NewBuffer(b), fh.Filename)
 	if uErr != nil {
 		return nil, uErr
 	}
-	p.SetImageURL(url)
+	p.SetImageURL(details.SecureURL)
 
 	product, pErr := a.Srv().Store.Product().Save(p)
 	if pErr != nil {
-		a.log.Error(pErr.Error(), zlog.Err(pErr))
+		a.Log().Error(pErr.Error(), zlog.Err(pErr))
 		return nil, pErr
 	}
 
@@ -69,11 +67,11 @@ func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers 
 			return nil, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductFileErr, http.StatusInternalServerError, nil)
 		}
 		// TODO: upload in parallel...
-		url, uErr := a.UploadProductImage(bytes.NewBuffer(b), fh.Filename)
+		details, uErr := a.UploadImage(bytes.NewBuffer(b), fh.Filename)
 		if uErr != nil {
 			return nil, uErr
 		}
-		img := &model.ProductImage{ProductID: model.NewInt64(product.ID), URL: model.NewString(url)}
+		img := &model.ProductImage{ProductID: model.NewInt64(product.ID), URL: model.NewString(details.SecureURL)}
 		images = append(images, img)
 	}
 
@@ -84,7 +82,7 @@ func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers 
 
 		tagids, err := a.Srv().Store.ProductTag().BulkInsert(tags)
 		if err != nil {
-			a.log.Error(err.Error(), zlog.Err(err))
+			a.Log().Error(err.Error(), zlog.Err(err))
 			return nil, err
 		}
 		for i, id := range tagids {
@@ -101,7 +99,7 @@ func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers 
 
 		imgids, err := a.Srv().Store.ProductImage().BulkInsert(images)
 		if err != nil {
-			a.log.Error(err.Error(), zlog.Err(err))
+			a.Log().Error(err.Error(), zlog.Err(err))
 			return nil, err
 		}
 		for i, id := range imgids {
@@ -207,19 +205,12 @@ func (a *App) GetProductsbyIDS(ids []int64) ([]*model.Product, *model.AppErr) {
 
 // DeleteProductTag deletes the product tag
 func (a *App) DeleteProductTag(tid int64) *model.AppErr {
+	// TODO: delete from cloud later
 	return a.Srv().Store.ProductTag().Delete(tid)
 }
 
 // DeleteProductImage deletes the product image
 func (a *App) DeleteProductImage(imgID int64) *model.AppErr {
+	// TODO: delete from cloud later
 	return a.Srv().Store.ProductImage().Delete(imgID)
-}
-
-func (a *App) uploadImageToCloudinary(data io.Reader, filename string) (string, *model.AppErr) {
-	return fileupload.UploadImageToCloudinary(data, filename, a.Cfg().CloudinarySettings.EnvURI)
-}
-
-// UploadProductImage uploads the image and returns the preview url
-func (a *App) UploadProductImage(data io.Reader, filename string) (string, *model.AppErr) {
-	return a.uploadImageToCloudinary(data, filename)
 }
