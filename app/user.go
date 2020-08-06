@@ -229,6 +229,27 @@ func (a *App) createTokenAndPersist(userID int64, tokenType model.TokenType, exp
 	return token, nil
 }
 
+// PatchUserProfile patches the user profile
+func (a *App) PatchUserProfile(id int64, patch *model.UserPatch) (*model.User, *model.AppErr) {
+	old, err := a.Srv().Store.User().Get(id)
+	if err != nil {
+		return nil, err
+	}
+
+	old.Patch(patch)
+	old.PreUpdate()
+	if err := patch.Validate(); err != nil {
+		return nil, err
+	}
+	user, err := a.Srv().Store.User().Update(id, old)
+	if err != nil {
+		return nil, err
+	}
+
+	user.Sanitize(map[string]bool{})
+	return user, nil
+}
+
 // DeleteUser soft deletes the user account
 func (a *App) DeleteUser(id int64) *model.AppErr {
 	return a.Srv().Store.User().Delete(id)

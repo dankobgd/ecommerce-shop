@@ -14,13 +14,14 @@ var (
 	msgInvalidToken         = &i18n.Message{ID: "model.access_token_verify.json.app_error", Other: "token is invalid or has already expired"}
 	msgUserFromJSON         = &i18n.Message{ID: "api.user.create_user.json.app_error", Other: "could not decode user json data"}
 	msgRefreshTokenFromJSON = &i18n.Message{ID: "api.user.create_user.json.app_error", Other: "could not decode token json data"}
-	msgInvalidEmail         = &i18n.Message{ID: "api.sendUserVerificationEmail.email.app_error", Other: "invalid email provided"}
-	msgInvalidPassword      = &i18n.Message{ID: "api.resetUserPassword.password.app_error", Other: "invalid password provided"}
-	msgUserURLParams        = &i18n.Message{ID: "api.deleteUser.app_error", Other: "invalid user_id url param"}
-	msgAddressFromJSON      = &i18n.Message{ID: "api.deleteUser.app_error", Other: "could not parse address json data"}
-	msgAddressPatchFromJSON = &i18n.Message{ID: "api.deleteUser.app_error", Other: "could not parse address patch data"}
-	msgDeleteUserAddress    = &i18n.Message{ID: "api.deleteUser.app_error", Other: "could not delete address"}
-	msgUserAvatarMultipart  = &i18n.Message{ID: "api.upload_user_avatar.app_error", Other: "could not parse avatar multipart file"}
+	msgInvalidEmail         = &i18n.Message{ID: "api.user.sendUserVerificationEmail.email.app_error", Other: "invalid email provided"}
+	msgInvalidPassword      = &i18n.Message{ID: "api.user.resetUserPassword.password.app_error", Other: "invalid password provided"}
+	msgUserURLParams        = &i18n.Message{ID: "api.user.deleteUser.app_error", Other: "invalid user_id url param"}
+	msgAddressFromJSON      = &i18n.Message{ID: "api.user.deleteUser.app_error", Other: "could not parse address json data"}
+	msgAddressPatchFromJSON = &i18n.Message{ID: "api.user.deleteUser.app_error", Other: "could not parse address patch data"}
+	msgDeleteUserAddress    = &i18n.Message{ID: "api.user.deleteUser.app_error", Other: "could not delete address"}
+	msgUserAvatarMultipart  = &i18n.Message{ID: "api.user.upload_user_avatar.app_error", Other: "could not parse avatar multipart file"}
+	msgUpdateProfile        = &i18n.Message{ID: "api.user.update_profile.app_error", Other: "could not update user profile"}
 )
 
 // InitUser inits the user routes
@@ -34,6 +35,7 @@ func InitUser(a *API) {
 	a.Routes.Users.Post("/email/verify/send", a.sendVerificationEmail)
 	a.Routes.Users.Post("/password/reset", a.resetUserPassword)
 	a.Routes.Users.Post("/password/reset/send", a.sendPasswordResetEmail)
+	a.Routes.Users.Patch("/", a.SessionRequired(a.updateProfile))
 	a.Routes.Users.Put("/password", a.SessionRequired(a.changeUserPassword))
 	a.Routes.Users.Post("/avatar", a.SessionRequired(a.uploadUserAvatar))
 	a.Routes.Users.Patch("/avatar", a.SessionRequired(a.deleteUserAvatar))
@@ -206,6 +208,22 @@ func (a *API) resetUserPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondOK(w)
+}
+
+func (a *API) updateProfile(w http.ResponseWriter, r *http.Request) {
+	uid := a.app.GetUserIDFromContext(r.Context())
+	patch, err := model.UserPatchFromJSON(r.Body)
+	if err != nil {
+		respondError(w, model.NewAppErr("updateProfile", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateProfile, http.StatusInternalServerError, nil))
+		return
+	}
+
+	user, pErr := a.app.PatchUserProfile(uid, patch)
+	if pErr != nil {
+		respondError(w, pErr)
+		return
+	}
+	respondJSON(w, http.StatusOK, user)
 }
 
 func (a *API) changeUserPassword(w http.ResponseWriter, r *http.Request) {

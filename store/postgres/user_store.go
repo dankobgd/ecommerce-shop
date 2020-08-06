@@ -23,6 +23,7 @@ func NewPgUserStore(pgst *PgStore) store.UserStore {
 var (
 	msgUniqueConstraintUser = &i18n.Message{ID: "store.postgres.user.save.unique_constraint.app_error", Other: "invalid credentials"}
 	msgSaveUser             = &i18n.Message{ID: "store.postgres.user.save.app_error", Other: "could not save user"}
+	msgUpdateUserProfile    = &i18n.Message{ID: "store.postgres.user.update.app_error", Other: "could not update user"}
 	msgBulkInsertUsers      = &i18n.Message{ID: "store.postgres.user.bulk.insert.app_error", Other: "could not bulk insert users"}
 	msgGetUser              = &i18n.Message{ID: "store.postgres.user.get.app_error", Other: "could not get the user"}
 	msgVerifyEmail          = &i18n.Message{ID: "store.postgres.user.verify_email.app_error", Other: "could not verify email"}
@@ -68,6 +69,15 @@ func (s PgUserStore) Save(user *model.User) (*model.User, *model.AppErr) {
 	return user, nil
 }
 
+// Update updates the user profile
+func (s PgUserStore) Update(id int64, u *model.User) (*model.User, *model.AppErr) {
+	q := `UPDATE public.user SET first_name=:first_name, last_name=:last_name, username=:username, email=:email, gender=:gender, locale=:locale, updated_at=:updated_at WHERE id=:id`
+	if _, err := s.db.NamedExec(q, u); err != nil {
+		return nil, model.NewAppErr("PgUserStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateUserProfile, http.StatusInternalServerError, nil)
+	}
+	return u, nil
+}
+
 // Get gets one user by id
 func (s PgUserStore) Get(id int64) (*model.User, *model.AppErr) {
 	var user model.User
@@ -107,11 +117,6 @@ func (s PgUserStore) UpdatePassword(userID int64, hashedPassword string) *model.
 		return model.NewAppErr("PgUserStore.UpdatePassword", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdatePassword, http.StatusInternalServerError, nil)
 	}
 	return nil
-}
-
-// Update ...
-func (s PgUserStore) Update(id int64, u *model.User) (*model.User, *model.AppErr) {
-	return &model.User{}, nil
 }
 
 // Delete soft deletes the user

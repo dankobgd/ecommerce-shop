@@ -52,6 +52,7 @@ var (
 	msgValidateUserLName      = &i18n.Message{ID: "model.user.validate.last_name.app_error", Other: "invalid last name"}
 	msgValidateUserPwd        = &i18n.Message{ID: "model.user.validate.password.app_error", Other: "invalid password"}
 	msgValidateUserConfirmPwd = &i18n.Message{ID: "model.user.validate.confirm_password.app_error", Other: "invalid confirm password"}
+	msgValidateUserGender     = &i18n.Message{ID: "model.user.validate.gender.app_error", Other: "invalid gender"}
 	msgValidateUserLocale     = &i18n.Message{ID: "model.user.validate.locale.app_error", Other: "invalid locale"}
 	msgValidatePwdLength      = &i18n.Message{ID: "model.user.validate.password_length.app_error", Other: "invalid password length"}
 	msgValidatePwdUpper       = &i18n.Message{ID: "model.user.validate.password_uppercase.app_error", Other: "uppercase letter required"}
@@ -100,6 +101,45 @@ type UserAddress struct {
 	AddressTypeID int64 `json:"address_type_id" db:"address_type_id"`
 }
 
+// UserPatch is the user patch model
+type UserPatch struct {
+	FirstName string  `json:"first_name"`
+	LastName  string  `json:"last_name"`
+	Username  string  `json:"username"`
+	Email     string  `json:"email"`
+	Gender    *string `json:"gender"`
+	Locale    string  `json:"locale"`
+}
+
+// Patch patches the user fields that are provided
+func (u *User) Patch(patch *UserPatch) {
+	if patch.FirstName != "" {
+		u.FirstName = patch.FirstName
+	}
+	if patch.LastName != "" {
+		u.LastName = patch.LastName
+	}
+	if patch.Username != "" {
+		u.Username = patch.Username
+	}
+	if patch.Email != "" {
+		u.Email = patch.Email
+	}
+	if patch.Gender != nil {
+		u.Gender = patch.Gender
+	}
+	if patch.Locale != "" {
+		u.Locale = patch.Locale
+	}
+}
+
+// UserPatchFromJSON decodes the input and returns the UserPatch
+func UserPatchFromJSON(data io.Reader) (*UserPatch, error) {
+	var up *UserPatch
+	err := json.NewDecoder(data).Decode(&up)
+	return up, err
+}
+
 // ToJSON converts user to json string
 func (u *User) ToJSON() string {
 	b, _ := json.Marshal(u)
@@ -145,6 +185,14 @@ func IsValidUsername(username string) bool {
 		}
 	}
 	return true
+}
+
+// IsValidGender checks if gender is valid
+func IsValidGender(gender string) bool {
+	if gender == "m" || gender == "f" {
+		return true
+	}
+	return false
 }
 
 // IsValidLocale checks if locale is valid
@@ -249,6 +297,53 @@ func (u *UserLogin) Validate() *AppErr {
 	}
 	if len(u.Password) == 0 || len(u.Password) > userPasswordMaxLength {
 		errs.Add(Invalid("password", l, msgValidateUserPwd))
+	}
+
+	if !errs.IsZero() {
+		return NewValidationError("User", msgInvalidUser, "", errs)
+	}
+	return nil
+}
+
+// Validate validates the user patch and returns an error if it doesn't pass criteria
+func (up *UserPatch) Validate() *AppErr {
+	var errs ValidationErrors
+	l := locale.GetUserLocalizer("en")
+
+	if up.Username != "" {
+		if !IsValidUsername(up.Username) {
+			errs.Add(Invalid("username", l, msgValidateUsername))
+		}
+	}
+	if up.Email != "" {
+		if len(up.Email) == 0 || len(up.Email) > userEmailMaxLength || !is.ValidEmail(up.Email) {
+			errs.Add(Invalid("email", l, msgValidateUserEmail))
+		}
+	}
+	if up.Username != "" {
+		if utf8.RuneCountInString(up.Username) > userUsernameMaxRunes {
+			errs.Add(Invalid("username", l, msgValidateUsername))
+		}
+	}
+	if up.FirstName != "" {
+		if utf8.RuneCountInString(up.FirstName) > userFirstnameMaxRunes {
+			errs.Add(Invalid("first_name", l, msgValidateUserFName))
+		}
+	}
+	if up.LastName != "" {
+		if utf8.RuneCountInString(up.LastName) > userLastnameMaxRunes {
+			errs.Add(Invalid("last_name", l, msgValidateUserLName))
+		}
+	}
+	if up.Gender != nil {
+		if !IsValidGender(*up.Gender) {
+			errs.Add(Invalid("gender", l, msgValidateUserGender))
+		}
+	}
+	if up.Locale != "" {
+		if !IsValidLocale(up.Locale) {
+			errs.Add(Invalid("locale", l, msgValidateUserLocale))
+		}
 	}
 
 	if !errs.IsZero() {
