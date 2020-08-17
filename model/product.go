@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/dankobgd/ecommerce-shop/utils/random"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -35,7 +36,7 @@ type Product struct {
 	Description string           `json:"description" db:"description" schema:"description"`
 	Price       int              `json:"price" db:"price" schema:"price"`
 	Stock       int              `json:"stock" db:"stock" schema:"stock"`
-	SKU         string           `json:"sku" db:"sku" schema:"sku"`
+	SKU         string           `json:"sku" db:"sku" schema:"-"`
 	IsFeatured  bool             `json:"is_featured" db:"is_featured" schema:"is_featured"`
 	CreatedAt   time.Time        `json:"created_at" db:"created_at" schema:"-"`
 	UpdatedAt   time.Time        `json:"updated_at" db:"updated_at" schema:"-"`
@@ -51,7 +52,6 @@ type ProductPatch struct {
 	Description *string `json:"description"`
 	Price       *int    `json:"price"`
 	Stock       *int    `json:"stock"`
-	SKU         *string `json:"sku"`
 	IsFeatured  *bool   `json:"is_featured"`
 }
 
@@ -74,9 +74,6 @@ func (p *Product) Patch(patch *ProductPatch) {
 	}
 	if patch.Stock != nil {
 		p.Stock = *patch.Stock
-	}
-	if patch.SKU != nil {
-		p.SKU = *patch.SKU
 	}
 	if patch.IsFeatured != nil {
 		p.IsFeatured = *patch.IsFeatured
@@ -112,6 +109,7 @@ func (p *Product) ToJSON() string {
 func (p *Product) PreSave() {
 	p.CreatedAt = time.Now()
 	p.UpdatedAt = p.CreatedAt
+	p.SKU = random.AlphaNumeric(64)
 	p.Brand.PreSave()
 }
 
@@ -139,9 +137,6 @@ func (p *Product) Validate() *AppErr {
 	}
 	if p.Price == 0 {
 		errs.Add(Invalid("price", l, msgValidateProductPrice))
-	}
-	if p.SKU == "" {
-		errs.Add(Invalid("sku", l, msgValidateProductSKU))
 	}
 	if p.CreatedAt.IsZero() {
 		errs.Add(Invalid("created_at", l, msgValidateProductCrAt))
