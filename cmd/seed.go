@@ -174,9 +174,9 @@ func parseProducts() []*prodData {
 		if err != nil {
 			log.Fatalf("price err: %v", err)
 		}
-		p.Stock, err = strconv.Atoi(line[5])
+		p.InStock, err = strconv.ParseBool(line[5])
 		if err != nil {
-			log.Fatalf("stock err: %v", err)
+			log.Fatalf("in_stock err: %v", err)
 		}
 		p.SKU = line[6]
 		p.IsFeatured, err = strconv.ParseBool(line[7])

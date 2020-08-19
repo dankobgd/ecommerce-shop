@@ -97,7 +97,7 @@ create table public.product (
   image_url text not null,
   description text,
   price int not null,
-  stock int default 0 not null,
+  in_stock bool default true not null,
   sku text not null,
   is_featured bool default false not null,
   created_at timestamptz not null,

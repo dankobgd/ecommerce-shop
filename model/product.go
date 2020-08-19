@@ -35,7 +35,7 @@ type Product struct {
 	ImageURL    string           `json:"image_url" db:"image_url" schema:"-"`
 	Description string           `json:"description" db:"description" schema:"description"`
 	Price       int              `json:"price" db:"price" schema:"price"`
-	Stock       int              `json:"stock" db:"stock" schema:"stock"`
+	InStock     bool             `json:"in_stock" db:"in_stock" schema:"in_stock"`
 	SKU         string           `json:"sku" db:"sku" schema:"-"`
 	IsFeatured  bool             `json:"is_featured" db:"is_featured" schema:"is_featured"`
 	CreatedAt   time.Time        `json:"created_at" db:"created_at" schema:"-"`
@@ -51,7 +51,7 @@ type ProductPatch struct {
 	ImageURL    *string `json:"image_url"`
 	Description *string `json:"description"`
 	Price       *int    `json:"price"`
-	Stock       *int    `json:"stock"`
+	InStock     *bool   `json:"in_stock"`
 	IsFeatured  *bool   `json:"is_featured"`
 }
 
@@ -72,8 +72,8 @@ func (p *Product) Patch(patch *ProductPatch) {
 	if patch.Price != nil {
 		p.Price = *patch.Price
 	}
-	if patch.Stock != nil {
-		p.Stock = *patch.Stock
+	if patch.InStock != nil {
+		p.InStock = *patch.InStock
 	}
 	if patch.IsFeatured != nil {
 		p.IsFeatured = *patch.IsFeatured

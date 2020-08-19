@@ -32,7 +32,7 @@ var (
 
 // BulkInsert inserts multiple products into db
 func (s PgProductStore) BulkInsert(products []*model.Product) *model.AppErr {
-	q := `INSERT INTO public.product (name, slug, image_url, description, price, stock, sku, is_featured, created_at, updated_at) VALUES (:name, :slug, :image_url, :description, :price, :stock, :sku, :is_featured, :created_at, :updated_at)`
+	q := `INSERT INTO public.product (name, slug, image_url, description, price, in_stock, sku, is_featured, created_at, updated_at) VALUES (:name, :slug, :image_url, :description, :price, :in_stock, :sku, :is_featured, :created_at, :updated_at)`
 
 	if _, err := s.db.NamedExec(q, products); err != nil {
 		return model.NewAppErr("PgProductStore.BulkInsert", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkInsertProducts, http.StatusInternalServerError, nil)
@@ -48,7 +48,7 @@ func (s PgProductStore) Save(p *model.Product) (*model.Product, *model.AppErr) {
 		"image_url":         p.ImageURL,
 		"description":       p.Description,
 		"price":             p.Price,
-		"stock":             p.Stock,
+		"in_stock":          p.InStock,
 		"sku":               p.SKU,
 		"is_featured":       p.IsFeatured,
 		"created_at":        p.CreatedAt,
@@ -67,8 +67,8 @@ func (s PgProductStore) Save(p *model.Product) (*model.Product, *model.AppErr) {
 	}
 
 	q := `WITH prod_ins AS (
-		INSERT INTO public.product (name, slug, image_url, description, price, stock, sku, is_featured, created_at, updated_at)
-		VALUES (:name, :slug, :image_url, :description, :price, :stock, :sku, :is_featured, :created_at, :updated_at)
+		INSERT INTO public.product (name, slug, image_url, description, price, in_stock, sku, is_featured, created_at, updated_at)
+		VALUES (:name, :slug, :image_url, :description, :price, :in_stock, :sku, :is_featured, :created_at, :updated_at)
 		RETURNING id as pid
 		),
 		cat_ins AS (
@@ -214,7 +214,7 @@ func (s PgProductStore) ListByIDS(ids []int64) ([]*model.Product, *model.AppErr)
 
 // Update updates the product
 func (s PgProductStore) Update(id int64, p *model.Product) (*model.Product, *model.AppErr) {
-	q := `UPDATE public.product SET name=:name, slug=:slug, image_url=:image_url, description=:description, price=:price, stock=:stock, sku=:sku, is_featured=:is_featured, updated_at=:updated_at WHERE id=:id`
+	q := `UPDATE public.product SET name=:name, slug=:slug, image_url=:image_url, description=:description, price=:price, in_stock=:in_stock, sku=:sku, is_featured=:is_featured, updated_at=:updated_at WHERE id=:id`
 	if _, err := s.db.NamedExec(q, p); err != nil {
 		return nil, model.NewAppErr("PgProductStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateProduct, http.StatusInternalServerError, nil)
 	}

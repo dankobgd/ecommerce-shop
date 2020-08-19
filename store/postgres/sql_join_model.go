@@ -44,7 +44,7 @@ func (pj *productJoin) ToProduct() *model.Product {
 		ImageURL:    pj.ImageURL,
 		Description: pj.Description,
 		Price:       pj.Price,
-		Stock:       pj.Stock,
+		InStock:     pj.InStock,
 		SKU:         pj.SKU,
 		IsFeatured:  pj.IsFeatured,
 		CreatedAt:   pj.CreatedAt,
