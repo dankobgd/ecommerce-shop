@@ -48,8 +48,6 @@ func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers 
 		return nil, pErr
 	}
 
-	p.Category.ProductID = product.ID
-	p.Brand.ProductID = product.ID
 	for _, t := range tags {
 		t.ProductID = model.NewInt64(product.ID)
 	}

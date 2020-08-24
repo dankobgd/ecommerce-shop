@@ -49,9 +49,8 @@ func (pj *productJoin) ToProduct() *model.Product {
 		IsFeatured:  pj.IsFeatured,
 		CreatedAt:   pj.CreatedAt,
 		UpdatedAt:   pj.UpdatedAt,
-		Brand: &model.ProductBrand{
+		Brand: &model.Brand{
 			ID:          pj.BID,
-			ProductID:   pj.BProductID,
 			Name:        pj.BName,
 			Slug:        pj.BSlug,
 			Type:        pj.BType,
@@ -61,9 +60,8 @@ func (pj *productJoin) ToProduct() *model.Product {
 			CreatedAt:   pj.BCreatedAt,
 			UpdatedAt:   pj.BUpdatedAt,
 		},
-		Category: &model.ProductCategory{
+		Category: &model.Category{
 			ID:          pj.CID,
-			ProductID:   pj.CProductID,
 			Name:        pj.CName,
 			Slug:        pj.CSlug,
 			Description: pj.CDescription,

@@ -21,17 +21,17 @@ var (
 // InitProducts inits the product routes
 func InitProducts(a *API) {
 	a.Routes.Products.Get("/", a.getProducts)
-	a.Routes.Products.Post("/", a.createProduct)
+	a.Routes.Products.Post("/", a.AdminSessionRequired(a.createProduct))
 	a.Routes.Products.Get("/tags/{tag_id:[A-Za-z0-9]+}", a.getSingleTag)
 	a.Routes.Products.Get("/images/{image_id:[A-Za-z0-9]+}", a.getSingleImage)
-	a.Routes.Products.Patch("/tags/{tag_id:[A-Za-z0-9]+}", a.patchProductTag)
-	a.Routes.Products.Patch("/images/{image_id:[A-Za-z0-9]+}", a.patchProductImage)
-	a.Routes.Products.Delete("/tags/{tag_id:[A-Za-z0-9]+}", a.deleteProductTag)
-	a.Routes.Products.Delete("/images/{image_id:[A-Za-z0-9]+}", a.deleteProductImage)
+	a.Routes.Products.Patch("/tags/{tag_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.patchProductTag))
+	a.Routes.Products.Patch("/images/{image_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.patchProductImage))
+	a.Routes.Products.Delete("/tags/{tag_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.deleteProductTag))
+	a.Routes.Products.Delete("/images/{image_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.deleteProductImage))
 
 	a.Routes.Product.Get("/", a.getProduct)
-	a.Routes.Product.Patch("/", a.patchProduct)
-	a.Routes.Product.Delete("/", a.deleteProduct)
+	a.Routes.Product.Patch("/", a.AdminSessionRequired(a.patchProduct))
+	a.Routes.Product.Delete("/", a.AdminSessionRequired(a.deleteProduct))
 	a.Routes.Product.Get("/tags", a.getProductTags)
 	a.Routes.Product.Get("/images", a.getProductImages)
 }

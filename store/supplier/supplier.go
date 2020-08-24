@@ -56,3 +56,13 @@ func (s *Supplier) OrderDetail() store.OrderDetailStore {
 func (s *Supplier) Address() store.AddressStore {
 	return postgres.NewPgAddressStore(s.Pgst)
 }
+
+// Category returns the Category store implementation
+func (s *Supplier) Category() store.CategoryStore {
+	return postgres.NewPgCategoryStore(s.Pgst)
+}
+
+// Brand returns the Brand store implementation
+func (s *Supplier) Brand() store.BrandStore {
+	return postgres.NewPgBrandStore(s.Pgst)
+}

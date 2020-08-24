@@ -184,13 +184,13 @@ func parseProducts() []*prodData {
 			log.Fatalf("is_featured err: %v", err)
 		}
 
-		p.Category = &model.ProductCategory{
+		p.Category = &model.Category{
 			Name:        line[8],
 			Slug:        line[9],
 			Description: line[10],
 		}
 
-		p.Brand = &model.ProductBrand{
+		p.Brand = &model.Brand{
 			Name:        line[11],
 			Slug:        line[12],
 			Type:        line[13],

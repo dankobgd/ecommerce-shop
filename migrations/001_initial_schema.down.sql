@@ -17,7 +17,6 @@ drop table public.token;
 drop table public.user;
 
 drop table public.category;
-drop table public.color;
-drop table public.size;
-drop table public.shoe_size;
-drop table public.jeans_size;
+drop table public.brand;
+
+drop type gender;

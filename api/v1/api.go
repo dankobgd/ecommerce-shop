@@ -14,14 +14,18 @@ type API struct {
 
 // Routes contains all api route definitions
 type Routes struct {
-	Root     chi.Router // ''
-	API      chi.Router // 'api/v1'
-	Users    chi.Router // 'api/v1/users'
-	User     chi.Router // 'api/v1/users/{user_id:[A-Za-z0-9]+}'
-	Products chi.Router // 'api/v1/products'
-	Product  chi.Router // 'api/v1/products/{product_id:[A-Za-z0-9]+}'
-	Orders   chi.Router // 'api/v1/orders'
-	Order    chi.Router // 'api/v1/orders/{order_id:[A-Za-z0-9]+}'
+	Root       chi.Router // ''
+	API        chi.Router // 'api/v1'
+	Users      chi.Router // 'api/v1/users'
+	User       chi.Router // 'api/v1/users/{user_id:[A-Za-z0-9]+}'
+	Products   chi.Router // 'api/v1/products'
+	Product    chi.Router // 'api/v1/products/{product_id:[A-Za-z0-9]+}'
+	Orders     chi.Router // 'api/v1/orders'
+	Order      chi.Router // 'api/v1/orders/{order_id:[A-Za-z0-9]+}'
+	Categories chi.Router // 'api/v1/categories'
+	Category   chi.Router // 'api/v1/categories/{category_id:[A-Za-z0-9]+}'
+	Brands     chi.Router // 'api/v1/brands'
+	Brand      chi.Router // 'api/v1/brands/{brand_id:[A-Za-z0-9]+}'
 }
 
 // Init inits the API
@@ -44,8 +48,14 @@ func Init(a *app.App, r *chi.Mux) {
 	api.Routes.Product = api.Routes.Products.Route("/{product_id:[A-Za-z0-9]+}", nil)
 	api.Routes.Orders = api.Routes.API.Route("/orders", nil)
 	api.Routes.Order = api.Routes.Orders.Route("/{order_id:[A-Za-z0-9]+}", nil)
+	api.Routes.Categories = api.Routes.API.Route("/categories", nil)
+	api.Routes.Category = api.Routes.Categories.Route("/{category_id:[A-Za-z0-9]+}", nil)
+	api.Routes.Brands = api.Routes.API.Route("/brands", nil)
+	api.Routes.Brand = api.Routes.Brands.Route("/{brand_id:[A-Za-z0-9]+}", nil)
 
 	InitUser(api)
 	InitProducts(api)
 	InitOrder(api)
+	InitCategories(api)
+	InitBrands(api)
 }
