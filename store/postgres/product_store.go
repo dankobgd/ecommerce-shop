@@ -27,12 +27,13 @@ var (
 	msgGetProducts        = &i18n.Message{ID: "store.postgres.product.get_all.app_error", Other: "could not get products"}
 	msgUpdateProduct      = &i18n.Message{ID: "store.postgres.product.update.app_error", Other: "could not update product"}
 	msgDeleteProduct      = &i18n.Message{ID: "store.postgres.product.delete.app_error", Other: "could not delete product"}
-	msgInvalidColumn      = &i18n.Message{ID: "store.postgres.product.save.app_error", Other: "could not save product, invalid column name"}
+	msgInvalidColumn      = &i18n.Message{ID: "store.postgres.product.save.app_error", Other: "could not save product, invalid foreign key value"}
 )
 
 // BulkInsert inserts multiple products into db
 func (s PgProductStore) BulkInsert(products []*model.Product) *model.AppErr {
-	q := `INSERT INTO public.product (name, slug, image_url, description, price, in_stock, sku, is_featured, created_at, updated_at) VALUES (:name, :slug, :image_url, :description, :price, :in_stock, :sku, :is_featured, :created_at, :updated_at)`
+	q := `INSERT INTO public.product (name, brand_id, category_id, slug, image_url, description, price, in_stock, sku, is_featured, created_at, updated_at) 
+	VALUES (:name, :brand_id, :category_id, :slug, :image_url, :description, :price, :in_stock, :sku, :is_featured, :created_at, :updated_at)`
 
 	if _, err := s.db.NamedExec(q, products); err != nil {
 		return model.NewAppErr("PgProductStore.BulkInsert", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkInsertProducts, http.StatusInternalServerError, nil)
@@ -42,52 +43,17 @@ func (s PgProductStore) BulkInsert(products []*model.Product) *model.AppErr {
 
 // Save inserts the new product in the db
 func (s PgProductStore) Save(p *model.Product) (*model.Product, *model.AppErr) {
-	m := map[string]interface{}{
-		"name":              p.Name,
-		"slug":              p.Slug,
-		"image_url":         p.ImageURL,
-		"description":       p.Description,
-		"price":             p.Price,
-		"in_stock":          p.InStock,
-		"sku":               p.SKU,
-		"is_featured":       p.IsFeatured,
-		"created_at":        p.CreatedAt,
-		"updated_at":        p.UpdatedAt,
-		"cat_name":          p.Category.Name,
-		"cat_slug":          p.Category.Slug,
-		"cat_description":   p.Category.Description,
-		"brand_name":        p.Brand.Name,
-		"brand_slug":        p.Brand.Slug,
-		"brand_type":        p.Brand.Type,
-		"brand_description": p.Brand.Description,
-		"brand_website_url": p.Brand.WebsiteURL,
-		"brand_email":       p.Brand.Email,
-		"brand_created_at":  p.Brand.CreatedAt,
-		"brand_updated_at":  p.Brand.UpdatedAt,
-	}
+	q := `INSERT INTO public.product (name, brand_id, category_id, slug, image_url, description, price, in_stock, sku, is_featured, created_at, updated_at)
+		VALUES (:name, :brand_id, :category_id, :slug, :image_url, :description, :price, :in_stock, :sku, :is_featured, :created_at, :updated_at) RETURNING id`
 
-	q := `WITH prod_ins AS (
-		INSERT INTO public.product (name, slug, image_url, description, price, in_stock, sku, is_featured, created_at, updated_at)
-		VALUES (:name, :slug, :image_url, :description, :price, :in_stock, :sku, :is_featured, :created_at, :updated_at)
-		RETURNING id as pid
-		),
-		cat_ins AS (
-		INSERT INTO public.product_category (product_id, name, slug, description)
-		VALUES ((SELECT pid FROM prod_ins), :cat_name, :cat_slug, :cat_description)
-		RETURNING id as cid
-		)
-		INSERT INTO public.product_brand (product_id, name, slug, type, description, email, website_url, created_at, updated_at)
-		VALUES ((SELECT pid FROM prod_ins), :brand_name, :brand_slug, :brand_type, :brand_description, :brand_email, :brand_website_url, :brand_created_at, :brand_updated_at)
-		RETURNING (SELECT pid from prod_ins), (SELECT cid from cat_ins), id as bid`
-
-	var pid, cid, bid int64
-	rows, err := s.db.NamedQuery(q, m)
+	var id int64
+	rows, err := s.db.NamedQuery(q, p)
 	if err != nil {
 		return nil, model.NewAppErr("PgProductStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveProduct, http.StatusInternalServerError, nil)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		rows.Scan(&pid, &cid, &bid)
+		rows.Scan(&id)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -97,36 +63,37 @@ func (s PgProductStore) Save(p *model.Product) (*model.Product, *model.AppErr) {
 		return nil, model.NewAppErr("PgProductStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveProduct, http.StatusInternalServerError, nil)
 	}
 
-	p.ID = pid
-	p.Brand.ID = bid
-	p.Category.ID = cid
+	product, pErr := s.Get(id)
+	if pErr != nil {
+		return nil, model.NewAppErr("PgProductStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveProduct, http.StatusInternalServerError, nil)
+	}
 
-	return p, nil
+	return product, nil
 }
 
 // Get gets one product by id
 func (s PgProductStore) Get(id int64) (*model.Product, *model.AppErr) {
 	q := `SELECT p.*,
-	b.id AS brand_id,
-	b.product_id AS brand_product_id,
-	b.name AS brand_name,
-	b.slug AS brand_slug,
-	b.type AS brand_type,
-	b.description AS brand_description,
-	b.email AS brand_email,
-	b.website_url AS brand_website_url,
-	b.created_at AS brand_created_at,
-	b.updated_at AS brand_updated_at,
-	c.id AS category_id,
-	c.product_id AS category_product_id,
-	c.name AS category_name,
-	c.slug AS category_slug,
-	c.description AS category_description
-	FROM public.product p
-	LEFT JOIN product_brand b ON p.id = b.product_id
-	LEFT JOIN product_category c ON p.id = c.product_id
-	WHERE p.id = $1
-	GROUP BY p.id, b.id, c.id`
+   b.name AS brand_name,
+   b.slug AS brand_slug,
+   b.type AS brand_type,
+   b.description AS brand_description,
+   b.email AS brand_email,
+   b.logo AS brand_logo,
+   b.website_url AS brand_website_url,
+   b.created_at AS brand_created_at,
+   b.updated_at AS brand_updated_at,
+   c.name AS category_name,
+   c.slug AS category_slug,
+	 c.description AS category_description,
+	 c.logo AS category_logo,
+	 c.created_at AS category_created_at,
+   c.updated_at AS category_updated_at
+   FROM public.product p
+   LEFT JOIN brand b ON p.brand_id = b.id
+	 LEFT JOIN category c ON p.category_id = c.id
+	 WHERE p.id = $1
+   GROUP BY p.id, b.id, c.id`
 
 	var pj productJoin
 	if err := s.db.Get(&pj, q, id); err != nil {
@@ -139,24 +106,25 @@ func (s PgProductStore) Get(id int64) (*model.Product, *model.AppErr) {
 // GetAll returns all products
 func (s PgProductStore) GetAll() ([]*model.Product, *model.AppErr) {
 	q := `SELECT p.*,
-	b.id AS brand_id,
-	b.product_id AS brand_product_id,
-	b.name AS brand_name,
-	b.slug AS brand_slug,
-	b.type AS brand_type,
-	b.description AS brand_description,
-	b.email AS brand_email,
-	b.website_url AS brand_website_url,
-	b.created_at AS brand_created_at,
-	b.updated_at AS brand_updated_at,
-	c.id AS category_id,
-	c.product_id AS category_product_id,
-	c.name AS category_name,
-	c.slug AS category_slug,
-	c.description AS category_description	
-	FROM public.product p
-	LEFT JOIN product_brand b ON p.id = b.product_id
-	LEFT JOIN product_category c ON p.id = c.product_id`
+   b.name AS brand_name,
+   b.slug AS brand_slug,
+   b.type AS brand_type,
+   b.description AS brand_description,
+	 b.email AS brand_email,
+	 b.logo AS brand_logo,
+   b.website_url AS brand_website_url,
+   b.created_at AS brand_created_at,
+   b.updated_at AS brand_updated_at,
+   c.name AS category_name,
+   c.slug AS category_slug,
+	 c.description AS category_description,
+	 c.logo AS category_logo,
+	 c.created_at AS category_created_at,
+   c.updated_at AS category_updated_at
+   FROM public.product p
+   LEFT JOIN brand b ON p.brand_id = b.id
+   LEFT JOIN category c ON p.category_id = c.id
+   GROUP BY p.id, b.id, c.id`
 
 	var pj []productJoin
 	if err := s.db.Select(&pj, q); err != nil {
@@ -174,26 +142,26 @@ func (s PgProductStore) GetAll() ([]*model.Product, *model.AppErr) {
 // ListByIDS returns all products where ids are in slice
 func (s PgProductStore) ListByIDS(ids []int64) ([]*model.Product, *model.AppErr) {
 	q, args, err := sqlx.In(`
-	SELECT p.*,
-	b.id AS brand_id,
-	b.product_id AS brand_product_id,
-	b.name AS brand_name,
-	b.slug AS brand_slug,
-	b.type AS brand_type,
-	b.description AS brand_description,
-	b.email AS brand_email,
-	b.website_url AS brand_website_url,
-	b.created_at AS brand_created_at,
-	b.updated_at AS brand_updated_at,
-	c.id AS category_id,
-	c.product_id AS category_product_id,
-	c.name AS category_name,
-	c.slug AS category_slug,
-	c.description AS category_description	
-	FROM public.product p
-	LEFT JOIN product_brand b ON p.id = b.product_id
-	LEFT JOIN product_category c ON p.id = c.product_id
-	WHERE p.id IN (?)`, ids)
+	 SELECT p.*,
+   b.name AS brand_name,
+   b.slug AS brand_slug,
+   b.type AS brand_type,
+   b.description AS brand_description,
+	 b.email AS brand_email,
+	 b.logo AS brand_logo,
+   b.website_url AS brand_website_url,
+   b.created_at AS brand_created_at,
+   b.updated_at AS brand_updated_at,
+   c.name AS category_name,
+   c.slug AS category_slug,
+	 c.description AS category_description,
+	 c.logo AS category_logo,
+	 c.created_at AS category_created_at,
+   c.updated_at AS category_updated_at
+   FROM public.product p
+   LEFT JOIN brand b ON p.brand_id = b.id
+   LEFT JOIN category c ON p.category_id = c.id
+   WHERE p.id IN (?)`, ids)
 
 	if err != nil {
 		return nil, model.NewAppErr("PgProductStore.ListByIDS", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProducts, http.StatusInternalServerError, nil)
@@ -214,14 +182,14 @@ func (s PgProductStore) ListByIDS(ids []int64) ([]*model.Product, *model.AppErr)
 
 // Update updates the product
 func (s PgProductStore) Update(id int64, p *model.Product) (*model.Product, *model.AppErr) {
-	q := `UPDATE public.product SET name=:name, slug=:slug, image_url=:image_url, description=:description, price=:price, in_stock=:in_stock, sku=:sku, is_featured=:is_featured, updated_at=:updated_at WHERE id=:id`
+	q := `UPDATE public.product SET name=:name, brand_id=:brand_id, category_id=:category_id, slug=:slug, image_url=:image_url, description=:description, price=:price, in_stock=:in_stock, sku=:sku, is_featured=:is_featured, updated_at=:updated_at WHERE id=:id`
 	if _, err := s.db.NamedExec(q, p); err != nil {
 		return nil, model.NewAppErr("PgProductStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateProduct, http.StatusInternalServerError, nil)
 	}
 	return p, nil
 }
 
-// Delete ...
+// Delete hard deletes the product from db
 func (s PgProductStore) Delete(id int64) *model.AppErr {
 	if _, err := s.db.NamedExec(`DELETE FROM public.product WHERE id = :id`, map[string]interface{}{"id": id}); err != nil {
 		return model.NewAppErr("PgProductStore.Delete", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteProduct, http.StatusInternalServerError, nil)

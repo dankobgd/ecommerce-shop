@@ -51,13 +51,19 @@ func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tagnames := mpf.Value["tags"]
+	tagids := mpf.Value["tags"]
 	headers := mpf.File["images"]
 	fh := mpf.File["image"][0]
 
 	tags := make([]*model.ProductTag, 0)
-	for _, t := range tagnames {
-		tags = append(tags, &model.ProductTag{Name: model.NewString(t)})
+	for _, tid := range tagids {
+		id, err := strconv.ParseInt(tid, 10, 64)
+		if err != nil {
+			respondError(w, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductAvatarMultipart, http.StatusInternalServerError, nil))
+			return
+		}
+
+		tags = append(tags, &model.ProductTag{TagID: model.NewInt64(id)})
 	}
 
 	product, pErr := a.app.CreateProduct(&p, fh, headers, tags)
@@ -161,7 +167,7 @@ func (a *API) getSingleTag(w http.ResponseWriter, r *http.Request) {
 		respondError(w, model.NewAppErr("getSingleTag", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
 		return
 	}
-	tag, err := a.app.GetTag(tid)
+	tag, err := a.app.GetProductTag(tid)
 	if err != nil {
 		respondError(w, err)
 		return

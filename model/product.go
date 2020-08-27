@@ -17,7 +17,8 @@ const FileUploadSizeLimit int64 = 10 << 20
 var (
 	msgInvalidProduct             = &i18n.Message{ID: "model.product.validate.app_error", Other: "invalid product data"}
 	msgValidateProductID          = &i18n.Message{ID: "model.product.validate.id.app_error", Other: "invalid product id"}
-	msgValidateProductBrandID     = &i18n.Message{ID: "model.product.validate.brand.app_error", Other: "invalid product brand id"}
+	msgValidateProductBrandID     = &i18n.Message{ID: "model.product.validate.brand_id.app_error", Other: "invalid product brand id"}
+	msgValidateProductCategoryID  = &i18n.Message{ID: "model.product.validate.category_id.app_error", Other: "invalid product category id"}
 	msgValidateProductName        = &i18n.Message{ID: "model.product.validate.name.app_error", Other: "invalid product name"}
 	msgValidateProductSlug        = &i18n.Message{ID: "model.product.validate.slug.app_error", Other: "invalid product slug"}
 	msgValidateProductDescription = &i18n.Message{ID: "model.product.validate.description.app_error", Other: "invalid product description"}
@@ -30,6 +31,8 @@ var (
 // Product represents the shop product model
 type Product struct {
 	ID          int64     `json:"id" db:"id" schema:"-"`
+	BrandID     int64     `json:"-" db:"brand_id" schema:"brand_id"`
+	CategoryID  int64     `json:"-" db:"category_id" schema:"category_id"`
 	Name        string    `json:"name" db:"name" schema:"name"`
 	Slug        string    `json:"slug" db:"slug" schema:"slug"`
 	ImageURL    string    `json:"image_url" db:"image_url" schema:"-"`
@@ -110,7 +113,6 @@ func (p *Product) PreSave() {
 	p.CreatedAt = time.Now()
 	p.UpdatedAt = p.CreatedAt
 	p.SKU = random.AlphaNumeric(64)
-	p.Brand.PreSave()
 }
 
 // PreUpdate sets the update timestamp
@@ -125,6 +127,12 @@ func (p *Product) Validate() *AppErr {
 
 	if p.ID != 0 {
 		errs.Add(Invalid("id", l, msgValidateProductID))
+	}
+	if p.BrandID == 0 {
+		errs.Add(Invalid("brand_id", l, msgValidateProductBrandID))
+	}
+	if p.CategoryID == 0 {
+		errs.Add(Invalid("category_id", l, msgValidateProductCategoryID))
 	}
 	if p.Name == "" {
 		errs.Add(Invalid("name", l, msgValidateProductName))
@@ -143,13 +151,6 @@ func (p *Product) Validate() *AppErr {
 	}
 	if p.UpdatedAt.IsZero() {
 		errs.Add(Invalid("updated_at", l, msgValidateProductUpAt))
-	}
-
-	if err := p.Brand.Validate(); err != nil {
-		return err
-	}
-	if err := p.Category.Validate(); err != nil {
-		return err
 	}
 
 	if !errs.IsZero() {

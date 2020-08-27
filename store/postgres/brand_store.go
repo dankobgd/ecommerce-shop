@@ -20,13 +20,13 @@ func NewPgBrandStore(pgst *PgStore) store.BrandStore {
 }
 
 var (
-	msgUniqueConstraintBrand = &i18n.Message{ID: "store.postgres.user.save.unique_constraint.app_error", Other: "invalid credentials"}
-	msgSaveBrand             = &i18n.Message{ID: "store.postgres.user.save.app_error", Other: "could not save user"}
-	msgUpdateBrand           = &i18n.Message{ID: "store.postgres.user.update.app_error", Other: "could not update user"}
-	msgBulkInsertBrands      = &i18n.Message{ID: "store.postgres.user.bulk.insert.app_error", Other: "could not bulk insert users"}
-	msgGetBrand              = &i18n.Message{ID: "store.postgres.user.get.app_error", Other: "could not get the user"}
-	msgGetBrands             = &i18n.Message{ID: "store.postgres.user.get.app_error", Other: "could not get the user"}
-	msgDeleteBrand           = &i18n.Message{ID: "store.postgres.user.verify_email.delete_token.app_error", Other: "could not delete verify token"}
+	msgUniqueConstraintBrand = &i18n.Message{ID: "store.postgres.brand.save.unique_constraint.app_error", Other: "invalid brand foreign key"}
+	msgSaveBrand             = &i18n.Message{ID: "store.postgres.brand.save.app_error", Other: "could not save brand"}
+	msgUpdateBrand           = &i18n.Message{ID: "store.postgres.brand.update.app_error", Other: "could not update brand"}
+	msgBulkInsertBrands      = &i18n.Message{ID: "store.postgres.brand.bulk.insert.app_error", Other: "could not bulk insert brands"}
+	msgGetBrand              = &i18n.Message{ID: "store.postgres.brand.get.app_error", Other: "could not get the brand"}
+	msgGetBrands             = &i18n.Message{ID: "store.postgres.brand.get.app_error", Other: "could not get the brand"}
+	msgDeleteBrand           = &i18n.Message{ID: "store.postgres.brand.delete.app_error", Other: "could not delete brand"}
 )
 
 // BulkInsert inserts multiple brands in the db
@@ -54,9 +54,9 @@ func (s PgBrandStore) Save(brand *model.Brand) (*model.Brand, *model.AppErr) {
 	}
 	if err := rows.Err(); err != nil {
 		if IsUniqueConstraintViolationError(err) {
-			return nil, model.NewAppErr("PgBrandStore.Save", model.ErrConflict, locale.GetUserLocalizer("en"), msgUniqueConstraintCategory, http.StatusInternalServerError, nil)
+			return nil, model.NewAppErr("PgBrandStore.Save", model.ErrConflict, locale.GetUserLocalizer("en"), msgUniqueConstraintBrand, http.StatusInternalServerError, nil)
 		}
-		return nil, model.NewAppErr("PgBrandStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveCategory, http.StatusInternalServerError, nil)
+		return nil, model.NewAppErr("PgBrandStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveBrand, http.StatusInternalServerError, nil)
 	}
 
 	brand.ID = id

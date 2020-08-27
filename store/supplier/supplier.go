@@ -66,3 +66,8 @@ func (s *Supplier) Category() store.CategoryStore {
 func (s *Supplier) Brand() store.BrandStore {
 	return postgres.NewPgBrandStore(s.Pgst)
 }
+
+// Tag returns the Tag store implementation
+func (s *Supplier) Tag() store.TagStore {
+	return postgres.NewPgTagStore(s.Pgst)
+}

@@ -1,0 +1,7 @@
+name,slug,type,description,email,website_url,logo
+nike,nike,retail,nike brand description,nike@nike.com,https://www.nike.com,https://res.cloudinary.com/dankobgd/image/upload/v1563729655/sample.jpg
+adidas,adidas,retail,adidas brand description,adidas@adidas.com,https://www.adidas.com/us,https://res.cloudinary.com/dankobgd/image/upload/v1563729655/sample.jpg
+puma,puma,retail,puma brand description,puma@puma.com,https://us.puma.com/,https://res.cloudinary.com/dankobgd/image/upload/v1563729655/sample.jpg
+reebok,reebok,retail,reebok brand description,reebok@reebok.com,https://www.reebok.com/us,https://res.cloudinary.com/dankobgd/image/upload/v1563729655/sample.jpg
+fila,fila,retail,fila brand description,fila@fila.com,https://www.fila.com,https://res.cloudinary.com/dankobgd/image/upload/v1563729655/sample.jpg
+kappa,kappa,retail,kappa brand description,kappa@kappa.com,https://kappa-usa.com,https://res.cloudinary.com/dankobgd/image/upload/v1563729655/sample.jpg

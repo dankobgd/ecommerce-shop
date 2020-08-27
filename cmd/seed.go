@@ -34,8 +34,29 @@ var seedProductsCmd = &cobra.Command{
 	PreRun: loadApp,
 }
 
+var seedCategoriesCmd = &cobra.Command{
+	Use:    "categories",
+	Short:  "seed categories",
+	RunE:   seedCategoriesFn,
+	PreRun: loadApp,
+}
+
+var seedBrandsCmd = &cobra.Command{
+	Use:    "brands",
+	Short:  "seed brands",
+	RunE:   seedBrandsFn,
+	PreRun: loadApp,
+}
+
+var seedTagsCmd = &cobra.Command{
+	Use:    "tags",
+	Short:  "seed tags",
+	RunE:   seedTagsFn,
+	PreRun: loadApp,
+}
+
 func init() {
-	seedCmd.AddCommand(seedUsersCmd, seedProductsCmd)
+	seedCmd.AddCommand(seedUsersCmd, seedProductsCmd, seedCategoriesCmd, seedBrandsCmd, seedTagsCmd)
 	rootCmd.AddCommand(seedCmd)
 }
 
@@ -43,15 +64,36 @@ func seedDatabaseFn(command *cobra.Command, args []string) error {
 	if err := seedUsers(); err != nil {
 		return err
 	}
+	if err := seedCategories(); err != nil {
+		return err
+	}
+	if err := seedBrands(); err != nil {
+		return err
+	}
+	if err := seedTags(); err != nil {
+		return err
+	}
 	if err := seedProducts(); err != nil {
 		return err
 	}
-	cmdApp.Log().Info("database seed completed")
+	cmdApp.Log().Info("database seed completed successfully")
 	return nil
 }
 
 func seedUsersFn(command *cobra.Command, args []string) error {
 	return seedUsers()
+}
+
+func seedCategoriesFn(command *cobra.Command, args []string) error {
+	return seedCategories()
+}
+
+func seedBrandsFn(command *cobra.Command, args []string) error {
+	return seedBrands()
+}
+
+func seedTagsFn(command *cobra.Command, args []string) error {
+	return seedTags()
 }
 
 func seedProductsFn(command *cobra.Command, args []string) error {
@@ -68,15 +110,15 @@ func seedUsers() error {
 		cmdApp.Log().Error("could not seed users", zlog.String("err: ", err.Message))
 		return err
 	}
-	cmdApp.Log().Info("users seed completed")
+	cmdApp.Log().Info("users seeded")
 	return nil
 }
 
-// seedProducts populates the product tables together with related brand, categories, imgs, and tags
+// seedProducts populates the product table
 func seedProducts() error {
-	data := parseProducts()
+	productData := parseProducts()
 
-	for _, d := range data {
+	for _, d := range productData {
 		d.P.PreSave()
 		newProd, err := cmdApp.Srv().Store.Product().Save(d.P)
 		if err != nil {
@@ -85,7 +127,6 @@ func seedProducts() error {
 
 		for _, tag := range d.Tags {
 			tag.ProductID = &newProd.ID
-			tag.PreSave()
 		}
 		if _, err := cmdApp.Srv().Store.ProductTag().BulkInsert(d.Tags); err != nil {
 			cmdApp.Log().Error("could not seed bulk insert tags", zlog.String("err: ", err.Message))
@@ -100,34 +141,53 @@ func seedProducts() error {
 		}
 	}
 
-	cmdApp.Log().Info("products seed completed")
+	cmdApp.Log().Info("products seeded")
 	return nil
 }
 
-// readCSVFile is a halper to read csv file
-func readCSVFile(filePath string) ([][]string, error) {
-	f, err := os.Open(filePath)
-	if err != nil {
-		log.Fatalf("could not read input file: %v, %v", filePath, err)
-		return nil, err
+// seedCategories populates the categories table
+func seedCategories() error {
+	categories := parseCategories()
+	for _, u := range categories {
+		u.PreSave()
 	}
-	defer f.Close()
-
-	csvr := csv.NewReader(f)
-	if _, err := csvr.Read(); err != nil {
-		return nil, err
+	if err := cmdApp.Srv().Store.Category().BulkInsert(categories); err != nil {
+		cmdApp.Log().Error("could not seed categories", zlog.String("err: ", err.Message))
+		return err
 	}
-
-	records, err := csvr.ReadAll()
-	if err != nil {
-		log.Fatalf("could not parse file as CSV for path: %v ,%v", filePath, err)
-		return nil, err
-	}
-
-	return records, nil
+	cmdApp.Log().Info("categories seeded")
+	return nil
 }
 
-// parseUsers parses read csv lines and creates the list of users
+// seedBrands populates the brand table
+func seedBrands() error {
+	brands := parseBrands()
+	for _, u := range brands {
+		u.PreSave()
+	}
+	if err := cmdApp.Srv().Store.Brand().BulkInsert(brands); err != nil {
+		cmdApp.Log().Error("could not seed brands", zlog.String("err: ", err.Message))
+		return err
+	}
+	cmdApp.Log().Info("brands seeded")
+	return nil
+}
+
+// seedTags populates the tag table
+func seedTags() error {
+	tags := parseTags()
+	for _, t := range tags {
+		t.PreSave()
+	}
+	if err := cmdApp.Srv().Store.Tag().BulkInsert(tags); err != nil {
+		cmdApp.Log().Error("could not seed tags", zlog.String("err: ", err.Message))
+		return err
+	}
+	cmdApp.Log().Info("tags seeded")
+	return nil
+}
+
+// parseUsers parses csv lines and creates the list of users
 func parseUsers() []*model.User {
 	records, err := readCSVFile("./data/seeds/users.csv")
 	if err != nil {
@@ -153,7 +213,7 @@ type prodData struct {
 	Imgs []*model.ProductImage
 }
 
-// parseUsers parses read csv lines and creates the list of products
+// parseProducts parses csv lines and creates the list of products
 func parseProducts() []*prodData {
 	records, err := readCSVFile("./data/seeds/products.csv")
 	if err != nil {
@@ -167,51 +227,43 @@ func parseProducts() []*prodData {
 		data := &prodData{}
 
 		p.Name = line[0]
-		p.Slug = line[1]
-		p.ImageURL = line[2]
-		p.Description = line[3]
-		p.Price, err = strconv.Atoi(line[4])
+		p.BrandID, err = strconv.ParseInt(line[1], 10, 64)
+		if err != nil {
+			log.Fatalf("brand_id err: %v", err)
+		}
+		p.CategoryID, err = strconv.ParseInt(line[2], 10, 64)
+		if err != nil {
+			log.Fatalf("category_id err: %v", err)
+		}
+		p.Slug = line[3]
+		p.ImageURL = line[4]
+		p.Description = line[5]
+		p.Price, err = strconv.Atoi(line[6])
 		if err != nil {
 			log.Fatalf("price err: %v", err)
 		}
-		p.InStock, err = strconv.ParseBool(line[5])
+		p.InStock, err = strconv.ParseBool(line[7])
 		if err != nil {
 			log.Fatalf("in_stock err: %v", err)
 		}
-		p.SKU = line[6]
-		p.IsFeatured, err = strconv.ParseBool(line[7])
+		p.SKU = line[8]
+		p.IsFeatured, err = strconv.ParseBool(line[9])
 		if err != nil {
 			log.Fatalf("is_featured err: %v", err)
 		}
 
-		p.Category = &model.Category{
-			Name:        line[8],
-			Slug:        line[9],
-			Description: line[10],
-		}
-
-		p.Brand = &model.Brand{
-			Name:        line[11],
-			Slug:        line[12],
-			Type:        line[13],
-			Description: line[14],
-			Email:       line[15],
-			WebsiteURL:  line[16],
-		}
-
-		tagSlice := strings.Split(line[17], " ")
-		imgSlice := strings.Split(line[18], " ")
+		tagSlice := strings.Split(line[10], " ")
+		imgSlice := strings.Split(line[11], " ")
 
 		tagList := make([]*model.ProductTag, 0)
 		imgList := make([]*model.ProductImage, 0)
 
-		for _, tag := range tagSlice {
-			now := time.Now()
-			tagList = append(tagList, &model.ProductTag{
-				Name:      model.NewString(tag),
-				CreatedAt: &now,
-				UpdatedAt: &now,
-			})
+		for _, tid := range tagSlice {
+			id, err := strconv.ParseInt(tid, 10, 64)
+			if err != nil {
+				log.Fatalf("tag_id err: %v", err)
+			}
+			tagList = append(tagList, &model.ProductTag{TagID: model.NewInt64(id)})
 		}
 		for _, img := range imgSlice {
 			now := time.Now()
@@ -230,4 +282,89 @@ func parseProducts() []*prodData {
 	}
 
 	return prodList
+}
+
+// parseCategories parses csv lines and creates the list of categories
+func parseCategories() []*model.Category {
+	records, err := readCSVFile("./data/seeds/categories.csv")
+	if err != nil {
+		log.Fatalf("error parsing categoies from CSV: %v", err)
+	}
+	categoryList := make([]*model.Category, 0)
+
+	for _, line := range records {
+		c := &model.Category{}
+		c.Name = line[0]
+		c.Slug = line[1]
+		c.Description = line[2]
+		c.Logo = line[3]
+		categoryList = append(categoryList, c)
+	}
+
+	return categoryList
+}
+
+// parseBrands parses csv lines and creates the list of brands
+func parseBrands() []*model.Brand {
+	records, err := readCSVFile("./data/seeds/brands.csv")
+	if err != nil {
+		log.Fatalf("error parsing brands from CSV: %v", err)
+	}
+	brandList := make([]*model.Brand, 0)
+
+	for _, line := range records {
+		b := &model.Brand{}
+		b.Name = line[0]
+		b.Slug = line[1]
+		b.Type = line[2]
+		b.Description = line[3]
+		b.Email = line[4]
+		b.WebsiteURL = line[5]
+		b.Logo = line[6]
+		brandList = append(brandList, b)
+	}
+
+	return brandList
+}
+
+// parseTags parses csv lines and creates the list of tags
+func parseTags() []*model.Tag {
+	records, err := readCSVFile("./data/seeds/tags.csv")
+	if err != nil {
+		log.Fatalf("error parsing tags from CSV: %v", err)
+	}
+	tagList := make([]*model.Tag, 0)
+
+	for _, line := range records {
+		t := &model.Tag{}
+		t.Name = line[0]
+		t.Slug = line[1]
+		t.Description = line[2]
+		tagList = append(tagList, t)
+	}
+
+	return tagList
+}
+
+// readCSVFile is a halper to read csv file
+func readCSVFile(filePath string) ([][]string, error) {
+	f, err := os.Open(filePath)
+	if err != nil {
+		log.Fatalf("could not read input file: %v, %v", filePath, err)
+		return nil, err
+	}
+	defer f.Close()
+
+	csvr := csv.NewReader(f)
+	if _, err := csvr.Read(); err != nil {
+		return nil, err
+	}
+
+	records, err := csvr.ReadAll()
+	if err != nil {
+		log.Fatalf("could not parse file as CSV for path: %v ,%v", filePath, err)
+		return nil, err
+	}
+
+	return records, nil
 }

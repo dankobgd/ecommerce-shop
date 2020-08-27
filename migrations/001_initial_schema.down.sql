@@ -18,5 +18,6 @@ drop table public.user;
 
 drop table public.category;
 drop table public.brand;
+drop table public.tag;
 
 drop type gender;

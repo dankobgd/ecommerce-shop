@@ -16,12 +16,12 @@ type productJoin struct {
 // BrandJoin is temp join type
 type BrandJoin struct {
 	BID          int64     `db:"brand_id"`
-	BProductID   int64     `db:"brand_product_id"`
 	BName        string    `db:"brand_name"`
 	BSlug        string    `db:"brand_slug"`
 	BType        string    `db:"brand_type"`
 	BDescription string    `db:"brand_description"`
 	BEmail       string    `db:"brand_email"`
+	BLogo        string    `db:"brand_logo"`
 	BWebsiteURL  string    `db:"brand_website_url"`
 	BCreatedAt   time.Time `db:"brand_created_at"`
 	BUpdatedAt   time.Time `db:"brand_updated_at"`
@@ -29,11 +29,13 @@ type BrandJoin struct {
 
 // CategoryJoin is temp join type
 type CategoryJoin struct {
-	CID          int64  `db:"category_id"`
-	CProductID   int64  `db:"category_product_id"`
-	CName        string `db:"category_name"`
-	CSlug        string `db:"category_slug"`
-	CDescription string `db:"category_description"`
+	CID          int64     `db:"category_id"`
+	CName        string    `db:"category_name"`
+	CSlug        string    `db:"category_slug"`
+	CLogo        string    `db:"category_logo"`
+	CDescription string    `db:"category_description"`
+	CCreatedAt   time.Time `db:"category_created_at"`
+	CUpdatedAt   time.Time `db:"category_updated_at"`
 }
 
 func (pj *productJoin) ToProduct() *model.Product {
@@ -57,6 +59,7 @@ func (pj *productJoin) ToProduct() *model.Product {
 			Description: pj.BDescription,
 			Email:       pj.BEmail,
 			WebsiteURL:  pj.BWebsiteURL,
+			Logo:        pj.BLogo,
 			CreatedAt:   pj.BCreatedAt,
 			UpdatedAt:   pj.BUpdatedAt,
 		},
@@ -64,7 +67,10 @@ func (pj *productJoin) ToProduct() *model.Product {
 			ID:          pj.CID,
 			Name:        pj.CName,
 			Slug:        pj.CSlug,
+			Logo:        pj.CLogo,
 			Description: pj.CDescription,
+			CreatedAt:   pj.CCreatedAt,
+			UpdatedAt:   pj.CUpdatedAt,
 		},
 	}
 }

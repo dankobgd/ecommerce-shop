@@ -152,8 +152,8 @@ func (a *App) GetProductImages(pid int64) ([]*model.ProductImage, *model.AppErr)
 	return a.Srv().Store.ProductImage().GetAll(pid)
 }
 
-// GetTag gets the tag by id
-func (a *App) GetTag(id int64) (*model.ProductTag, *model.AppErr) {
+// GetProductTag gets the product tag by id
+func (a *App) GetProductTag(id int64) (*model.ProductTag, *model.AppErr) {
 	return a.Srv().Store.ProductTag().Get(id)
 }
 
@@ -170,7 +170,6 @@ func (a *App) PatchProductTag(tid int64, patch *model.ProductTagPatch) (*model.P
 	}
 
 	old.Patch(patch)
-	old.PreUpdate()
 	utag, err := a.Srv().Store.ProductTag().Update(tid, old)
 	if err != nil {
 		return nil, err

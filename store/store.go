@@ -17,6 +17,7 @@ type Store interface {
 	Address() AddressStore
 	Category() CategoryStore
 	Brand() BrandStore
+	Tag() TagStore
 }
 
 // UserStore ris the user store
@@ -118,5 +119,15 @@ type BrandStore interface {
 	Get(id int64) (*model.Brand, *model.AppErr)
 	GetAll() ([]*model.Brand, *model.AppErr)
 	Update(id int64, addr *model.Brand) (*model.Brand, *model.AppErr)
+	Delete(id int64) *model.AppErr
+}
+
+// TagStore is the tag store
+type TagStore interface {
+	BulkInsert(tags []*model.Tag) *model.AppErr
+	Save(c *model.Tag) (*model.Tag, *model.AppErr)
+	Get(id int64) (*model.Tag, *model.AppErr)
+	GetAll() ([]*model.Tag, *model.AppErr)
+	Update(id int64, addr *model.Tag) (*model.Tag, *model.AppErr)
 	Delete(id int64) *model.AppErr
 }

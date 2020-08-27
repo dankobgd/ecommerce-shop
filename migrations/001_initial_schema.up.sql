@@ -24,6 +24,16 @@ create table public.brand (
   updated_at timestamptz not null
 );
 
+
+create table public.tag (
+  id int generated always as identity primary key,
+  name varchar(50),
+  slug varchar(50),
+  description text,
+  created_at timestamptz not null,
+  updated_at timestamptz not null
+);
+
 create table public.address (
   id int generated always as identity primary key,
   line_1 text not null,
@@ -89,6 +99,8 @@ create table public.token (
 
 create table public.product (
   id int generated always as identity primary key,
+  brand_id int not null,
+  category_id int not null,
   name varchar(255) not null,
   slug varchar(50),
   image_url text not null,
@@ -98,7 +110,9 @@ create table public.product (
   sku text not null,
   is_featured bool default false not null,
   created_at timestamptz not null,
-  updated_at timestamptz not null
+  updated_at timestamptz not null,
+  foreign key (brand_id) references public.brand (id),
+  foreign key (category_id) references public.category (id)
 );
 
 create table public.product_info (
@@ -123,10 +137,9 @@ create table public.product_brand (
 create table public.product_tag (
   id int generated always as identity primary key,
   product_id int not null,
-  name varchar(255) not null,
-  created_at timestamptz not null,
-  updated_at timestamptz not null,
-  foreign key (product_id) references public.product (id) on delete cascade
+  tag_id int not null,  
+  foreign key (product_id) references public.product (id) on delete cascade,
+  foreign key (tag_id) references public.tag (id) on delete cascade
 );
 
 create table public.product_image (

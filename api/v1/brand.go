@@ -18,7 +18,7 @@ var (
 	msgBrandDeleteerr        = &i18n.Message{ID: "api.brand.delete_brand.app_error", Other: "could not delete brand"}
 	msgBrandMultipartErr     = &i18n.Message{ID: "api.brand.create_brand.multipart.app_error", Other: "could not decode brand multipart data"}
 	msgBrandURLParamErr      = &i18n.Message{ID: "api.brand.url.params.app_error", Other: "could not parse URL params"}
-	msgBrandPatchFromJSONErr = &i18n.Message{ID: "api.brand.patch_product.app_error", Other: "could not decode product patch data"}
+	msgBrandPatchFromJSONErr = &i18n.Message{ID: "api.brand.patch_brand.app_error", Other: "could not decode brand patch data"}
 )
 
 // InitBrands inits the brand routes
