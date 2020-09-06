@@ -51,6 +51,7 @@ func (pj *productJoin) ToProduct() *model.Product {
 		IsFeatured:  pj.IsFeatured,
 		CreatedAt:   pj.CreatedAt,
 		UpdatedAt:   pj.UpdatedAt,
+		Properties:  pj.Properties,
 		Brand: &model.Brand{
 			ID:          pj.BID,
 			Name:        pj.BName,

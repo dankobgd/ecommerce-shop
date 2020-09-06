@@ -7,6 +7,7 @@ import (
 
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
 	"github.com/dankobgd/ecommerce-shop/utils/random"
+	"github.com/jmoiron/sqlx/types"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -30,21 +31,23 @@ var (
 
 // Product represents the shop product model
 type Product struct {
-	ID          int64     `json:"id" db:"id" schema:"-"`
-	BrandID     int64     `json:"-" db:"brand_id" schema:"brand_id"`
-	CategoryID  int64     `json:"-" db:"category_id" schema:"category_id"`
-	Name        string    `json:"name" db:"name" schema:"name"`
-	Slug        string    `json:"slug" db:"slug" schema:"slug"`
-	ImageURL    string    `json:"image_url" db:"image_url" schema:"-"`
-	Description string    `json:"description" db:"description" schema:"description"`
-	Price       int       `json:"price" db:"price" schema:"price"`
-	InStock     bool      `json:"in_stock" db:"in_stock" schema:"in_stock"`
-	SKU         string    `json:"sku" db:"sku" schema:"-"`
-	IsFeatured  bool      `json:"is_featured" db:"is_featured" schema:"is_featured"`
-	CreatedAt   time.Time `json:"created_at" db:"created_at" schema:"-"`
-	UpdatedAt   time.Time `json:"updated_at" db:"updated_at" schema:"-"`
-	Brand       *Brand    `json:"brand"`
-	Category    *Category `json:"category"`
+	TotalRecordsCount
+	ID          int64          `json:"id" db:"id" schema:"-"`
+	BrandID     int64          `json:"-" db:"brand_id" schema:"brand_id"`
+	CategoryID  int64          `json:"-" db:"category_id" schema:"category_id"`
+	Name        string         `json:"name" db:"name" schema:"name"`
+	Slug        string         `json:"slug" db:"slug" schema:"slug"`
+	ImageURL    string         `json:"image_url" db:"image_url" schema:"-"`
+	Description string         `json:"description" db:"description" schema:"description"`
+	Price       int            `json:"price" db:"price" schema:"price"`
+	InStock     bool           `json:"in_stock" db:"in_stock" schema:"in_stock"`
+	SKU         string         `json:"sku" db:"sku" schema:"-"`
+	IsFeatured  bool           `json:"is_featured" db:"is_featured" schema:"is_featured"`
+	CreatedAt   time.Time      `json:"created_at" db:"created_at" schema:"-"`
+	UpdatedAt   time.Time      `json:"updated_at" db:"updated_at" schema:"-"`
+	Properties  types.JSONText `json:"properties"`
+	Brand       *Brand         `json:"brand"`
+	Category    *Category      `json:"category"`
 }
 
 // ProductPatch is the product patch model

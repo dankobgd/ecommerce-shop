@@ -44,8 +44,8 @@ func (a *App) GetTag(tid int64) (*model.Tag, *model.AppErr) {
 }
 
 // GetTags gets all tags from the db
-func (a *App) GetTags() ([]*model.Tag, *model.AppErr) {
-	return a.Srv().Store.Tag().GetAll()
+func (a *App) GetTags(limit, offset int) ([]*model.Tag, *model.AppErr) {
+	return a.Srv().Store.Tag().GetAll(limit, offset)
 }
 
 // DeleteTag hard deletes the tag from the db

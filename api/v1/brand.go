@@ -6,6 +6,7 @@ import (
 
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/dankobgd/ecommerce-shop/utils/pagination"
 	"github.com/go-chi/chi"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
@@ -70,12 +71,20 @@ func (a *API) getBrand(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) getBrands(w http.ResponseWriter, r *http.Request) {
-	brands, err := a.app.GetBrands()
+	pages := pagination.NewFromRequest(r)
+	brands, err := a.app.GetBrands(pages.Limit(), pages.Offset())
 	if err != nil {
 		respondError(w, err)
 		return
 	}
-	respondJSON(w, http.StatusOK, brands)
+
+	totalCount := -1
+	if len(brands) > 0 {
+		totalCount = brands[0].TotalCount
+	}
+	pages.SetData(brands, totalCount)
+
+	respondJSON(w, http.StatusOK, pages)
 }
 
 func (a *API) patchBrand(w http.ResponseWriter, r *http.Request) {

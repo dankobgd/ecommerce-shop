@@ -6,6 +6,7 @@ import (
 
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/dankobgd/ecommerce-shop/utils/pagination"
 	"github.com/go-chi/chi"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
@@ -70,12 +71,20 @@ func (a *API) getCategory(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) getCategories(w http.ResponseWriter, r *http.Request) {
-	categories, err := a.app.GetCategories()
+	pages := pagination.NewFromRequest(r)
+	categories, err := a.app.GetCategories(pages.Limit(), pages.Offset())
 	if err != nil {
 		respondError(w, err)
 		return
 	}
-	respondJSON(w, http.StatusOK, categories)
+
+	totalCount := -1
+	if len(categories) > 0 {
+		totalCount = categories[0].TotalCount
+	}
+	pages.SetData(categories, totalCount)
+
+	respondJSON(w, http.StatusOK, pages)
 }
 
 func (a *API) patchCategory(w http.ResponseWriter, r *http.Request) {

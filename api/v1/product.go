@@ -6,6 +6,7 @@ import (
 
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/dankobgd/ecommerce-shop/utils/pagination"
 	"github.com/go-chi/chi"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
@@ -16,6 +17,7 @@ var (
 	msgProductAvatarMultipart = &i18n.Message{ID: "api.product.create_product.multipart.app_error", Other: "could not decode product multipart data"}
 	msgPatchProduct           = &i18n.Message{ID: "api.product.patch_product.app_error", Other: "could not patch product"}
 	msgURLParamErr            = &i18n.Message{ID: "api.product.url.params.app_error", Other: "could not parse URL params"}
+	msgGetProductProperties   = &i18n.Message{ID: "api.product.get_product_properties.app_error", Other: "could not get product properties json"}
 )
 
 // InitProducts inits the product routes
@@ -28,6 +30,7 @@ func InitProducts(a *API) {
 	a.Routes.Products.Patch("/images/{image_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.patchProductImage))
 	a.Routes.Products.Delete("/tags/{tag_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.deleteProductTag))
 	a.Routes.Products.Delete("/images/{image_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.deleteProductImage))
+	a.Routes.Products.Get("/properties", a.getProductProperties)
 
 	a.Routes.Product.Get("/", a.getProduct)
 	a.Routes.Product.Patch("/", a.AdminSessionRequired(a.patchProduct))
@@ -125,12 +128,20 @@ func (a *API) getProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) getProducts(w http.ResponseWriter, r *http.Request) {
-	products, err := a.app.GetProducts()
+	pages := pagination.NewFromRequest(r)
+	products, err := a.app.GetProducts(pages.Limit(), pages.Offset())
 	if err != nil {
 		respondError(w, err)
 		return
 	}
-	respondJSON(w, http.StatusOK, products)
+
+	totalCount := -1
+	if len(products) > 0 {
+		totalCount = products[0].TotalCount
+	}
+	pages.SetData(products, totalCount)
+
+	respondJSON(w, http.StatusOK, pages)
 }
 
 func (a *API) getProductTags(w http.ResponseWriter, r *http.Request) {
@@ -257,4 +268,14 @@ func (a *API) deleteProductImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondOK(w)
+}
+
+func (a *API) getProductProperties(w http.ResponseWriter, r *http.Request) {
+	props, err := a.app.GetProductProperties()
+	if err != nil {
+		respondError(w, model.NewAppErr("getProductProperties", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProductProperties, http.StatusInternalServerError, nil))
+		return
+	}
+	w.WriteHeader(200)
+	w.Write([]byte(props))
 }

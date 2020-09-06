@@ -6,6 +6,7 @@ import (
 
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/dankobgd/ecommerce-shop/utils/pagination"
 	"github.com/go-chi/chi"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
@@ -61,12 +62,20 @@ func (a *API) getTag(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) getTags(w http.ResponseWriter, r *http.Request) {
-	tags, err := a.app.GetTags()
+	pages := pagination.NewFromRequest(r)
+	tags, err := a.app.GetTags(pages.Limit(), pages.Offset())
 	if err != nil {
 		respondError(w, err)
 		return
 	}
-	respondJSON(w, http.StatusOK, tags)
+
+	totalCount := -1
+	if len(tags) > 0 {
+		totalCount = tags[0].TotalCount
+	}
+	pages.SetData(tags, totalCount)
+
+	respondJSON(w, http.StatusOK, pages)
 }
 
 func (a *API) patchTag(w http.ResponseWriter, r *http.Request) {

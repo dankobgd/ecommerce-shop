@@ -7,6 +7,7 @@ import (
 	"github.com/dankobgd/ecommerce-shop/store"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
 	"github.com/jmoiron/sqlx"
+	"github.com/jmoiron/sqlx/types"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -43,8 +44,15 @@ func (s PgProductStore) BulkInsert(products []*model.Product) *model.AppErr {
 
 // Save inserts the new product in the db
 func (s PgProductStore) Save(p *model.Product) (*model.Product, *model.AppErr) {
-	q := `INSERT INTO public.product (name, brand_id, category_id, slug, image_url, description, price, in_stock, sku, is_featured, created_at, updated_at)
-		VALUES (:name, :brand_id, :category_id, :slug, :image_url, :description, :price, :in_stock, :sku, :is_featured, :created_at, :updated_at) RETURNING id`
+	attrs := model.TshirtVariant{
+		Color: "red",
+		Size:  "xl",
+	}
+
+	p.Properties = types.JSONText(attrs.ToJSON())
+
+	q := `INSERT INTO public.product (name, brand_id, category_id, slug, image_url, description, price, in_stock, sku, is_featured, created_at, updated_at, properties)
+		VALUES (:name, :brand_id, :category_id, :slug, :image_url, :description, :price, :in_stock, :sku, :is_featured, :created_at, :updated_at, :properties) RETURNING id`
 
 	var id int64
 	rows, err := s.db.NamedQuery(q, p)
@@ -104,8 +112,10 @@ func (s PgProductStore) Get(id int64) (*model.Product, *model.AppErr) {
 }
 
 // GetAll returns all products
-func (s PgProductStore) GetAll() ([]*model.Product, *model.AppErr) {
-	q := `SELECT p.*,
+func (s PgProductStore) GetAll(limit, offset int) ([]*model.Product, *model.AppErr) {
+	q := `SELECT 
+	 COUNT(*) OVER() AS total_count,
+	 p.*,
    b.name AS brand_name,
    b.slug AS brand_slug,
    b.type AS brand_type,
@@ -124,10 +134,11 @@ func (s PgProductStore) GetAll() ([]*model.Product, *model.AppErr) {
    FROM public.product p
    LEFT JOIN brand b ON p.brand_id = b.id
    LEFT JOIN category c ON p.category_id = c.id
-   GROUP BY p.id, b.id, c.id`
+	 GROUP BY p.id, b.id, c.id
+	 LIMIT $1 OFFSET $2`
 
 	var pj []productJoin
-	if err := s.db.Select(&pj, q); err != nil {
+	if err := s.db.Select(&pj, q, limit, offset); err != nil {
 		return nil, model.NewAppErr("PgProductStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProducts, http.StatusInternalServerError, nil)
 	}
 

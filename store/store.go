@@ -25,7 +25,7 @@ type UserStore interface {
 	BulkInsert([]*model.User) *model.AppErr
 	Save(*model.User) (*model.User, *model.AppErr)
 	Get(id int64) (*model.User, *model.AppErr)
-	GetAll() ([]*model.User, *model.AppErr)
+	GetAll(limit, offset int) ([]*model.User, *model.AppErr)
 	GetByEmail(email string) (*model.User, *model.AppErr)
 	Update(id int64, u *model.User) (*model.User, *model.AppErr)
 	Delete(id int64) *model.AppErr
@@ -57,7 +57,7 @@ type ProductStore interface {
 	Save(p *model.Product) (*model.Product, *model.AppErr)
 	Get(id int64) (*model.Product, *model.AppErr)
 	ListByIDS(ids []int64) ([]*model.Product, *model.AppErr)
-	GetAll() ([]*model.Product, *model.AppErr)
+	GetAll(limit, offset int) ([]*model.Product, *model.AppErr)
 	Update(id int64, u *model.Product) (*model.Product, *model.AppErr)
 	Delete(id int64) *model.AppErr
 }
@@ -107,7 +107,7 @@ type CategoryStore interface {
 	BulkInsert(categories []*model.Category) *model.AppErr
 	Save(c *model.Category) (*model.Category, *model.AppErr)
 	Get(id int64) (*model.Category, *model.AppErr)
-	GetAll() ([]*model.Category, *model.AppErr)
+	GetAll(limit, offset int) ([]*model.Category, *model.AppErr)
 	Update(id int64, addr *model.Category) (*model.Category, *model.AppErr)
 	Delete(id int64) *model.AppErr
 }
@@ -117,7 +117,7 @@ type BrandStore interface {
 	BulkInsert(brands []*model.Brand) *model.AppErr
 	Save(c *model.Brand) (*model.Brand, *model.AppErr)
 	Get(id int64) (*model.Brand, *model.AppErr)
-	GetAll() ([]*model.Brand, *model.AppErr)
+	GetAll(limit, offset int) ([]*model.Brand, *model.AppErr)
 	Update(id int64, addr *model.Brand) (*model.Brand, *model.AppErr)
 	Delete(id int64) *model.AppErr
 }
@@ -127,7 +127,7 @@ type TagStore interface {
 	BulkInsert(tags []*model.Tag) *model.AppErr
 	Save(c *model.Tag) (*model.Tag, *model.AppErr)
 	Get(id int64) (*model.Tag, *model.AppErr)
-	GetAll() ([]*model.Tag, *model.AppErr)
+	GetAll(limit, offset int) ([]*model.Tag, *model.AppErr)
 	Update(id int64, addr *model.Tag) (*model.Tag, *model.AppErr)
 	Delete(id int64) *model.AppErr
 }

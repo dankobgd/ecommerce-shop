@@ -26,6 +26,7 @@ var (
 
 // Brand is the brand of the product
 type Brand struct {
+	TotalRecordsCount
 	ID          int64     `json:"id" db:"id" schema:"-"`
 	Name        string    `json:"name" db:"name" schema:"name"`
 	Slug        string    `json:"slug" db:"slug" schema:"slug"`

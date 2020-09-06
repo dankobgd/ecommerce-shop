@@ -82,9 +82,9 @@ func (s PgTagStore) Get(id int64) (*model.Tag, *model.AppErr) {
 }
 
 // GetAll returns all tags
-func (s PgTagStore) GetAll() ([]*model.Tag, *model.AppErr) {
+func (s PgTagStore) GetAll(limit, offset int) ([]*model.Tag, *model.AppErr) {
 	var tags = make([]*model.Tag, 0)
-	if err := s.db.Select(&tags, `SELECT * FROM public.tag`); err != nil {
+	if err := s.db.Select(&tags, `SELECT COUNT(*) OVER() AS total_count, * FROM public.tag LIMIT $1 OFFSET $2`, limit, offset); err != nil {
 		return nil, model.NewAppErr("PgTagStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetTags, http.StatusInternalServerError, nil)
 	}
 

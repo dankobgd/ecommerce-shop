@@ -97,7 +97,7 @@ func (s PgUserStore) GetByEmail(email string) (*model.User, *model.AppErr) {
 }
 
 // GetAll returns all users
-func (s PgUserStore) GetAll() ([]*model.User, *model.AppErr) {
+func (s PgUserStore) GetAll(limit, offset int) ([]*model.User, *model.AppErr) {
 	return []*model.User{}, nil
 }
 

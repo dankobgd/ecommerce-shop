@@ -1,6 +1,5 @@
 create type gender AS ENUM ('m', 'f');
 
-
 create table public.category (
   id int generated always as identity primary key,
   name varchar(50),
@@ -23,7 +22,6 @@ create table public.brand (
   created_at timestamptz not null,
   updated_at timestamptz not null
 );
-
 
 create table public.tag (
   id int generated always as identity primary key,
@@ -111,8 +109,9 @@ create table public.product (
   is_featured bool default false not null,
   created_at timestamptz not null,
   updated_at timestamptz not null,
-  foreign key (brand_id) references public.brand (id),
-  foreign key (category_id) references public.category (id)
+  properties jsonb,
+  foreign key (brand_id) references public.brand (id) on delete cascade,
+  foreign key (category_id) references public.category (id) on delete cascade
 );
 
 create table public.product_info (
@@ -120,18 +119,6 @@ create table public.product_info (
   product_id int not null,
   info text not null,
   foreign key (product_id) references public.product (id)
-);
-
-create table public.product_category (
-  category_id int not null,
-  product_id int not null,
-  primary key(category_id, product_id)
-);
-
-create table public.product_brand (
-  brand_id int not null,
-  product_id int not null,
-  primary key(brand_id, product_id)
 );
 
 create table public.product_tag (

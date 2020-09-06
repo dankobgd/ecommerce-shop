@@ -82,9 +82,9 @@ func (s PgBrandStore) Get(id int64) (*model.Brand, *model.AppErr) {
 }
 
 // GetAll returns all brands
-func (s PgBrandStore) GetAll() ([]*model.Brand, *model.AppErr) {
+func (s PgBrandStore) GetAll(limit, offset int) ([]*model.Brand, *model.AppErr) {
 	var brands = make([]*model.Brand, 0)
-	if err := s.db.Select(&brands, `SELECT * FROM public.brand`); err != nil {
+	if err := s.db.Select(&brands, `SELECT COUNT(*) OVER() AS total_count, * FROM public.brand LIMIT $1 OFFSET $2`, limit, offset); err != nil {
 		return nil, model.NewAppErr("PgBrandStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetBrands, http.StatusInternalServerError, nil)
 	}
 

@@ -74,8 +74,8 @@ func (a *App) GetBrand(bid int64) (*model.Brand, *model.AppErr) {
 }
 
 // GetBrands gets all brands from the db
-func (a *App) GetBrands() ([]*model.Brand, *model.AppErr) {
-	return a.Srv().Store.Brand().GetAll()
+func (a *App) GetBrands(limit, offset int) ([]*model.Brand, *model.AppErr) {
+	return a.Srv().Store.Brand().GetAll(limit, offset)
 }
 
 // DeleteBrand hard deletes the brand from the db

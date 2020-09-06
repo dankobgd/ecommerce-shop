@@ -82,9 +82,9 @@ func (s PgCategoryStore) Get(id int64) (*model.Category, *model.AppErr) {
 }
 
 // GetAll returns all categories
-func (s PgCategoryStore) GetAll() ([]*model.Category, *model.AppErr) {
+func (s PgCategoryStore) GetAll(limit, offset int) ([]*model.Category, *model.AppErr) {
 	var categories = make([]*model.Category, 0)
-	if err := s.db.Select(&categories, `SELECT * FROM public.category`); err != nil {
+	if err := s.db.Select(&categories, `SELECT COUNT(*) OVER() AS total_count, * FROM public.category LIMIT $1 OFFSET $2`, limit, offset); err != nil {
 		return nil, model.NewAppErr("PgCategoryStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetCategories, http.StatusInternalServerError, nil)
 	}
 

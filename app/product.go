@@ -74,10 +74,6 @@ func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers 
 	}
 
 	if len(tags) > 0 {
-		for _, tag := range tags {
-			tag.PreSave()
-		}
-
 		tagids, err := a.Srv().Store.ProductTag().BulkInsert(tags)
 		if err != nil {
 			a.Log().Error(err.Error(), zlog.Err(err))
@@ -138,8 +134,8 @@ func (a *App) GetProduct(pid int64) (*model.Product, *model.AppErr) {
 }
 
 // GetProducts gets all products from the db
-func (a *App) GetProducts() ([]*model.Product, *model.AppErr) {
-	return a.Srv().Store.Product().GetAll()
+func (a *App) GetProducts(limit, offset int) ([]*model.Product, *model.AppErr) {
+	return a.Srv().Store.Product().GetAll(limit, offset)
 }
 
 // GetProductTags gets all tags for the product
@@ -210,4 +206,14 @@ func (a *App) DeleteProductTag(tid int64) *model.AppErr {
 func (a *App) DeleteProductImage(imgID int64) *model.AppErr {
 	// TODO: delete from cloud later
 	return a.Srv().Store.ProductImage().Delete(imgID)
+}
+
+// GetProductProperties gets the valid products properties (variants for each specific category - size, colors etc...)
+func (a *App) GetProductProperties() (string, *model.AppErr) {
+	str := `{
+		"tshirt": ["color", "size"],
+		"bycicle": ["color", "size", "gears"]
+	}`
+	return str, nil
+
 }

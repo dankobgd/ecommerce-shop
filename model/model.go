@@ -11,3 +11,8 @@ func NewInt64(n int64) *int64 { return &n }
 
 // NewString returns pointer to string
 func NewString(s string) *string { return &s }
+
+// TotalRecordsCount is the total db items count
+type TotalRecordsCount struct {
+	TotalCount int `json:"-" db:"total_count"`
+}

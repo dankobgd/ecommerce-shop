@@ -74,8 +74,8 @@ func (a *App) GetCategory(cid int64) (*model.Category, *model.AppErr) {
 }
 
 // GetCategories gets all categories from the db
-func (a *App) GetCategories() ([]*model.Category, *model.AppErr) {
-	return a.Srv().Store.Category().GetAll()
+func (a *App) GetCategories(limit, offset int) ([]*model.Category, *model.AppErr) {
+	return a.Srv().Store.Category().GetAll(limit, offset)
 }
 
 // DeleteCategory hard deletes the category from the db
