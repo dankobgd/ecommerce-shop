@@ -2,6 +2,8 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -15,10 +17,11 @@ import (
 var (
 	msgProductSizeExceeded = &i18n.Message{ID: "app.product.create_product.image_size.app_error", Other: "upload image size exceeded"}
 	msgProductFileErr      = &i18n.Message{ID: "app.product.create_product.formfile.app_error", Other: "error parsing files"}
+	msgErrPropsJSONFile    = &i18n.Message{ID: "app.product.get_product_properties.app_error", Other: "error parsing properties json file"}
 )
 
 // CreateProduct creates the new product in the system
-func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers []*multipart.FileHeader, tags []*model.ProductTag) (*model.Product, *model.AppErr) {
+func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers []*multipart.FileHeader, tags []*model.ProductTag, properties string) (*model.Product, *model.AppErr) {
 	if fh.Size > model.FileUploadSizeLimit {
 		return nil, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductSizeExceeded, http.StatusInternalServerError, nil)
 	}
@@ -40,7 +43,9 @@ func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers 
 	if uErr != nil {
 		return nil, uErr
 	}
+
 	p.SetImageURL(details.SecureURL)
+	p.SetProperties(properties)
 
 	product, pErr := a.Srv().Store.Product().Save(p)
 	if pErr != nil {
@@ -209,11 +214,19 @@ func (a *App) DeleteProductImage(imgID int64) *model.AppErr {
 }
 
 // GetProductProperties gets the valid products properties (variants for each specific category - size, colors etc...)
-func (a *App) GetProductProperties() (string, *model.AppErr) {
-	str := `{
-		"tshirt": ["color", "size"],
-		"bycicle": ["color", "size", "gears"]
-	}`
-	return str, nil
+func (a *App) GetProductProperties() (*model.ProductProperties, *model.AppErr) {
+	file, err := ioutil.ReadFile("./data/variants/variants.json")
+	if err != nil {
+		fmt.Println(err)
+		return nil, model.NewAppErr("GetProductProperties", model.ErrInternal, locale.GetUserLocalizer("en"), msgErrPropsJSONFile, http.StatusInternalServerError, nil)
+	}
 
+	props := &model.ProductProperties{}
+
+	if err := json.Unmarshal([]byte(file), &props); err != nil {
+		fmt.Println(err)
+		return nil, model.NewAppErr("GetProductProperties", model.ErrInternal, locale.GetUserLocalizer("en"), msgErrPropsJSONFile, http.StatusInternalServerError, nil)
+	}
+
+	return props, nil
 }

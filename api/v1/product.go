@@ -57,6 +57,7 @@ func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
 	tagids := mpf.Value["tags"]
 	headers := mpf.File["images"]
 	fh := mpf.File["image"][0]
+	properties := mpf.Value["properties"][0]
 
 	tags := make([]*model.ProductTag, 0)
 	for _, tid := range tagids {
@@ -69,7 +70,7 @@ func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
 		tags = append(tags, &model.ProductTag{TagID: model.NewInt64(id)})
 	}
 
-	product, pErr := a.app.CreateProduct(&p, fh, headers, tags)
+	product, pErr := a.app.CreateProduct(&p, fh, headers, tags, properties)
 	if pErr != nil {
 		respondError(w, pErr)
 		return
@@ -273,9 +274,8 @@ func (a *API) deleteProductImage(w http.ResponseWriter, r *http.Request) {
 func (a *API) getProductProperties(w http.ResponseWriter, r *http.Request) {
 	props, err := a.app.GetProductProperties()
 	if err != nil {
-		respondError(w, model.NewAppErr("getProductProperties", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProductProperties, http.StatusInternalServerError, nil))
+		respondError(w, err)
 		return
 	}
-	w.WriteHeader(200)
-	w.Write([]byte(props))
+	respondJSON(w, http.StatusOK, props)
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/dankobgd/ecommerce-shop/store"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
 	"github.com/jmoiron/sqlx"
-	"github.com/jmoiron/sqlx/types"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -44,13 +43,6 @@ func (s PgProductStore) BulkInsert(products []*model.Product) *model.AppErr {
 
 // Save inserts the new product in the db
 func (s PgProductStore) Save(p *model.Product) (*model.Product, *model.AppErr) {
-	attrs := model.TshirtVariant{
-		Color: "red",
-		Size:  "xl",
-	}
-
-	p.Properties = types.JSONText(attrs.ToJSON())
-
 	q := `INSERT INTO public.product (name, brand_id, category_id, slug, image_url, description, price, in_stock, sku, is_featured, created_at, updated_at, properties)
 		VALUES (:name, :brand_id, :category_id, :slug, :image_url, :description, :price, :in_stock, :sku, :is_featured, :created_at, :updated_at, :properties) RETURNING id`
 

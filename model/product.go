@@ -45,7 +45,7 @@ type Product struct {
 	IsFeatured  bool           `json:"is_featured" db:"is_featured" schema:"is_featured"`
 	CreatedAt   time.Time      `json:"created_at" db:"created_at" schema:"-"`
 	UpdatedAt   time.Time      `json:"updated_at" db:"updated_at" schema:"-"`
-	Properties  types.JSONText `json:"properties"`
+	Properties  types.JSONText `json:"properties" schema:"-"`
 	Brand       *Brand         `json:"brand"`
 	Category    *Category      `json:"category"`
 }
@@ -96,6 +96,11 @@ func ProductPatchFromJSON(data io.Reader) (*ProductPatch, error) {
 // SetImageURL sets the product image url
 func (p *Product) SetImageURL(url string) {
 	p.ImageURL = url
+}
+
+// SetProperties sets the product properties variant
+func (p *Product) SetProperties(properties string) {
+	p.Properties = types.JSONText(properties)
 }
 
 // ProductFromJSON decodes the input and returns the Product

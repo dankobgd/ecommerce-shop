@@ -1,41 +1,93 @@
 package model
 
-import (
-	"database/sql/driver"
-	"encoding/json"
-	"fmt"
-	"io"
-)
-
-// TshirtVariant is the tshirt properties
-type TshirtVariant struct {
-	Color string `json:"color"`
-	Size  string `json:"size"`
-}
-
-// ToJSON converts the tshirt properties to json string
-func (v *TshirtVariant) ToJSON() string {
-	b, _ := json.Marshal(v)
-	return string(b)
-}
-
-// TshirtVariantFromJSON decodes the input and return the tshirt properties
-func TshirtVariantFromJSON(data io.Reader) (*TshirtVariant, error) {
-	var v *TshirtVariant
-	err := json.NewDecoder(data).Decode(&v)
-	return v, err
-}
-
-// Scan implements the scanner
-func (v *TshirtVariant) Scan(val interface{}) error {
-	b, ok := val.([]byte)
-	if !ok {
-		return fmt.Errorf("Unsupported type: %T", v)
-	}
-	return json.Unmarshal(b, &v)
-}
-
-// Value implements the valuer
-func (v *TshirtVariant) Value() (driver.Value, error) {
-	return json.Marshal(v)
+// ProductProperties holds valid product variant properties
+type ProductProperties struct {
+	Tshirts struct {
+		Color []string `json:"color"`
+		Size  []string `json:"size"`
+		Theme []string `json:"theme"`
+	} `json:"tshirts"`
+	Shirts struct {
+		Color []string `json:"color"`
+		Size  []string `json:"size"`
+		Theme []string `json:"theme"`
+	} `json:"shirts"`
+	Shoes struct {
+		Color    []string `json:"color"`
+		Size     []string `json:"size"`
+		LaceSize []string `json:"lace_size"`
+		Theme    []string `json:"theme"`
+	} `json:"shoes"`
+	Sneakers struct {
+		Color    []string `json:"color"`
+		Size     []string `json:"size"`
+		LaceSize []string `json:"lace_size"`
+		Theme    []string `json:"theme"`
+	} `json:"sneakers"`
+	Boots struct {
+		Color []string `json:"color"`
+		Size  []string `json:"size"`
+		Theme []string `json:"theme"`
+	} `json:"boots"`
+	Jackets struct {
+		Color []string `json:"color"`
+		Size  []string `json:"size"`
+		Theme []string `json:"theme"`
+	} `json:"jackets"`
+	Shorts struct {
+		Color []string `json:"color"`
+		Size  []string `json:"size"`
+		Theme []string `json:"theme"`
+	} `json:"shorts"`
+	Jeans struct {
+		Color []string `json:"color"`
+		Size  []string `json:"size"`
+		Theme []string `json:"theme"`
+	} `json:"jeans"`
+	Sweatpants struct {
+		Color []string `json:"color"`
+		Size  []string `json:"size"`
+		Theme []string `json:"theme"`
+	} `json:"sweatpants"`
+	Balls struct {
+		Color []string `json:"color"`
+		Type  []string `json:"type"`
+	} `json:"balls"`
+	Backpacks struct {
+		Color []string `json:"color"`
+		Size  []string `json:"size"`
+		Theme []string `json:"theme"`
+	} `json:"backpacks"`
+	Rackets struct {
+		Size []string `json:"size"`
+		Type []string `json:"type"`
+	} `json:"rackets"`
+	Bags struct {
+		Color []string `json:"color"`
+		Size  []string `json:"size"`
+		Theme []string `json:"theme"`
+	} `json:"bags"`
+	Skateboards struct {
+		Color []string `json:"color"`
+	} `json:"skateboards"`
+	Rollerblades struct {
+		Color []string `json:"color"`
+	} `json:"rollerblades"`
+	Bycicles struct {
+		Color []string `json:"color"`
+		Size  []string `json:"size"`
+		Gears []string `json:"gears"`
+	} `json:"bycicles"`
+	Hats struct {
+		Color []string `json:"color"`
+		Theme []string `json:"theme"`
+	} `json:"hats"`
+	Helmets struct {
+		Color []string `json:"color"`
+		Type  []string `json:"type"`
+	} `json:"helmets"`
+	Suitcases struct {
+		Color []string `json:"color"`
+		Size  []string `json:"size"`
+	} `json:"suitcases"`
 }
