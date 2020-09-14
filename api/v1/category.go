@@ -26,6 +26,7 @@ var (
 func InitCategories(a *API) {
 	a.Routes.Categories.Post("/", a.AdminSessionRequired(a.createCategory))
 	a.Routes.Categories.Get("/", a.AdminSessionRequired(a.getCategories))
+	a.Routes.Categories.Get("/featured", a.AdminSessionRequired(a.getFeaturedCategories))
 	a.Routes.Category.Get("/", a.AdminSessionRequired(a.getCategory))
 	a.Routes.Category.Patch("/", a.AdminSessionRequired(a.patchCategory))
 	a.Routes.Category.Delete("/", a.AdminSessionRequired(a.deleteCategory))
@@ -121,4 +122,21 @@ func (a *API) deleteCategory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondOK(w)
+}
+
+func (a *API) getFeaturedCategories(w http.ResponseWriter, r *http.Request) {
+	pages := pagination.NewFromRequest(r)
+	featured, err := a.app.GetFeaturedCategories(pages.Limit(), pages.Offset())
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	totalCount := -1
+	if len(featured) > 0 {
+		totalCount = featured[0].TotalCount
+	}
+	pages.SetData(featured, totalCount)
+
+	respondJSON(w, http.StatusOK, pages)
 }

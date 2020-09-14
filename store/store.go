@@ -108,6 +108,7 @@ type CategoryStore interface {
 	Save(c *model.Category) (*model.Category, *model.AppErr)
 	Get(id int64) (*model.Category, *model.AppErr)
 	GetAll(limit, offset int) ([]*model.Category, *model.AppErr)
+	GetFeatured(limit, offset int) ([]*model.Category, *model.AppErr)
 	Update(id int64, addr *model.Category) (*model.Category, *model.AppErr)
 	Delete(id int64) *model.AppErr
 }

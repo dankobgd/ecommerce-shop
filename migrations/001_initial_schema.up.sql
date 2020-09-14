@@ -6,6 +6,7 @@ create table public.category (
   slug varchar(50),
   logo text,
   description text,
+  is_featured bool default false not null,
   created_at timestamptz not null,
   updated_at timestamptz not null
 );

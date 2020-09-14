@@ -34,6 +34,7 @@ type CategoryJoin struct {
 	CSlug        string    `db:"category_slug"`
 	CLogo        string    `db:"category_logo"`
 	CDescription string    `db:"category_description"`
+	CIsFeatured  bool      `db:"category_is_featured"`
 	CCreatedAt   time.Time `db:"category_created_at"`
 	CUpdatedAt   time.Time `db:"category_updated_at"`
 }
@@ -70,6 +71,7 @@ func (pj *productJoin) ToProduct() *model.Product {
 			Slug:        pj.CSlug,
 			Logo:        pj.CLogo,
 			Description: pj.CDescription,
+			IsFeatured:  pj.CIsFeatured,
 			CreatedAt:   pj.CCreatedAt,
 			UpdatedAt:   pj.CUpdatedAt,
 		},

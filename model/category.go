@@ -28,6 +28,7 @@ type Category struct {
 	Name        string    `json:"name" db:"name" schema:"name"`
 	Slug        string    `json:"slug" db:"slug" schema:"slug"`
 	Description string    `json:"description" db:"description" schema:"description"`
+	IsFeatured  bool      `json:"is_featured" db:"is_featured" schema:"is_featured"`
 	Logo        string    `json:"logo" db:"logo" schema:"-"`
 	CreatedAt   time.Time `json:"created_at" db:"created_at" schema:"-"`
 	UpdatedAt   time.Time `json:"updated_at" db:"updated_at" schema:"-"`
@@ -68,6 +69,7 @@ type CategoryPatch struct {
 	Name        *string `json:"name"`
 	Slug        *string `json:"slug"`
 	Description *string `json:"description"`
+	IsFeatured  *bool   `json:"is_featured"`
 	Logo        *string `json:"logo"`
 }
 
@@ -81,6 +83,9 @@ func (c *Category) Patch(patch *CategoryPatch) {
 	}
 	if patch.Description != nil {
 		c.Description = *patch.Description
+	}
+	if patch.IsFeatured != nil {
+		c.IsFeatured = *patch.IsFeatured
 	}
 	if patch.Logo != nil {
 		c.Logo = *patch.Logo

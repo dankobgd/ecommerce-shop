@@ -297,7 +297,11 @@ func parseCategories() []*model.Category {
 		c.Name = line[0]
 		c.Slug = line[1]
 		c.Description = line[2]
-		c.Logo = line[3]
+		c.IsFeatured, err = strconv.ParseBool(line[3])
+		if err != nil {
+			panic("error parsing category is_featured bool")
+		}
+		c.Logo = line[4]
 		categoryList = append(categoryList, c)
 	}
 

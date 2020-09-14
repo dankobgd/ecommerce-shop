@@ -82,3 +82,8 @@ func (a *App) GetCategories(limit, offset int) ([]*model.Category, *model.AppErr
 func (a *App) DeleteCategory(cid int64) *model.AppErr {
 	return a.Srv().Store.Category().Delete(cid)
 }
+
+// GetFeaturedCategories hard deletes the category from the db
+func (a *App) GetFeaturedCategories(limit, offset int) ([]*model.Category, *model.AppErr) {
+	return a.Srv().Store.Category().GetFeatured(limit, offset)
+}
