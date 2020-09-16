@@ -199,3 +199,43 @@ func (s PgProductStore) Delete(id int64) *model.AppErr {
 	}
 	return nil
 }
+
+// GetFeatured returns featured products
+func (s PgProductStore) GetFeatured(limit, offset int) ([]*model.Product, *model.AppErr) {
+	q := `SELECT 
+	COUNT(*) OVER() AS total_count,
+	p.*,
+	b.name AS brand_name,
+	b.slug AS brand_slug,
+	b.type AS brand_type,
+	b.description AS brand_description,
+	b.email AS brand_email,
+	b.logo AS brand_logo,
+	b.website_url AS brand_website_url,
+	b.created_at AS brand_created_at,
+	b.updated_at AS brand_updated_at,
+	c.name AS category_name,
+	c.slug AS category_slug,
+	c.description AS category_description,
+	c.logo AS category_logo,
+	c.created_at AS category_created_at,
+	c.updated_at AS category_updated_at
+	FROM public.product p
+	LEFT JOIN brand b ON p.brand_id = b.id
+	LEFT JOIN category c ON p.category_id = c.id
+	WHERE p.is_featured = true
+	GROUP BY p.id, b.id, c.id
+	LIMIT $1 OFFSET $2`
+
+	var pj []productJoin
+	if err := s.db.Select(&pj, q, limit, offset); err != nil {
+		return nil, model.NewAppErr("PgProductStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProducts, http.StatusInternalServerError, nil)
+	}
+
+	products := make([]*model.Product, 0)
+	for _, x := range pj {
+		products = append(products, x.ToProduct())
+	}
+
+	return products, nil
+}

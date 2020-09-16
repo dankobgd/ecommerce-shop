@@ -31,6 +31,8 @@ func InitProducts(a *API) {
 	a.Routes.Products.Delete("/tags/{tag_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.deleteProductTag))
 	a.Routes.Products.Delete("/images/{image_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.deleteProductImage))
 	a.Routes.Products.Get("/properties", a.getProductProperties)
+	a.Routes.Products.Get("/properties", a.getProductProperties)
+	a.Routes.Products.Get("/featured", a.getFeaturedProducts)
 
 	a.Routes.Product.Get("/", a.getProduct)
 	a.Routes.Product.Patch("/", a.AdminSessionRequired(a.patchProduct))
@@ -278,4 +280,21 @@ func (a *API) getProductProperties(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondJSON(w, http.StatusOK, props)
+}
+
+func (a *API) getFeaturedProducts(w http.ResponseWriter, r *http.Request) {
+	pages := pagination.NewFromRequest(r)
+	featured, err := a.app.GetFeaturedProducts(pages.Limit(), pages.Offset())
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	totalCount := -1
+	if len(featured) > 0 {
+		totalCount = featured[0].TotalCount
+	}
+	pages.SetData(featured, totalCount)
+
+	respondJSON(w, http.StatusOK, pages)
 }

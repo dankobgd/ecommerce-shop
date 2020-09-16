@@ -58,6 +58,7 @@ type ProductStore interface {
 	Get(id int64) (*model.Product, *model.AppErr)
 	ListByIDS(ids []int64) ([]*model.Product, *model.AppErr)
 	GetAll(limit, offset int) ([]*model.Product, *model.AppErr)
+	GetFeatured(limit, offset int) ([]*model.Product, *model.AppErr)
 	Update(id int64, u *model.Product) (*model.Product, *model.AppErr)
 	Delete(id int64) *model.AppErr
 }

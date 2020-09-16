@@ -26,7 +26,7 @@ var (
 func InitCategories(a *API) {
 	a.Routes.Categories.Post("/", a.AdminSessionRequired(a.createCategory))
 	a.Routes.Categories.Get("/", a.AdminSessionRequired(a.getCategories))
-	a.Routes.Categories.Get("/featured", a.AdminSessionRequired(a.getFeaturedCategories))
+	a.Routes.Categories.Get("/featured", a.getFeaturedCategories)
 	a.Routes.Category.Get("/", a.AdminSessionRequired(a.getCategory))
 	a.Routes.Category.Patch("/", a.AdminSessionRequired(a.patchCategory))
 	a.Routes.Category.Delete("/", a.AdminSessionRequired(a.deleteCategory))

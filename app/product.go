@@ -143,6 +143,11 @@ func (a *App) GetProducts(limit, offset int) ([]*model.Product, *model.AppErr) {
 	return a.Srv().Store.Product().GetAll(limit, offset)
 }
 
+// GetFeaturedProducts returns featured products
+func (a *App) GetFeaturedProducts(limit, offset int) ([]*model.Product, *model.AppErr) {
+	return a.Srv().Store.Product().GetFeatured(limit, offset)
+}
+
 // GetProductTags gets all tags for the product
 func (a *App) GetProductTags(pid int64) ([]*model.ProductTag, *model.AppErr) {
 	return a.Srv().Store.ProductTag().GetAll(pid)
