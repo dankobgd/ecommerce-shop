@@ -61,7 +61,7 @@ func (s PgProductImageStore) Get(id int64) (*model.ProductImage, *model.AppErr) 
 // GetAll gets all product's images
 func (s PgProductImageStore) GetAll(pid int64) ([]*model.ProductImage, *model.AppErr) {
 	q := `SELECT img.id AS img_id, img.product_id AS img_product_id, img.url AS img_url, img.created_at AS img_created_at, img.updated_at AS img_updated_at FROM public.product_image img WHERE img.product_id = $1`
-	var imgs []*model.ProductImage
+	imgs := make([]*model.ProductImage, 0)
 	if err := s.db.Select(&imgs, q, pid); err != nil {
 		return nil, model.NewAppErr("PgProductImageStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProductImages, http.StatusInternalServerError, nil)
 	}

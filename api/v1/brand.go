@@ -25,8 +25,8 @@ var (
 // InitBrands inits the brand routes
 func InitBrands(a *API) {
 	a.Routes.Brands.Post("/", a.AdminSessionRequired(a.createBrand))
-	a.Routes.Brands.Get("/", a.AdminSessionRequired(a.getBrands))
-	a.Routes.Brand.Get("/", a.AdminSessionRequired(a.getBrand))
+	a.Routes.Brands.Get("/", a.getBrands)
+	a.Routes.Brand.Get("/", a.getBrand)
 	a.Routes.Brand.Patch("/", a.AdminSessionRequired(a.patchBrand))
 	a.Routes.Brand.Delete("/", a.AdminSessionRequired(a.deleteBrand))
 }

@@ -1,8 +1,0 @@
-username,email,password,role
-admin,admin@admin.com,Test_123,admin
-test,test@test.com,Test_123,user
-john,john@john.com,Test_123,user
-anna,anna@anna.com,Test_123,user
-bob,bob@bob.com,Test_123,user
-mike,mike@mike.com,Test_123,user
-peter,peter@peter.com,Test_123,user

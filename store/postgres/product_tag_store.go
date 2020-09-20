@@ -70,7 +70,7 @@ func (s PgProductTagStore) GetAll(pid int64) ([]*model.ProductTag, *model.AppErr
 	tag.slug AS slug,
 	tag.description AS description
 	FROM public.product_tag LEFT JOIN public.tag on product_tag.tag_id = tag.id WHERE product_tag.product_id = $1`
-	var tags []*model.ProductTag
+	tags := make([]*model.ProductTag, 0)
 	if err := s.db.Select(&tags, q, pid); err != nil {
 		return nil, model.NewAppErr("PgProductTagStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProductTags, http.StatusInternalServerError, nil)
 	}

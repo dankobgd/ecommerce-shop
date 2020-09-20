@@ -1,15 +1,14 @@
 package cmd
 
 import (
-	"encoding/csv"
-	"log"
-	"os"
-	"strconv"
-	"strings"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"time"
 
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/zlog"
+	"github.com/jmoiron/sqlx/types"
 	"github.com/spf13/cobra"
 )
 
@@ -60,26 +59,6 @@ func init() {
 	rootCmd.AddCommand(seedCmd)
 }
 
-func seedDatabaseFn(command *cobra.Command, args []string) error {
-	if err := seedUsers(); err != nil {
-		return err
-	}
-	if err := seedCategories(); err != nil {
-		return err
-	}
-	if err := seedBrands(); err != nil {
-		return err
-	}
-	if err := seedTags(); err != nil {
-		return err
-	}
-	if err := seedProducts(); err != nil {
-		return err
-	}
-	cmdApp.Log().Info("database seed completed successfully")
-	return nil
-}
-
 func seedUsersFn(command *cobra.Command, args []string) error {
 	return seedUsers()
 }
@@ -100,11 +79,46 @@ func seedProductsFn(command *cobra.Command, args []string) error {
 	return seedProducts()
 }
 
+func seedDatabaseFn(command *cobra.Command, args []string) error {
+	if err := seedUsers(); err != nil {
+		return err
+	}
+	if err := seedCategories(); err != nil {
+		return err
+	}
+	if err := seedBrands(); err != nil {
+		return err
+	}
+	if err := seedTags(); err != nil {
+		return err
+	}
+	if err := seedProducts(); err != nil {
+		return err
+	}
+	cmdApp.Log().Info("database seed completed successfully")
+	return nil
+}
+
 // seedUsers seeds the user tables
 func seedUsers() error {
-	users := parseUsers()
+	var users []*model.User
+
+	data, err := ioutil.ReadFile("./data/seeds/users.json")
+	if err != nil {
+		cmdApp.Log().Error("could not read users.json seed", zlog.String("err: ", err.Error()))
+		return err
+	}
+	if err := json.Unmarshal(data, &users); err != nil {
+		cmdApp.Log().Error("could not unmarshal users.json", zlog.String("err: ", err.Error()))
+		return err
+	}
+
+	// for performance is the same hash for all...
+	mockHash := model.HashPassword("Test_123")
+
 	for _, u := range users {
-		u.PreSave()
+		u.PreSave(true)
+		u.Password = mockHash
 	}
 	if err := cmdApp.Srv().Store.User().BulkInsert(users); err != nil {
 		cmdApp.Log().Error("could not seed users", zlog.String("err: ", err.Message))
@@ -114,40 +128,20 @@ func seedUsers() error {
 	return nil
 }
 
-// seedProducts populates the product table
-func seedProducts() error {
-	productData := parseProducts()
-
-	for _, d := range productData {
-		d.P.PreSave()
-		newProd, err := cmdApp.Srv().Store.Product().Save(d.P)
-		if err != nil {
-			cmdApp.Log().Error("could not seed save product", zlog.String("err: ", err.Message))
-		}
-
-		for _, tag := range d.Tags {
-			tag.ProductID = &newProd.ID
-		}
-		if _, err := cmdApp.Srv().Store.ProductTag().BulkInsert(d.Tags); err != nil {
-			cmdApp.Log().Error("could not seed bulk insert tags", zlog.String("err: ", err.Message))
-		}
-
-		for _, img := range d.Imgs {
-			img.ProductID = &newProd.ID
-			img.PreSave()
-		}
-		if _, err := cmdApp.Srv().Store.ProductImage().BulkInsert(d.Imgs); err != nil {
-			cmdApp.Log().Error("could not seed bulk insert images", zlog.String("err: ", err.Message))
-		}
-	}
-
-	cmdApp.Log().Info("products seeded")
-	return nil
-}
-
 // seedCategories populates the categories table
 func seedCategories() error {
-	categories := parseCategories()
+	var categories []*model.Category
+
+	data, err := ioutil.ReadFile("./data/seeds/categories.json")
+	if err != nil {
+		cmdApp.Log().Error("could not read categories.json seed", zlog.String("err: ", err.Error()))
+		return err
+	}
+	if err := json.Unmarshal(data, &categories); err != nil {
+		cmdApp.Log().Error("could not unmarshal categories.json", zlog.String("err: ", err.Error()))
+		return err
+	}
+
 	for _, u := range categories {
 		u.PreSave()
 	}
@@ -161,7 +155,18 @@ func seedCategories() error {
 
 // seedBrands populates the brand table
 func seedBrands() error {
-	brands := parseBrands()
+	var brands []*model.Brand
+
+	data, err := ioutil.ReadFile("./data/seeds/brands.json")
+	if err != nil {
+		cmdApp.Log().Error("could not read brands.json seed", zlog.String("err: ", err.Error()))
+		return err
+	}
+	if err := json.Unmarshal(data, &brands); err != nil {
+		cmdApp.Log().Error("could not unmarshal brands.json", zlog.String("err: ", err.Error()))
+		return err
+	}
+
 	for _, u := range brands {
 		u.PreSave()
 	}
@@ -175,7 +180,18 @@ func seedBrands() error {
 
 // seedTags populates the tag table
 func seedTags() error {
-	tags := parseTags()
+	var tags []*model.Tag
+
+	data, err := ioutil.ReadFile("./data/seeds/tags.json")
+	if err != nil {
+		cmdApp.Log().Error("could not read tags.json seed", zlog.String("err: ", err.Error()))
+		return err
+	}
+	if err := json.Unmarshal(data, &tags); err != nil {
+		cmdApp.Log().Error("could not unmarshal tags.json", zlog.String("err: ", err.Error()))
+		return err
+	}
+
 	for _, t := range tags {
 		t.PreSave()
 	}
@@ -187,85 +203,71 @@ func seedTags() error {
 	return nil
 }
 
-// parseUsers parses csv lines and creates the list of users
-func parseUsers() []*model.User {
-	records, err := readCSVFile("./data/seeds/users.csv")
-	if err != nil {
-		log.Fatalf("error parsing users from CSV: %v", err)
-	}
-	userList := make([]*model.User, 0)
-
-	for _, line := range records {
-		u := &model.User{}
-		u.Username = line[0]
-		u.Email = line[1]
-		u.Password = line[2]
-		u.Role = line[3]
-		userList = append(userList, u)
-	}
-
-	return userList
+type productSeed struct {
+	ID          int64          `json:"id"`
+	BrandID     int64          `json:"brand_id"`
+	CategoryID  int64          `json:"category_id"`
+	Name        string         `json:"name"`
+	Slug        string         `json:"slug"`
+	ImageURL    string         `json:"image_url"`
+	Description string         `json:"description"`
+	Price       int            `json:"price"`
+	InStock     bool           `json:"in_stock"`
+	SKU         string         `json:"sku"`
+	IsFeatured  bool           `json:"is_featured"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	Tags        []int64        `json:"tags"`
+	Images      []string       `json:"images"`
+	Properties  types.JSONText `json:"properties"`
 }
 
-type prodData struct {
-	P    *model.Product
+type productData struct {
+	Prod *model.Product
 	Tags []*model.ProductTag
 	Imgs []*model.ProductImage
 }
 
-// parseProducts parses csv lines and creates the list of products
-func parseProducts() []*prodData {
-	records, err := readCSVFile("./data/seeds/products.csv")
+// seedProducts populates the product table
+func seedProducts() error {
+	var ps []*productSeed
+
+	data, err := ioutil.ReadFile("./data/seeds/products.json")
 	if err != nil {
-		log.Fatalf("error parsing products from CSV: %v", err)
+		cmdApp.Log().Error("could not read products.json seed", zlog.String("err: ", err.Error()))
+		return err
+	}
+	if err := json.Unmarshal(data, &ps); err != nil {
+		cmdApp.Log().Error("could not unmarshal products.json", zlog.String("err: ", err.Error()))
+		return err
 	}
 
-	prodList := make([]*prodData, 0)
+	productDataList := make([]*productData, 0)
 
-	for _, line := range records {
-		p := &model.Product{}
-		data := &prodData{}
-
-		p.Name = line[0]
-		p.BrandID, err = strconv.ParseInt(line[1], 10, 64)
-		if err != nil {
-			log.Fatalf("brand_id err: %v", err)
+	for _, x := range ps {
+		p := &model.Product{
+			BrandID:     x.BrandID,
+			CategoryID:  x.CategoryID,
+			Name:        x.Name,
+			Slug:        x.Slug,
+			ImageURL:    x.ImageURL,
+			Description: x.Description,
+			Price:       x.Price,
+			InStock:     x.InStock,
+			SKU:         x.SKU,
+			IsFeatured:  x.IsFeatured,
+			Properties:  x.Properties,
 		}
-		p.CategoryID, err = strconv.ParseInt(line[2], 10, 64)
-		if err != nil {
-			log.Fatalf("category_id err: %v", err)
-		}
-		p.Slug = line[3]
-		p.ImageURL = line[4]
-		p.Description = line[5]
-		p.Price, err = strconv.Atoi(line[6])
-		if err != nil {
-			log.Fatalf("price err: %v", err)
-		}
-		p.InStock, err = strconv.ParseBool(line[7])
-		if err != nil {
-			log.Fatalf("in_stock err: %v", err)
-		}
-		p.SKU = line[8]
-		p.IsFeatured, err = strconv.ParseBool(line[9])
-		if err != nil {
-			log.Fatalf("is_featured err: %v", err)
-		}
-
-		tagSlice := strings.Split(line[10], " ")
-		imgSlice := strings.Split(line[11], " ")
 
 		tagList := make([]*model.ProductTag, 0)
 		imgList := make([]*model.ProductImage, 0)
 
-		for _, tid := range tagSlice {
-			id, err := strconv.ParseInt(tid, 10, 64)
-			if err != nil {
-				log.Fatalf("tag_id err: %v", err)
-			}
-			tagList = append(tagList, &model.ProductTag{TagID: model.NewInt64(id)})
+		for _, tagID := range x.Tags {
+			tagList = append(tagList, &model.ProductTag{
+				TagID: model.NewInt64(tagID),
+			})
 		}
-		for _, img := range imgSlice {
+		for _, img := range x.Images {
 			now := time.Now()
 			imgList = append(imgList, &model.ProductImage{
 				URL:       model.NewString(img),
@@ -274,101 +276,44 @@ func parseProducts() []*prodData {
 			})
 		}
 
-		data.P = p
-		data.Tags = tagList
-		data.Imgs = imgList
-
-		prodList = append(prodList, data)
-	}
-
-	return prodList
-}
-
-// parseCategories parses csv lines and creates the list of categories
-func parseCategories() []*model.Category {
-	records, err := readCSVFile("./data/seeds/categories.csv")
-	if err != nil {
-		log.Fatalf("error parsing categoies from CSV: %v", err)
-	}
-	categoryList := make([]*model.Category, 0)
-
-	for _, line := range records {
-		c := &model.Category{}
-		c.Name = line[0]
-		c.Slug = line[1]
-		c.Description = line[2]
-		c.IsFeatured, err = strconv.ParseBool(line[3])
-		if err != nil {
-			panic("error parsing category is_featured bool")
+		pdata := &productData{
+			Prod: p,
+			Tags: tagList,
+			Imgs: imgList,
 		}
-		c.Logo = line[4]
-		categoryList = append(categoryList, c)
+
+		productDataList = append(productDataList, pdata)
 	}
 
-	return categoryList
-}
+	for _, item := range productDataList {
+		item.Prod.PreSave()
+		newProd, err := cmdApp.Srv().Store.Product().Save(item.Prod)
+		if err != nil {
+			cmdApp.Log().Error("could not seed save product", zlog.String("err: ", err.Message))
+		}
 
-// parseBrands parses csv lines and creates the list of brands
-func parseBrands() []*model.Brand {
-	records, err := readCSVFile("./data/seeds/brands.csv")
-	if err != nil {
-		log.Fatalf("error parsing brands from CSV: %v", err)
-	}
-	brandList := make([]*model.Brand, 0)
+		for _, tag := range item.Tags {
+			tag.ProductID = &newProd.ID
+		}
+		if len(item.Tags) > 0 {
+			if _, err := cmdApp.Srv().Store.ProductTag().BulkInsert(item.Tags); err != nil {
+				fmt.Println(err)
+				cmdApp.Log().Error("could not seed bulk insert tags", zlog.String("err: ", err.Message))
+			}
+		}
 
-	for _, line := range records {
-		b := &model.Brand{}
-		b.Name = line[0]
-		b.Slug = line[1]
-		b.Type = line[2]
-		b.Description = line[3]
-		b.Email = line[4]
-		b.WebsiteURL = line[5]
-		b.Logo = line[6]
-		brandList = append(brandList, b)
-	}
-
-	return brandList
-}
-
-// parseTags parses csv lines and creates the list of tags
-func parseTags() []*model.Tag {
-	records, err := readCSVFile("./data/seeds/tags.csv")
-	if err != nil {
-		log.Fatalf("error parsing tags from CSV: %v", err)
-	}
-	tagList := make([]*model.Tag, 0)
-
-	for _, line := range records {
-		t := &model.Tag{}
-		t.Name = line[0]
-		t.Slug = line[1]
-		t.Description = line[2]
-		tagList = append(tagList, t)
+		for _, img := range item.Imgs {
+			img.ProductID = &newProd.ID
+			img.PreSave()
+		}
+		if len(item.Imgs) > 0 {
+			if _, err := cmdApp.Srv().Store.ProductImage().BulkInsert(item.Imgs); err != nil {
+				fmt.Println(err)
+				cmdApp.Log().Error("could not seed bulk insert images", zlog.String("err: ", err.Message))
+			}
+		}
 	}
 
-	return tagList
-}
-
-// readCSVFile is a halper to read csv file
-func readCSVFile(filePath string) ([][]string, error) {
-	f, err := os.Open(filePath)
-	if err != nil {
-		log.Fatalf("could not read input file: %v, %v", filePath, err)
-		return nil, err
-	}
-	defer f.Close()
-
-	csvr := csv.NewReader(f)
-	if _, err := csvr.Read(); err != nil {
-		return nil, err
-	}
-
-	records, err := csvr.ReadAll()
-	if err != nil {
-		log.Fatalf("could not parse file as CSV for path: %v ,%v", filePath, err)
-		return nil, err
-	}
-
-	return records, nil
+	cmdApp.Log().Info("products seeded")
+	return nil
 }

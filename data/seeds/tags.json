@@ -1,0 +1,87 @@
+[
+  {
+    "name": "men",
+    "slug": "men",
+    "description": "men related products"
+  },
+  {
+    "name": "women",
+    "slug": "women",
+    "description": "women related products"
+  },
+  {
+    "name": "children",
+    "slug": "children",
+    "description": "children related products"
+  },
+  {
+    "name": "sports",
+    "slug": "sports",
+    "description": "sports related products"
+  },
+  {
+    "name": "winter",
+    "slug": "winter",
+    "description": "winter related products"
+  },
+  {
+    "name": "summer",
+    "slug": "summer",
+    "description": "summer related products"
+  },
+  {
+    "name": "running",
+    "slug": "running",
+    "description": "running related products"
+  },
+  {
+    "name": "basketball",
+    "slug": "basketball",
+    "description": "basketball related products"
+  },
+  {
+    "name": "football",
+    "slug": "football",
+    "description": "football related products"
+  },
+  {
+    "name": "volleyball",
+    "slug": "volleyball",
+    "description": "volleyball related products"
+  },
+  {
+    "name": "handball",
+    "slug": "handball",
+    "description": "handball related products"
+  },
+  {
+    "name": "tennis",
+    "slug": "tennis",
+    "description": "tennis related products"
+  },
+  {
+    "name": "fitness",
+    "slug": "fitness",
+    "description": "fitness related products"
+  },
+  {
+    "name": "swimming",
+    "slug": "swimming",
+    "description": "swimming related products"
+  },
+  {
+    "name": "lifestyle",
+    "slug": "lifestyle",
+    "description": "lifestyle related products"
+  },
+  {
+    "name": "Mountain climbing",
+    "slug": "Mountain climbing",
+    "description": "Mountain climbing related products"
+  },
+  {
+    "name": "other",
+    "slug": "other",
+    "description": "other related products"
+  }
+]

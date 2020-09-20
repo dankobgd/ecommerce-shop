@@ -1,0 +1,56 @@
+[
+  {
+    "name": "nike",
+    "slug": "nike",
+    "type": "retail",
+    "description": "nike brand description",
+    "email": "nike@nike.com",
+    "website_url": "https://www.nike.com",
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599403904/ecommerce/seeds/nike.svg"
+  },
+  {
+    "name": "adidas",
+    "slug": "adidas",
+    "type": "retail",
+    "description": "adidas brand description",
+    "email": "adidas@adidas.com",
+    "website_url": "https://www.adidas.com/us",
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599403887/ecommerce/seeds/adidas.svg"
+  },
+  {
+    "name": "puma",
+    "slug": "puma",
+    "type": "retail",
+    "description": "puma brand description",
+    "email": "puma@puma.com",
+    "website_url": "https://us.puma.com/",
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599403904/ecommerce/seeds/Puma.svg"
+  },
+  {
+    "name": "reebok",
+    "slug": "reebok",
+    "type": "retail",
+    "description": "reebok brand description",
+    "email": "reebok@reebok.com",
+    "website_url": "https://www.reebok.com/us",
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599403904/ecommerce/seeds/reebok.svg"
+  },
+  {
+    "name": "fila",
+    "slug": "fila",
+    "type": "retail",
+    "description": "fila brand description",
+    "email": "fila@fila.com",
+    "website_url": "https://www.fila.com",
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599403904/ecommerce/seeds/Fila_logo.svg"
+  },
+  {
+    "name": "kappa",
+    "slug": "kappa",
+    "type": "retail",
+    "description": "kappa brand description",
+    "email": "kappa@kappa.com",
+    "website_url": "https://kappa-usa.com",
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599403904/ecommerce/seeds/Kappa.svg"
+  }
+]

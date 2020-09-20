@@ -26,8 +26,8 @@ var (
 // InitTags inits the tag routes
 func InitTags(a *API) {
 	a.Routes.Tags.Post("/", a.AdminSessionRequired(a.createTag))
-	a.Routes.Tags.Get("/", a.AdminSessionRequired(a.getTags))
-	a.Routes.Tag.Get("/", a.AdminSessionRequired(a.getTag))
+	a.Routes.Tags.Get("/", a.getTags)
+	a.Routes.Tag.Get("/", a.getTag)
 	a.Routes.Tag.Patch("/", a.AdminSessionRequired(a.patchTag))
 	a.Routes.Tag.Delete("/", a.AdminSessionRequired(a.deleteTag))
 }

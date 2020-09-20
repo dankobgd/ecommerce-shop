@@ -366,7 +366,7 @@ func (u *User) Sanitize(options map[string]bool) {
 
 // PreSave will set missing defaults and fill CreatedAt and UpdatedAt times
 // It will also hash the password and it should be called before saving the user to the db
-func (u *User) PreSave() {
+func (u *User) PreSave(isSeed ...bool) {
 	u.Username = NormalizeUsername(u.Username)
 	u.Email = NormalizeEmail(u.Email)
 	u.CreatedAt = time.Now()
@@ -380,9 +380,12 @@ func (u *User) PreSave() {
 	if u.Locale == "" {
 		u.Locale = userDefaultLocale
 	}
-	if len(u.Password) > 0 {
-		u.rawpw = u.Password
-		u.Password = HashPassword(u.Password)
+
+	if !isSeed[0] {
+		if len(u.Password) > 0 {
+			u.rawpw = u.Password
+			u.Password = HashPassword(u.Password)
+		}
 	}
 }
 
