@@ -18,6 +18,7 @@ type Store interface {
 	Category() CategoryStore
 	Brand() BrandStore
 	Tag() TagStore
+	Review() ReviewStore
 }
 
 // UserStore ris the user store
@@ -131,5 +132,15 @@ type TagStore interface {
 	Get(id int64) (*model.Tag, *model.AppErr)
 	GetAll(limit, offset int) ([]*model.Tag, *model.AppErr)
 	Update(id int64, addr *model.Tag) (*model.Tag, *model.AppErr)
+	Delete(id int64) *model.AppErr
+}
+
+// ReviewStore is the tag store
+type ReviewStore interface {
+	BulkInsert(tags []*model.Review) *model.AppErr
+	Save(c *model.Review) (*model.Review, *model.AppErr)
+	Get(id int64) (*model.Review, *model.AppErr)
+	GetAll(limit, offset int) ([]*model.Review, *model.AppErr)
+	Update(id int64, addr *model.Review) (*model.Review, *model.AppErr)
 	Delete(id int64) *model.AppErr
 }

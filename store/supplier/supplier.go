@@ -71,3 +71,8 @@ func (s *Supplier) Brand() store.BrandStore {
 func (s *Supplier) Tag() store.TagStore {
 	return postgres.NewPgTagStore(s.Pgst)
 }
+
+// Review returns the Review store implementation
+func (s *Supplier) Review() store.ReviewStore {
+	return postgres.NewPgReviewStore(s.Pgst)
+}

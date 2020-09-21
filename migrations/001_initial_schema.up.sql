@@ -139,6 +139,20 @@ create table public.product_image (
   foreign key (product_id) references public.product (id) on delete cascade
 );
 
+create table public.product_review (
+  id int generated always as identity primary key,
+  user_id int not null,
+  product_id int not null,
+  rating int not null,
+  comment text not null,
+  created_at timestamptz not null,
+  updated_at timestamptz not null,
+  foreign key (user_id) references public.user (id) on delete cascade,
+  foreign key (product_id) references public.product (id) on delete cascade,
+  check (rating >= 1 and rating <= 5),
+  unique (user_id, product_id)
+);
+
 create table public.product_discount (
   id int generated always as identity primary key,
   product_id int not null,

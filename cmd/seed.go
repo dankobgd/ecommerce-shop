@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"time"
 
@@ -54,6 +53,13 @@ var seedTagsCmd = &cobra.Command{
 	PreRun: loadApp,
 }
 
+var seedReviewsCmd = &cobra.Command{
+	Use:    "reviews",
+	Short:  "seed reviews",
+	RunE:   seedReviewsFn,
+	PreRun: loadApp,
+}
+
 func init() {
 	seedCmd.AddCommand(seedUsersCmd, seedProductsCmd, seedCategoriesCmd, seedBrandsCmd, seedTagsCmd)
 	rootCmd.AddCommand(seedCmd)
@@ -75,6 +81,10 @@ func seedTagsFn(command *cobra.Command, args []string) error {
 	return seedTags()
 }
 
+func seedReviewsFn(command *cobra.Command, args []string) error {
+	return seedReviews()
+}
+
 func seedProductsFn(command *cobra.Command, args []string) error {
 	return seedProducts()
 }
@@ -93,6 +103,9 @@ func seedDatabaseFn(command *cobra.Command, args []string) error {
 		return err
 	}
 	if err := seedProducts(); err != nil {
+		return err
+	}
+	if err := seedReviews(); err != nil {
 		return err
 	}
 	cmdApp.Log().Info("database seed completed successfully")
@@ -203,6 +216,31 @@ func seedTags() error {
 	return nil
 }
 
+// seedReviews populates the product_review table
+func seedReviews() error {
+	var reviews []*model.Review
+
+	data, err := ioutil.ReadFile("./data/seeds/reviews.json")
+	if err != nil {
+		cmdApp.Log().Error("could not read reviews.json seed", zlog.String("err: ", err.Error()))
+		return err
+	}
+	if err := json.Unmarshal(data, &reviews); err != nil {
+		cmdApp.Log().Error("could not unmarshal reviews.json", zlog.String("err: ", err.Error()))
+		return err
+	}
+
+	for _, t := range reviews {
+		t.PreSave()
+	}
+	if err := cmdApp.Srv().Store.Review().BulkInsert(reviews); err != nil {
+		cmdApp.Log().Error("could not seed reviews", zlog.String("err: ", err.Message))
+		return err
+	}
+	cmdApp.Log().Info("reviews seeded")
+	return nil
+}
+
 type productSeed struct {
 	ID          int64          `json:"id"`
 	BrandID     int64          `json:"brand_id"`
@@ -297,7 +335,6 @@ func seedProducts() error {
 		}
 		if len(item.Tags) > 0 {
 			if _, err := cmdApp.Srv().Store.ProductTag().BulkInsert(item.Tags); err != nil {
-				fmt.Println(err)
 				cmdApp.Log().Error("could not seed bulk insert tags", zlog.String("err: ", err.Message))
 			}
 		}
@@ -308,7 +345,6 @@ func seedProducts() error {
 		}
 		if len(item.Imgs) > 0 {
 			if _, err := cmdApp.Srv().Store.ProductImage().BulkInsert(item.Imgs); err != nil {
-				fmt.Println(err)
 				cmdApp.Log().Error("could not seed bulk insert images", zlog.String("err: ", err.Message))
 			}
 		}

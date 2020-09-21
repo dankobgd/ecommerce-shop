@@ -3,7 +3,6 @@ package app
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -222,14 +221,12 @@ func (a *App) DeleteProductImage(imgID int64) *model.AppErr {
 func (a *App) GetProductProperties() (*model.ProductProperties, *model.AppErr) {
 	file, err := ioutil.ReadFile("./data/variants/variants.json")
 	if err != nil {
-		fmt.Println(err)
 		return nil, model.NewAppErr("GetProductProperties", model.ErrInternal, locale.GetUserLocalizer("en"), msgErrPropsJSONFile, http.StatusInternalServerError, nil)
 	}
 
 	props := &model.ProductProperties{}
 
 	if err := json.Unmarshal([]byte(file), &props); err != nil {
-		fmt.Println(err)
 		return nil, model.NewAppErr("GetProductProperties", model.ErrInternal, locale.GetUserLocalizer("en"), msgErrPropsJSONFile, http.StatusInternalServerError, nil)
 	}
 
