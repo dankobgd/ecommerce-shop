@@ -20,7 +20,7 @@ func NewPgReviewStore(pgst *PgStore) store.ReviewStore {
 }
 
 var (
-	msgUniqueConstraintReview = &i18n.Message{ID: "store.postgres.review.save.unique_constraint.app_error", Other: "invalid review foreign key"}
+	msgUniqueConstraintReview = &i18n.Message{ID: "store.postgres.review.save.unique_constraint.app_error", Other: "review already exists"}
 	msgSaveReview             = &i18n.Message{ID: "store.postgres.review.save.app_error", Other: "could not save review"}
 	msgUpdateReview           = &i18n.Message{ID: "store.postgres.review.update.app_error", Other: "could not update review"}
 	msgBulkInsertReviews      = &i18n.Message{ID: "store.postgres.review.bulk.insert.app_error", Other: "could not bulk insert reviews"}

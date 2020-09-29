@@ -32,8 +32,9 @@ type UserStore interface {
 	Delete(id int64) *model.AppErr
 	UpdateAvatar(id int64, url *string, publicID *string) (*string, *string, *model.AppErr)
 	DeleteAvatar(id int64) *model.AppErr
-	VerifyEmail(usrerID int64) *model.AppErr
+	VerifyEmail(userID int64) *model.AppErr
 	UpdatePassword(userID int64, hashedPassword string) *model.AppErr
+	GetAllOrders(userID int64, limit, offset int) ([]*model.Order, *model.AppErr)
 }
 
 // AccessTokenStore is the access token store
@@ -62,6 +63,7 @@ type ProductStore interface {
 	GetFeatured(limit, offset int) ([]*model.Product, *model.AppErr)
 	Update(id int64, u *model.Product) (*model.Product, *model.AppErr)
 	Delete(id int64) *model.AppErr
+	GetReviews(id int64) ([]*model.Review, *model.AppErr)
 }
 
 // ProductTagStore is the product tag store
@@ -84,9 +86,11 @@ type ProductImageStore interface {
 
 // OrderStore is the order store
 type OrderStore interface {
-	Save(order *model.Order, shipAddr *model.Address, billAddr *model.Address) (*model.Order, *model.AppErr)
+	Save(order *model.Order) (*model.Order, *model.AppErr)
 	Get(id int64) (*model.Order, *model.AppErr)
+	GetAll(limit, offset int) ([]*model.Order, *model.AppErr)
 	Update(id int64, o *model.Order) (*model.Order, *model.AppErr)
+	Delete(id int64) *model.AppErr
 }
 
 // OrderDetailStore is the order detail store
@@ -94,6 +98,7 @@ type OrderDetailStore interface {
 	BulkInsert(items []*model.OrderDetail) *model.AppErr
 	Save(od *model.OrderDetail) (*model.OrderDetail, *model.AppErr)
 	Get(id int64) (*model.OrderDetail, *model.AppErr)
+	GetAll(limit, offset int) ([]*model.OrderDetail, *model.AppErr)
 }
 
 // AddressStore is the contact address store

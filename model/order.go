@@ -30,6 +30,7 @@ func (s orderStatus) String() string {
 
 // Order represents the transaction
 type Order struct {
+	TotalRecordsCount
 	ID                       int64      `json:"id" db:"id"`
 	UserID                   int64      `json:"user_id" db:"user_id"`
 	Status                   string     `json:"status" db:"status"`
@@ -70,9 +71,11 @@ type CartItem struct {
 
 // OrderRequestData is used to create new order
 type OrderRequestData struct {
-	Cart            []*CartItem `json:"cart"`
-	ShippingAddress *Address    `json:"shipping_address"`
-	BillingAddress  *Address    `json:"billing_address"`
+	PaymentMethodID       string      `json:"payment_method_id"`
+	SameShippingAsBilling bool        `json:"same_shipping_as_billing"`
+	Items                 []*CartItem `json:"items"`
+	BillingAddress        *Address    `json:"billing_address"`
+	ShippingAddress       *Address    `json:"shipping_address"`
 }
 
 // OrderRequestDataFromJSON decodes the input and returns the order item data list

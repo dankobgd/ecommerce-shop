@@ -6,6 +6,7 @@ import (
 
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/dankobgd/ecommerce-shop/utils/pagination"
 	"github.com/go-chi/chi"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
@@ -22,6 +23,7 @@ var (
 	msgDeleteUserAddress    = &i18n.Message{ID: "api.user.deleteUser.app_error", Other: "could not delete address"}
 	msgUserAvatarMultipart  = &i18n.Message{ID: "api.user.upload_user_avatar.app_error", Other: "could not parse avatar multipart file"}
 	msgUpdateProfile        = &i18n.Message{ID: "api.user.update_profile.app_error", Other: "could not update user profile"}
+	msgGetUserOrders        = &i18n.Message{ID: "api.user.get_user_orders.app_error", Other: "could not get user orders"}
 )
 
 // InitUser inits the user routes
@@ -46,6 +48,7 @@ func InitUser(a *API) {
 
 	a.Routes.User.Get("/", a.getUser)
 	a.Routes.User.Delete("/", a.deleteUser)
+	a.Routes.User.Get("/orders", a.SessionRequired(a.getUserOrders))
 }
 
 func (a *API) currentUser(w http.ResponseWriter, r *http.Request) {
@@ -374,4 +377,33 @@ func (a *API) deleteUserAddress(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondOK(w)
+}
+
+func (a *API) getUserOrders(w http.ResponseWriter, r *http.Request) {
+	uid := a.app.GetUserIDFromContext(r.Context())
+	userID, e := strconv.ParseInt(chi.URLParam(r, "user_id"), 10, 64)
+	if e != nil {
+		respondError(w, model.NewAppErr("getUserOrders", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetUserOrders, http.StatusInternalServerError, nil))
+		return
+	}
+
+	if uid != userID {
+		respondError(w, model.NewAppErr("getUserOrders", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetUserOrders, http.StatusInternalServerError, nil))
+		return
+	}
+
+	pages := pagination.NewFromRequest(r)
+	orders, err := a.app.GetOrdersForUser(userID, pages.Limit(), pages.Offset())
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	totalCount := -1
+	if len(orders) > 0 {
+		totalCount = orders[0].TotalCount
+	}
+	pages.SetData(orders, totalCount)
+
+	respondJSON(w, http.StatusOK, pages)
 }

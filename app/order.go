@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/dankobgd/ecommerce-shop/model"
@@ -16,14 +17,76 @@ var (
 )
 
 // CreateOrder creates the new order
-func (a *App) CreateOrder(o *model.Order, shipAddr *model.Address, billAddr *model.Address) (*model.Order, *model.AppErr) {
+func (a *App) CreateOrder(userID int64, data *model.OrderRequestData, total int) (*model.Order, *model.AppErr) {
+	user, err := a.GetUserByID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	o := &model.Order{
+		UserID:                userID,
+		Total:                 total,
+		Status:                model.OrderStatusSuccess.String(),
+		BillingAddressLine1:   data.BillingAddress.Line1,
+		BillingAddressLine2:   data.BillingAddress.Line2,
+		BillingAddressCity:    data.BillingAddress.City,
+		BillingAddressCountry: data.BillingAddress.Country,
+		BillingAddressState:   data.BillingAddress.State,
+		BillingAddressZIP:     data.BillingAddress.ZIP,
+	}
 	o.PreSave()
-	return a.Srv().Store.Order().Save(o, shipAddr, billAddr)
+
+	if data.SameShippingAsBilling {
+		o.ShippingAddressLine1 = data.BillingAddress.Line1
+		o.ShippingAddressLine2 = data.BillingAddress.Line2
+		o.ShippingAddressCity = data.BillingAddress.City
+		o.ShippingAddressCountry = data.BillingAddress.Country
+		o.ShippingAddressState = data.BillingAddress.State
+		o.ShippingAddressZIP = data.BillingAddress.ZIP
+	}
+
+	billingAddressGeocode, err := a.GetAddressGeocodeResult(data.BillingAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	var shippingAddressGeocode *model.GeocodingResult
+
+	if data.SameShippingAsBilling {
+		shippingAddressGeocode = billingAddressGeocode
+	} else {
+		shippingAddressGeocode, err = a.GetAddressGeocodeResult(data.ShippingAddress)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	sLat, _ := strconv.ParseFloat(shippingAddressGeocode.Lat, 64)
+	sLon, _ := strconv.ParseFloat(shippingAddressGeocode.Lon, 64)
+	o.ShippingAddressLatitude = &sLat
+	o.ShippingAddressLongitude = &sLon
+
+	bLat, _ := strconv.ParseFloat(billingAddressGeocode.Lat, 64)
+	bLon, _ := strconv.ParseFloat(billingAddressGeocode.Lon, 64)
+	o.BillingAddressLatitude = &bLat
+	o.BillingAddressLongitude = &bLon
+
+	_, cErr := a.PaymentProvider().Charge(data.PaymentMethodID, o, user, uint64(o.Total), "usd")
+	if cErr != nil {
+		return nil, model.NewAppErr("CreateOrder", model.ErrInternal, locale.GetUserLocalizer("en"), &i18n.Message{ID: "app.order.create_order.app_error", Other: "could not charge card: " + cErr.Error()}, http.StatusInternalServerError, nil)
+	}
+
+	return a.Srv().Store.Order().Save(o)
 }
 
 // GetOrder gets the order by id
 func (a *App) GetOrder(id int64) (*model.Order, *model.AppErr) {
 	return a.Srv().Store.Order().Get(id)
+}
+
+// GetOrders gets all orders
+func (a *App) GetOrders(limit, offset int) ([]*model.Order, *model.AppErr) {
+	return a.Srv().Store.Order().GetAll(limit, offset)
 }
 
 // UpdateOrder updates the order
@@ -48,7 +111,7 @@ func (a *App) GetAddressGeocodeResult(addr *model.Address) (*model.GeocodingResu
 
 	q := baseURL.Query()
 	q.Set("format", "json")
-	q.Set("key", a.cfg.GeocodingSettings.ApiKey)
+	q.Set("key", a.cfg.GeocodingSettings.APIKey)
 	q.Set("city", addr.City)
 	q.Set("country", addr.Country)
 	if addr.ZIP != nil {

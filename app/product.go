@@ -157,6 +157,11 @@ func (a *App) GetProductImages(pid int64) ([]*model.ProductImage, *model.AppErr)
 	return a.Srv().Store.ProductImage().GetAll(pid)
 }
 
+// GetProductReviews gets all reviews for the product
+func (a *App) GetProductReviews(pid int64) ([]*model.Review, *model.AppErr) {
+	return a.Srv().Store.Product().GetReviews(pid)
+}
+
 // GetProductTag gets the product tag by id
 func (a *App) GetProductTag(id int64) (*model.ProductTag, *model.AppErr) {
 	return a.Srv().Store.ProductTag().Get(id)

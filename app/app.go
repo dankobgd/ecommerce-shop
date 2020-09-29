@@ -2,14 +2,16 @@ package app
 
 import (
 	"github.com/dankobgd/ecommerce-shop/config"
+	"github.com/dankobgd/ecommerce-shop/payment"
 	"github.com/dankobgd/ecommerce-shop/zlog"
 )
 
 // App represents the app struct
 type App struct {
-	srv *Server
-	cfg *config.Config
-	log *zlog.Logger
+	srv             *Server
+	cfg             *config.Config
+	log             *zlog.Logger
+	paymentProvider payment.Provider
 }
 
 // Option for the app
@@ -81,6 +83,19 @@ func (a *App) Log() *zlog.Logger {
 // SetLogger sets the app logger
 func (a *App) SetLogger(logger *zlog.Logger) {
 	a.log = logger
+}
+
+// PaymentProvider retrieves the app payment provider service
+func (a *App) PaymentProvider() payment.Provider {
+	return a.paymentProvider
+}
+
+// SetPaymentProvider option for the app
+func SetPaymentProvider(provider payment.Provider) Option {
+	return func(a *App) error {
+		a.paymentProvider = provider
+		return nil
+	}
 }
 
 // SetConfig option for the app

@@ -239,3 +239,13 @@ func (s PgProductStore) GetFeatured(limit, offset int) ([]*model.Product, *model
 
 	return products, nil
 }
+
+// GetReviews returns all reviews
+func (s PgProductStore) GetReviews(id int64) ([]*model.Review, *model.AppErr) {
+	var reviews = make([]*model.Review, 0)
+	if err := s.db.Select(&reviews, `SELECT * FROM public.product_review WHERE product_id = $1`, id); err != nil {
+		return nil, model.NewAppErr("PgProductStore.GetReviews", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetReviews, http.StatusInternalServerError, nil)
+	}
+
+	return reviews, nil
+}

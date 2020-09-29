@@ -42,3 +42,8 @@ func (s *PgOrderDetailStore) Save(o *model.OrderDetail) (*model.OrderDetail, *mo
 func (s *PgOrderDetailStore) Get(id int64) (*model.OrderDetail, *model.AppErr) {
 	return nil, nil
 }
+
+// GetAll gets the all order details
+func (s *PgOrderDetailStore) GetAll(limit, offset int) ([]*model.OrderDetail, *model.AppErr) {
+	return nil, nil
+}

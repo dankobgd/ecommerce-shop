@@ -145,3 +145,13 @@ func (s PgUserStore) DeleteAvatar(id int64) *model.AppErr {
 	}
 	return nil
 }
+
+// GetAllOrders returns all orders for the user
+func (s PgUserStore) GetAllOrders(uid int64, limit, offset int) ([]*model.Order, *model.AppErr) {
+	var orders = make([]*model.Order, 0)
+	if err := s.db.Select(&orders, `SELECT COUNT(*) OVER() AS total_count, * FROM public.order WHERE user_id = $1 LIMIT $2 OFFSET $3`, uid, limit, offset); err != nil {
+		return nil, model.NewAppErr("PgUserStore.GetAllOrders", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetOrders, http.StatusInternalServerError, nil)
+	}
+
+	return orders, nil
+}

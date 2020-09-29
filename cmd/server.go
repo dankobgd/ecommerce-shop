@@ -6,6 +6,7 @@ import (
 	api "github.com/dankobgd/ecommerce-shop/api/v1"
 	"github.com/dankobgd/ecommerce-shop/app"
 	"github.com/dankobgd/ecommerce-shop/config"
+	"github.com/dankobgd/ecommerce-shop/payment/stripe"
 	"github.com/dankobgd/ecommerce-shop/store/postgres"
 	"github.com/dankobgd/ecommerce-shop/store/redis"
 	"github.com/dankobgd/ecommerce-shop/store/supplier"
@@ -53,6 +54,11 @@ func setupApp() (*app.App, error) {
 
 	cfg := config.New()
 
+	paymentProvider, pErr := stripe.NewPaymentProvider(cfg.StripeSettings.SecretKey)
+	if pErr != nil {
+		return nil, pErr
+	}
+
 	logger := zlog.NewLogger(&zlog.LoggerConfig{
 		EnableConsole: true,
 		ConsoleLevel:  "debug",
@@ -71,6 +77,7 @@ func setupApp() (*app.App, error) {
 		app.SetConfig(cfg),
 		app.SetServer(server),
 		app.SetLogger(logger),
+		app.SetPaymentProvider(paymentProvider),
 	}
 
 	a := app.New(appOpts...)

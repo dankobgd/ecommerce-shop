@@ -314,3 +314,8 @@ func (a *App) PatchUserAddress(id int64, patch *model.AddressPatch) (*model.Addr
 func (a *App) DeleteUserAddress(id int64) *model.AppErr {
 	return a.Srv().Store.Address().Delete(id)
 }
+
+// GetOrdersForUser gets all user orders
+func (a *App) GetOrdersForUser(uid int64, limit, offset int) ([]*model.Order, *model.AppErr) {
+	return a.Srv().Store.User().GetAllOrders(uid, limit, offset)
+}

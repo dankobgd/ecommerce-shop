@@ -89,6 +89,11 @@ type LoggerSettings struct {
 	FileLocation  string `envconfig:"LOG_FILE_LOCATION"`
 }
 
+// StripeSettings contains the stripe settings
+type StripeSettings struct {
+	SecretKey string `envconfig:"STRIPE_SECRET_KEY"`
+}
+
 // CloudinarySettings contains the cloudinary settings
 type CloudinarySettings struct {
 	EnvURI string `envconfig:"CLOUDINARY_ENV_URI"`
@@ -96,7 +101,7 @@ type CloudinarySettings struct {
 
 // GeocodingSettings containts the geocoding settings
 type GeocodingSettings struct {
-	ApiKey string `envconfig:"GEOCODING_API_KEY"`
+	APIKey string `envconfig:"GEOCODING_API_KEY"`
 }
 
 // Config represents the app config
@@ -110,6 +115,7 @@ type Config struct {
 	LoggerSettings     LoggerSettings
 	CloudinarySettings CloudinarySettings
 	GeocodingSettings  GeocodingSettings
+	StripeSettings     StripeSettings
 }
 
 func loadEnvironment() {

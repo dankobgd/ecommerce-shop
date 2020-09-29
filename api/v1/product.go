@@ -39,6 +39,7 @@ func InitProducts(a *API) {
 	a.Routes.Product.Delete("/", a.AdminSessionRequired(a.deleteProduct))
 	a.Routes.Product.Get("/tags", a.getProductTags)
 	a.Routes.Product.Get("/images", a.getProductImages)
+	a.Routes.Product.Get("/reviews", a.getProductReviews)
 }
 
 func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
@@ -173,6 +174,20 @@ func (a *API) getProductImages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondJSON(w, http.StatusOK, imgs)
+}
+
+func (a *API) getProductReviews(w http.ResponseWriter, r *http.Request) {
+	pid, e := strconv.ParseInt(chi.URLParam(r, "product_id"), 10, 64)
+	if e != nil {
+		respondError(w, model.NewAppErr("getProductReviews", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
+		return
+	}
+	reviews, err := a.app.GetProductReviews(pid)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+	respondJSON(w, http.StatusOK, reviews)
 }
 
 func (a *API) getSingleTag(w http.ResponseWriter, r *http.Request) {
