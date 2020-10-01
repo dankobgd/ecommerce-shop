@@ -17,6 +17,7 @@ var (
 	msgValidateReviewUserID    = &i18n.Message{ID: "model.review.validate.user_id.app_error", Other: "invalid review user id"}
 	msgValidateReviewProductID = &i18n.Message{ID: "model.review.validate.product_id.app_error", Other: "invalid review product id"}
 	msgValidateReviewRating    = &i18n.Message{ID: "model.review.validate.rating.app_error", Other: "invalid review rating"}
+	msgValidateReviewTitle     = &i18n.Message{ID: "model.review.validate.title.app_error", Other: "invalid review title"}
 	msgValidateReviewComment   = &i18n.Message{ID: "model.review.validate.comment.app_error", Other: "invalid review comment"}
 	msgValidateReviewCrAt      = &i18n.Message{ID: "model.review.validate.created_at.app_error", Other: "invalid review created_at timestamp"}
 	msgValidateReviewUpAt      = &i18n.Message{ID: "model.review.validate.updated_at.app_error", Other: "invalid review updated_at timestamp"}
@@ -29,6 +30,7 @@ type Review struct {
 	UserID    int64     `json:"user_id" db:"user_id"`
 	ProductID int64     `json:"product_id" db:"product_id"`
 	Rating    int       `json:"rating" db:"rating"`
+	Title     string    `json:"title" db:"title"`
 	Comment   string    `json:"comment" db:"comment"`
 	CreatedAt time.Time `json:"-" db:"created_at"`
 	UpdatedAt time.Time `json:"-" db:"updated_at"`
@@ -38,16 +40,17 @@ type Review struct {
 type ReviewPatch struct {
 	ProductID *int64  `json:"product_id"`
 	Rating    *int    `json:"rating"`
+	Title     *string `json:"title"`
 	Comment   *string `json:"comment"`
 }
 
 // Patch patches the product review
 func (rev *Review) Patch(patch *ReviewPatch) {
-	if patch.ProductID != nil {
-		rev.ProductID = *patch.ProductID
-	}
 	if patch.Rating != nil {
 		rev.Rating = *patch.Rating
+	}
+	if patch.Title != nil {
+		rev.Title = *patch.Title
 	}
 	if patch.Comment != nil {
 		rev.Comment = *patch.Comment
@@ -96,8 +99,11 @@ func (rev *Review) Validate() *AppErr {
 	if rev.Rating < 0 || rev.Rating > 5 {
 		errs.Add(Invalid("review.rating", l, msgValidateReviewRating))
 	}
+	if rev.Title == "" {
+		errs.Add(Invalid("review.title", l, msgValidateReviewTitle))
+	}
 	if rev.Comment == "" {
-		errs.Add(Invalid("review.review", l, msgValidateReviewComment))
+		errs.Add(Invalid("review.comment", l, msgValidateReviewComment))
 	}
 	if rev.CreatedAt.IsZero() {
 		errs.Add(Invalid("review.created_at", l, msgValidateReviewCrAt))

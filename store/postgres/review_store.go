@@ -31,7 +31,7 @@ var (
 
 // BulkInsert inserts multiple reviews in the db
 func (s PgReviewStore) BulkInsert(reviews []*model.Review) *model.AppErr {
-	q := `INSERT INTO public.product_review(user_id, product_id, rating, comment, created_at, updated_at) VALUES(:user_id, :product_id, :rating, :comment, :created_at, :updated_at) RETURNING id`
+	q := `INSERT INTO public.product_review(user_id, product_id, rating, title, comment, created_at, updated_at) VALUES(:user_id, :product_id, :rating, :title, :comment, :created_at, :updated_at) RETURNING id`
 
 	if _, err := s.db.NamedExec(q, reviews); err != nil {
 		return model.NewAppErr("PgReviewStore.BulkInsert", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkInsertReviews, http.StatusInternalServerError, nil)
@@ -41,7 +41,7 @@ func (s PgReviewStore) BulkInsert(reviews []*model.Review) *model.AppErr {
 
 // Save inserts the new review in the db
 func (s PgReviewStore) Save(review *model.Review) (*model.Review, *model.AppErr) {
-	q := `INSERT INTO public.product_review(user_id, product_id, rating, comment, created_at, updated_at) VALUES(:user_id, :product_id, :rating, :comment, :created_at, :updated_at) RETURNING id`
+	q := `INSERT INTO public.product_review(user_id, product_id, rating, title, comment, created_at, updated_at) VALUES(:user_id, :product_id, :rating, :title, :comment, :created_at, :updated_at) RETURNING id`
 
 	var id int64
 	rows, err := s.db.NamedQuery(q, review)
@@ -65,7 +65,7 @@ func (s PgReviewStore) Save(review *model.Review) (*model.Review, *model.AppErr)
 
 // Update updates the review
 func (s PgReviewStore) Update(id int64, rev *model.Review) (*model.Review, *model.AppErr) {
-	q := `UPDATE public.product_review SET product_id=:product_id, rating=:rating, comment=:comment, updated_at=:updated_at WHERE id=:id`
+	q := `UPDATE public.product_review SET product_id=:product_id, rating=:rating, title=:title, comment=:comment, updated_at=:updated_at WHERE id=:id`
 	if _, err := s.db.NamedExec(q, rev); err != nil {
 		return nil, model.NewAppErr("PgReviewStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateReview, http.StatusInternalServerError, nil)
 	}

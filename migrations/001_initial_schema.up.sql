@@ -144,6 +144,7 @@ create table public.product_review (
   user_id int not null,
   product_id int not null,
   rating int not null,
+  title text not null,
   comment text not null,
   created_at timestamptz not null,
   updated_at timestamptz not null,
