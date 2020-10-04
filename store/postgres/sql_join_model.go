@@ -9,6 +9,8 @@ import (
 // productJoin is temp join type
 type productJoin struct {
 	model.Product
+	Tsv  string `json:"-" db:"tsv"`
+	Rank string `json:"-" db:"rank"`
 	*BrandJoin
 	*CategoryJoin
 }

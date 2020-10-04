@@ -33,6 +33,7 @@ func InitProducts(a *API) {
 	a.Routes.Products.Get("/properties", a.getProductProperties)
 	a.Routes.Products.Get("/properties", a.getProductProperties)
 	a.Routes.Products.Get("/featured", a.getFeaturedProducts)
+	a.Routes.Products.Get("/search", a.searchProducts)
 
 	a.Routes.Product.Get("/", a.getProduct)
 	a.Routes.Product.Patch("/", a.AdminSessionRequired(a.patchProduct))
@@ -312,4 +313,16 @@ func (a *API) getFeaturedProducts(w http.ResponseWriter, r *http.Request) {
 	pages.SetData(featured, totalCount)
 
 	respondJSON(w, http.StatusOK, pages)
+}
+
+func (a *API) searchProducts(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("q")
+
+	searchResults, err := a.app.SearchProducts(query)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, searchResults)
 }

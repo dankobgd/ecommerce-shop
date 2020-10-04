@@ -1,9 +1,10 @@
 create type gender AS ENUM ('m', 'f');
 
+
 create table public.category (
   id int generated always as identity primary key,
-  name varchar(50),
-  slug varchar(50),
+  name varchar(64),
+  slug varchar(64),
   logo text,
   description text,
   is_featured bool default false not null,
@@ -13,9 +14,9 @@ create table public.category (
 
 create table public.brand (
   id int generated always as identity primary key,
-  name varchar(255) not null,
-  slug varchar(50),
-  type varchar(50) not null,
+  name varchar(64) not null,
+  slug varchar(64),
+  type varchar(64) not null,
   description text,
   email text not null,
   website_url text not null,
@@ -26,8 +27,8 @@ create table public.brand (
 
 create table public.tag (
   id int generated always as identity primary key,
-  name varchar(50),
-  slug varchar(50),
+  name varchar(64),
+  slug varchar(64),
   description text,
   created_at timestamptz not null,
   updated_at timestamptz not null
@@ -100,8 +101,8 @@ create table public.product (
   id int generated always as identity primary key,
   brand_id int not null,
   category_id int not null,
-  name varchar(255) not null,
-  slug varchar(50),
+  name varchar(64) not null,  
+  slug varchar(64),
   image_url text not null,
   description text,
   price int not null,
@@ -207,3 +208,33 @@ create table public.order_detail (
   original_sku text not null,
   primary key(order_id, product_id)
 );
+
+
+-- ideally use materialized view and refresh it but whatever
+create view product_search_view as
+select
+p.*,
+b.name AS brand_name,
+b.slug AS brand_slug,
+b.type AS brand_type,
+b.description AS brand_description,
+b.email AS brand_email,
+b.logo AS brand_logo,
+b.website_url AS brand_website_url,
+b.created_at AS brand_created_at,
+b.updated_at AS brand_updated_at,
+c.name AS category_name,
+c.slug AS category_slug,
+c.description AS category_description,
+c.logo AS category_logo,
+c.created_at AS category_created_at,
+c.updated_at AS category_updated_at,
+(
+setweight(to_tsvector(coalesce(p.name,'')), 'A') ||
+setweight(to_tsvector(coalesce(p.description,'')), 'B') ||
+setweight(to_tsvector(coalesce(c.name,'')), 'C') ||
+setweight(to_tsvector(coalesce(b.name,'')), 'D')
+) as tsv
+FROM product p
+LEFT JOIN brand b ON p.brand_id = b.id
+LEFT JOIN category c ON p.category_id = c.id;

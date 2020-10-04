@@ -237,3 +237,8 @@ func (a *App) GetProductProperties() (*model.ProductProperties, *model.AppErr) {
 
 	return props, nil
 }
+
+// SearchProducts performs the full text search on products
+func (a *App) SearchProducts(query string) ([]*model.Product, *model.AppErr) {
+	return a.Srv().Store.Product().Search(query)
+}

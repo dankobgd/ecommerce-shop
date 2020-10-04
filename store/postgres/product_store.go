@@ -249,3 +249,20 @@ func (s PgProductStore) GetReviews(id int64) ([]*model.Review, *model.AppErr) {
 
 	return reviews, nil
 }
+
+// Search returns all fulltext search product results
+func (s PgProductStore) Search(filter string) ([]*model.Product, *model.AppErr) {
+	q := `SELECT *, ts_rank(tsv, plainto_tsquery($1)) as rank FROM product_search_view WHERE tsv @@ plainto_tsquery($1) order by rank desc limit 200`
+
+	var pj []productJoin
+	if err := s.db.Select(&pj, q, filter); err != nil {
+		return nil, model.NewAppErr("PgProductStore.Search", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProducts, http.StatusInternalServerError, nil)
+	}
+
+	products := make([]*model.Product, 0)
+	for _, x := range pj {
+		products = append(products, x.ToProduct())
+	}
+
+	return products, nil
+}
