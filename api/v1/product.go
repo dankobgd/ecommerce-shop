@@ -133,8 +133,9 @@ func (a *API) getProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) getProducts(w http.ResponseWriter, r *http.Request) {
+	filters := r.URL.Query()
 	pages := pagination.NewFromRequest(r)
-	products, err := a.app.GetProducts(pages.Limit(), pages.Offset())
+	products, err := a.app.GetProducts(filters, pages.Limit(), pages.Offset())
 	if err != nil {
 		respondError(w, err)
 		return

@@ -138,8 +138,8 @@ func (a *App) GetProduct(pid int64) (*model.Product, *model.AppErr) {
 }
 
 // GetProducts gets all products from the db
-func (a *App) GetProducts(limit, offset int) ([]*model.Product, *model.AppErr) {
-	return a.Srv().Store.Product().GetAll(limit, offset)
+func (a *App) GetProducts(filters map[string][]string, limit, offset int) ([]*model.Product, *model.AppErr) {
+	return a.Srv().Store.Product().GetAll(filters, limit, offset)
 }
 
 // GetFeaturedProducts returns featured products
