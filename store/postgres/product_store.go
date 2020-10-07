@@ -3,13 +3,13 @@ package postgres
 import (
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/store"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
-	"github.com/dankobgd/ecommerce-shop/utils/pretty"
 	"github.com/jmoiron/sqlx"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
@@ -105,96 +105,6 @@ func (s PgProductStore) Get(id int64) (*model.Product, *model.AppErr) {
 	}
 
 	return pj.ToProduct(), nil
-}
-
-func find(slice []string, val string) (int, bool) {
-	for i, item := range slice {
-		if item == val {
-			return i, true
-		}
-	}
-	return -1, false
-}
-
-func buildProductsFilterSearchQuery(queryString string, filters map[string][]string, limit, offset int) (string, []interface{}, error) {
-	basic := make(map[string][]string, 0)
-	specific := make(map[string][]string, 0)
-
-	for filter, val := range filters {
-		if filter == "category" || filter == "brand" || filter == "tag" || filter == "price_min" || filter == "price_max" {
-			basic[filter] = val
-		} else {
-			specific[filter] = val
-		}
-	}
-
-	query := fmt.Sprintf("%s WHERE 1 = 1", queryString)
-	var args []interface{}
-
-	// handle price range filters
-	min, minOk := basic["price_min"]
-	max, maxOk := basic["price_max"]
-	if minOk && maxOk {
-		query += " AND p.price > ? AND p.price < ?"
-		args = append(args, min[0], max[0])
-	} else if minOk && !maxOk {
-		query += " AND p.price > ?"
-		args = append(args, min[0])
-	} else if !minOk && maxOk {
-		query += " AND p.price < ?"
-		args = append(args, max[0])
-	}
-
-	// handle brand filters
-	if brand, ok := basic["brand"]; ok {
-		query += " AND b.name IN (?)"
-		args = append(args, brand)
-	}
-
-	// handle tag filters
-	if tag, ok := basic["tag"]; ok {
-		query += " AND t.name IN (?)"
-		args = append(args, tag)
-	}
-
-	// handle product specific propery filters
-	productFilters := make(map[string]map[string][]string, 0)
-	propFilters := make(map[string][]string, 0)
-
-	for filter, vals := range specific {
-		full := strings.Split(filter, "_")
-		category := full[0]
-		prop := full[1]
-
-		if _, categoryExists := productFilters[category]; !categoryExists {
-			propFilters[prop] = vals
-			productFilters[category] = propFilters
-		} else {
-			if _, propExists := propFilters[prop]; !propExists {
-				propFilters[prop] = vals
-			}
-		}
-	}
-
-	query += " GROUP BY p.id, b.id, c.id"
-	if limit != 0 {
-		query += " LIMIT ?"
-		args = append(args, strconv.Itoa(limit))
-	}
-	if offset != 0 {
-		query += " OFFSET ?"
-		args = append(args, strconv.Itoa(offset))
-	}
-
-	builtQuery, builtQueryArgs, err := sqlx.In(query, args...)
-	if err != nil {
-		return "", nil, err
-	}
-	builtQuery = sqlx.Rebind(sqlx.DOLLAR, builtQuery)
-
-	pretty.PrintJSON(productFilters)
-
-	return builtQuery, builtQueryArgs, nil
 }
 
 // GetAll returns all products
@@ -361,4 +271,108 @@ func (s PgProductStore) Search(filter string) ([]*model.Product, *model.AppErr) 
 	}
 
 	return products, nil
+}
+
+func buildProductsFilterSearchQuery(queryString string, filters map[string][]string, limit, offset int) (string, []interface{}, error) {
+	basic := make(map[string][]string, 0)
+	specific := make(map[string][]string, 0)
+
+	for filter, val := range filters {
+		if filter == "category" || filter == "brand" || filter == "tag" || filter == "price_min" || filter == "price_max" {
+			basic[filter] = val
+		} else {
+			specific[filter] = val
+		}
+	}
+
+	query := fmt.Sprintf("%s WHERE 1 = 1", queryString)
+	var args []interface{}
+
+	// handle price range filters
+	min, minOk := basic["price_min"]
+	max, maxOk := basic["price_max"]
+	if minOk && maxOk {
+		query += " AND p.price > ? AND p.price < ?"
+		args = append(args, min[0], max[0])
+	} else if minOk && !maxOk {
+		query += " AND p.price > ?"
+		args = append(args, min[0])
+	} else if !minOk && maxOk {
+		query += " AND p.price < ?"
+		args = append(args, max[0])
+	}
+
+	// handle brand filters
+	if brand, ok := basic["brand"]; ok {
+		query += " AND b.name IN (?)"
+		args = append(args, brand)
+	}
+
+	// handle tag filters
+	if tag, ok := basic["tag"]; ok {
+		query += " AND t.name IN (?)"
+		args = append(args, tag)
+	}
+
+	// handle product category specific property filters
+	filtersByCategory := make(map[string]map[string][]string, 0)
+
+	if category, ok := basic["category"]; ok {
+		for _, cat := range category {
+			filtersByCategory[cat] = make(map[string][]string, 0)
+		}
+
+		for filter, vals := range specific {
+			full := strings.Split(filter, "_")
+			cat := full[0]
+			prop := full[1]
+
+			if _, ok := filtersByCategory[cat][prop]; !ok {
+				filtersByCategory[cat][prop] = vals
+			}
+		}
+
+		keys := make([]string, 0)
+		for k := range filtersByCategory {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
+		for i, k := range keys {
+			str := ""
+			outerCond := "AND"
+			if i != 0 {
+				outerCond = "OR"
+			}
+
+			for prop, vals := range filtersByCategory[k] {
+				for idx, v := range vals {
+					innerCond := "AND"
+					if idx != 0 {
+						innerCond = "OR"
+					}
+					str += fmt.Sprintf(" %s p.properties->>'%s' = '%s'", innerCond, prop, v)
+				}
+			}
+			query += fmt.Sprintf(" %s (c.name = '%s'%s)", outerCond, k, str)
+		}
+	}
+
+	query += " GROUP BY p.id, b.id, c.id"
+	if limit != 0 {
+		query += " LIMIT ?"
+		args = append(args, strconv.Itoa(limit))
+	}
+	if offset != 0 {
+		query += " OFFSET ?"
+		args = append(args, strconv.Itoa(offset))
+	}
+
+	builtQuery, builtQueryArgs, err := sqlx.In(query, args...)
+	if err != nil {
+		return "", nil, err
+	}
+	builtQuery = sqlx.Rebind(sqlx.DOLLAR, builtQuery)
+
+	return builtQuery, builtQueryArgs, nil
 }
