@@ -292,13 +292,13 @@ func buildProductsFilterSearchQuery(queryString string, filters map[string][]str
 	min, minOk := basic["price_min"]
 	max, maxOk := basic["price_max"]
 	if minOk && maxOk {
-		query += " AND p.price > ? AND p.price < ?"
+		query += " AND p.price >= ? AND p.price <= ?"
 		args = append(args, min[0], max[0])
 	} else if minOk && !maxOk {
-		query += " AND p.price > ?"
+		query += " AND p.price >= ?"
 		args = append(args, min[0])
 	} else if !minOk && maxOk {
-		query += " AND p.price < ?"
+		query += " AND p.price <= ?"
 		args = append(args, max[0])
 	}
 
