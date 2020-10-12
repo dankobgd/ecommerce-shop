@@ -155,6 +155,15 @@ create table public.product_review (
   unique (user_id, product_id)
 );
 
+create table public.product_wishlist (
+  id int generated always as identity primary key,
+  user_id int not null,
+  product_id int not null,
+  foreign key (user_id) references public.user (id) on delete cascade,
+  foreign key (product_id) references public.product (id) on delete cascade,
+  unique (user_id, product_id)
+);
+
 create table public.product_discount (
   id int generated always as identity primary key,
   product_id int not null,

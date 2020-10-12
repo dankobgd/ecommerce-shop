@@ -111,6 +111,7 @@ func (a *App) AttachSessionCookies(w http.ResponseWriter, meta *model.TokenMetad
 		HttpOnly: httpOnly,
 		Secure:   secure,
 		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
 	}
 
 	refreshCookie := &http.Cookie{
@@ -120,6 +121,7 @@ func (a *App) AttachSessionCookies(w http.ResponseWriter, meta *model.TokenMetad
 		HttpOnly: httpOnly,
 		Secure:   secure,
 		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
 	}
 
 	http.SetCookie(w, accessCookie)

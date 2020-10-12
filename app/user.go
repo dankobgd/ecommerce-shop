@@ -319,3 +319,23 @@ func (a *App) DeleteUserAddress(id int64) *model.AppErr {
 func (a *App) GetOrdersForUser(uid int64, limit, offset int) ([]*model.Order, *model.AppErr) {
 	return a.Srv().Store.User().GetAllOrders(uid, limit, offset)
 }
+
+// CreateWishlistForUser adds new product t the wishlist
+func (a *App) CreateWishlistForUser(uid, pid int64) *model.AppErr {
+	return a.Srv().Store.User().CreateWishlist(uid, pid)
+}
+
+// GetWishlistForUser gets all wishlist products for user
+func (a *App) GetWishlistForUser(uid int64) ([]*model.Product, *model.AppErr) {
+	return a.Srv().Store.User().GetWishlist(uid)
+}
+
+// DeleteWishlistForUser gets all user orders
+func (a *App) DeleteWishlistForUser(uid, pid int64) *model.AppErr {
+	return a.Srv().Store.User().DeleteWishlist(uid, pid)
+}
+
+// ClearWishlistForUser gets all user orders
+func (a *App) ClearWishlistForUser(uid int64) *model.AppErr {
+	return a.Srv().Store.User().ClearWishlist(uid)
+}

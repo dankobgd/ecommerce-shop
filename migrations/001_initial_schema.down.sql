@@ -1,5 +1,6 @@
 drop view product_search_view;
 
+drop table public.product_wishlist;
 drop table public.user_address;
 drop table public.address_type;
 drop table public.address;

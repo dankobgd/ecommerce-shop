@@ -35,6 +35,10 @@ type UserStore interface {
 	VerifyEmail(userID int64) *model.AppErr
 	UpdatePassword(userID int64, hashedPassword string) *model.AppErr
 	GetAllOrders(userID int64, limit, offset int) ([]*model.Order, *model.AppErr)
+	CreateWishlist(userID, productID int64) *model.AppErr
+	GetWishlist(userID int64) ([]*model.Product, *model.AppErr)
+	DeleteWishlist(userID, productID int64) *model.AppErr
+	ClearWishlist(userID int64) *model.AppErr
 }
 
 // AccessTokenStore is the access token store

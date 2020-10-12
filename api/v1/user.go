@@ -24,6 +24,7 @@ var (
 	msgUserAvatarMultipart  = &i18n.Message{ID: "api.user.upload_user_avatar.app_error", Other: "could not parse avatar multipart file"}
 	msgUpdateProfile        = &i18n.Message{ID: "api.user.update_profile.app_error", Other: "could not update user profile"}
 	msgGetUserOrders        = &i18n.Message{ID: "api.user.get_user_orders.app_error", Other: "could not get user orders"}
+	msgWishlistParamErr     = &i18n.Message{ID: "api.user.wishlist.app_error", Other: "invalid wishlist product_id"}
 )
 
 // InitUser inits the user routes
@@ -45,6 +46,10 @@ func InitUser(a *API) {
 	a.Routes.Users.Get("/address/{address_id:[A-Za-z0-9]+}", a.SessionRequired(a.getUserAddress))
 	a.Routes.Users.Patch("/address/{address_id:[A-Za-z0-9]+}", a.SessionRequired(a.updateUserAddress))
 	a.Routes.Users.Delete("/address/{address_id:[A-Za-z0-9]+}", a.SessionRequired(a.deleteUserAddress))
+	a.Routes.Users.Post("/wishlist", a.SessionRequired(a.createWishlist))
+	a.Routes.Users.Get("/wishlist", a.SessionRequired(a.getWishlist))
+	a.Routes.Users.Delete("/wishlist", a.SessionRequired(a.deleteWishlist))
+	a.Routes.Users.Delete("/wishlist/clear", a.SessionRequired(a.clearWishlist))
 
 	a.Routes.User.Get("/", a.getUser)
 	a.Routes.User.Delete("/", a.deleteUser)
@@ -406,4 +411,64 @@ func (a *API) getUserOrders(w http.ResponseWriter, r *http.Request) {
 	pages.SetData(orders, totalCount)
 
 	respondJSON(w, http.StatusOK, pages)
+}
+
+func (a *API) createWishlist(w http.ResponseWriter, r *http.Request) {
+	uid := a.app.GetUserIDFromContext(r.Context())
+	props := model.MapStrInterfaceFromJSON(r.Body)
+	productID, ok := props["product_id"].(float64)
+	if !ok {
+		respondError(w, model.NewAppErr("getUserOrders", model.ErrInternal, locale.GetUserLocalizer("en"), msgWishlistParamErr, http.StatusInternalServerError, nil))
+		return
+	}
+	pid := int64(productID)
+
+	err := a.app.CreateWishlistForUser(uid, pid)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondJSON(w, http.StatusCreated, map[string]interface{}{"status": "success"})
+}
+
+func (a *API) getWishlist(w http.ResponseWriter, r *http.Request) {
+	uid := a.app.GetUserIDFromContext(r.Context())
+	wishlist, err := a.app.GetWishlistForUser(uid)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, wishlist)
+}
+
+func (a *API) deleteWishlist(w http.ResponseWriter, r *http.Request) {
+	uid := a.app.GetUserIDFromContext(r.Context())
+	props := model.MapStrInterfaceFromJSON(r.Body)
+	productID, ok := props["product_id"].(float64)
+	if !ok {
+		respondError(w, model.NewAppErr("getUserOrders", model.ErrInternal, locale.GetUserLocalizer("en"), msgWishlistParamErr, http.StatusInternalServerError, nil))
+		return
+	}
+	pid := int64(productID)
+
+	err := a.app.DeleteWishlistForUser(uid, pid)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondOK(w)
+}
+
+func (a *API) clearWishlist(w http.ResponseWriter, r *http.Request) {
+	uid := a.app.GetUserIDFromContext(r.Context())
+	err := a.app.ClearWishlistForUser(uid)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondOK(w)
 }
