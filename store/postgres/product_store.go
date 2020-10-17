@@ -3,7 +3,6 @@ package postgres
 import (
 	"fmt"
 	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -273,6 +272,32 @@ func (s PgProductStore) Search(filter string) ([]*model.Product, *model.AppErr) 
 	return products, nil
 }
 
+type prop struct {
+	name   string
+	values []string
+}
+type categoryFilter struct {
+	category string
+	props    []prop
+}
+
+func containsCat(arr []categoryFilter, f categoryFilter) (bool, int) {
+	for i, x := range arr {
+		if x.category == f.category {
+			return true, i
+		}
+	}
+	return false, -1
+}
+func containsProp(arr []prop, p prop) (bool, int) {
+	for i, x := range arr {
+		if x.name == p.name {
+			return true, i
+		}
+	}
+	return false, -1
+}
+
 func buildProductsFilterSearchQuery(queryString string, filters map[string][]string, limit, offset int) (string, []interface{}, error) {
 	basic := make(map[string][]string, 0)
 	specific := make(map[string][]string, 0)
@@ -292,73 +317,97 @@ func buildProductsFilterSearchQuery(queryString string, filters map[string][]str
 	min, minOk := basic["price_min"]
 	max, maxOk := basic["price_max"]
 	if minOk && maxOk {
-		query += " AND p.price >= ? AND p.price <= ?"
+		query += " AND (p.price >= ? AND p.price <= ?)\n"
 		args = append(args, min[0], max[0])
 	} else if minOk && !maxOk {
-		query += " AND p.price >= ?"
+		query += " AND p.price >= ?\n"
 		args = append(args, min[0])
 	} else if !minOk && maxOk {
-		query += " AND p.price <= ?"
+		query += " AND p.price <= ?\n"
 		args = append(args, max[0])
 	}
 
 	// handle brand filters
 	if brand, ok := basic["brand"]; ok {
-		query += " AND b.name IN (?)"
+		query += " AND b.name IN (?)\n"
 		args = append(args, brand)
 	}
 
 	// handle tag filters
 	if tag, ok := basic["tag"]; ok {
-		query += " AND t.name IN (?)"
+		query += " AND t.name IN (?)\n"
 		args = append(args, tag)
 	}
 
 	// handle product category specific property filters
-	filtersByCategory := make(map[string]map[string][]string, 0)
-
 	if category, ok := basic["category"]; ok {
+		var filtersList = make([]categoryFilter, 0)
+
 		for _, cat := range category {
-			filtersByCategory[cat] = make(map[string][]string, 0)
+			filtersList = append(filtersList, categoryFilter{category: cat, props: make([]prop, 0)})
 		}
 
-		for filter, vals := range specific {
-			full := strings.Split(filter, "_")
-			cat := full[0]
-			prop := full[1]
+		propsList := make([]prop, 0)
+		for filter, values := range specific {
+			full := strings.SplitN(filter, "_", 2)
+			catName, propName := full[0], full[1]
 
-			if _, ok := filtersByCategory[cat][prop]; !ok {
-				filtersByCategory[cat][prop] = vals
+			p := prop{name: propName, values: values}
+			ok, _ := containsProp(propsList, p)
+			if !ok {
+				propsList = append(propsList, p)
+			}
+
+			f := categoryFilter{category: catName, props: propsList}
+			ok2, idx := containsCat(filtersList, f)
+			if ok2 {
+				filtersList[idx].props = append(filtersList[idx].props, p)
 			}
 		}
 
-		keys := make([]string, 0)
-		for k := range filtersByCategory {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-
-		for i, k := range keys {
+		for i, cat := range filtersList {
 			str := ""
-			outerCond := "AND"
-			if i != 0 {
-				outerCond = "OR"
+			outerClause := ""
+			outerParensClose := ""
+
+			if i == 0 {
+				outerClause = "AND (\n"
+			} else {
+				outerClause = "OR\n"
+			}
+			if i == len(filtersList)-1 {
+				outerParensClose = "\n)"
 			}
 
-			for prop, vals := range filtersByCategory[k] {
-				for idx, v := range vals {
-					innerCond := "AND"
-					if idx != 0 {
-						innerCond = "OR"
+			for _, prop := range cat.props {
+				innerClause := ""
+
+				for k, val := range prop.values {
+					groupStart := ""
+					groupEnd := ""
+					if len(prop.values) > 1 {
+						if k == 0 {
+							groupStart = "("
+						}
+						if k == len(prop.values)-1 {
+							groupEnd = ")"
+						}
 					}
-					str += fmt.Sprintf(" %s p.properties->>'%s' = '%s'", innerCond, prop, v)
+
+					if k == 0 {
+						innerClause = "AND"
+					} else {
+						innerClause = "OR"
+					}
+
+					str += fmt.Sprintf(" %s %sp.properties->>'%s' = '%s'%s", innerClause, groupStart, prop.name, val, groupEnd)
 				}
 			}
-			query += fmt.Sprintf(" %s (c.name = '%s'%s)", outerCond, k, str)
+			query += fmt.Sprintf(" %s (c.name = '%s'%s)%s", outerClause, cat.category, str, outerParensClose)
 		}
 	}
 
-	query += " GROUP BY p.id, b.id, c.id"
+	query += " \nGROUP BY p.id, b.id, c.id"
 	if limit != 0 {
 		query += " LIMIT ?"
 		args = append(args, strconv.Itoa(limit))
