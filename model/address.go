@@ -6,29 +6,6 @@ import (
 	"time"
 )
 
-// AddrType is the contact address type
-type AddrType int
-
-// addr types
-const (
-	BillingAddress AddrType = iota
-	ShippingAddress
-	PhysicalAddress
-)
-
-func (addr AddrType) String() string {
-	switch addr {
-	case BillingAddress:
-		return "billing"
-	case ShippingAddress:
-		return "shipping"
-	case PhysicalAddress:
-		return "physical"
-	default:
-		return "unknown"
-	}
-}
-
 // Address holds the contact info
 type Address struct {
 	ID        int64      `json:"id" db:"id"`
@@ -124,13 +101,6 @@ func AddressPatchFromJSON(data io.Reader) (*AddressPatch, error) {
 	var patch *AddressPatch
 	err := json.NewDecoder(data).Decode(&patch)
 	return patch, err
-}
-
-// AddressType is the type of the address
-type AddressType struct {
-	ID        int64  `json:"id" db:"id"`
-	Name      string `json:"name" db:"name"`
-	AddressID int64  `json:"address_id" db:"address_id"`
 }
 
 // AddressFromJSON decodes the input and return the Address

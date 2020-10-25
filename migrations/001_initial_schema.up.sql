@@ -50,13 +50,6 @@ create table public.address (
   deleted_at timestamptz
 );
 
-create table public.address_type (
-  id int generated always as identity primary key,
-  address_id int not null,
-  name varchar(30) not null,
-  foreign key (address_id) references public.address (id) on delete cascade
-);
-
 create table public.user (
   id int generated always as identity primary key,
   first_name varchar(255),
@@ -81,10 +74,8 @@ create table public.user (
 create table public.user_address (
   user_id int not null,
   address_id int not null,
-  address_type_id int not null,
   foreign key (user_id) references public.user (id) on delete cascade,
-  foreign key (address_id) references public.address (id) on delete cascade,
-  foreign key (address_type_id) references public.address_type (id) on delete cascade
+  foreign key (address_id) references public.address (id) on delete cascade
 );
 
 create table public.token (

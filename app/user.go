@@ -283,31 +283,36 @@ func (a *App) DeleteUserAvatar(userID int64, publicID string) *model.AppErr {
 }
 
 // CreateUserAddress creates the user addresss
-func (a *App) CreateUserAddress(addr *model.Address, userID int64, addrType model.AddrType) (*model.Address, *model.AppErr) {
+func (a *App) CreateUserAddress(addr *model.Address, userID int64) (*model.Address, *model.AppErr) {
 	addr.PreSave()
-	return a.Srv().Store.Address().Save(addr, userID, addrType)
+	return a.Srv().Store.Address().Save(addr, userID)
 }
 
 // GetUserAddress gets the user addresss
-func (a *App) GetUserAddress(id int64) (*model.Address, *model.AppErr) {
-	return a.Srv().Store.Address().Get(id)
+func (a *App) GetUserAddress(userID, addressID int64) (*model.Address, *model.AppErr) {
+	return a.Srv().Store.Address().Get(userID, addressID)
+}
+
+// GetUserAddresses gets the user addresses
+func (a *App) GetUserAddresses(userID int64) ([]*model.Address, *model.AppErr) {
+	return a.Srv().Store.Address().GetAll(userID)
 }
 
 // PatchUserAddress patches the user addresss
-func (a *App) PatchUserAddress(id int64, patch *model.AddressPatch) (*model.Address, *model.AppErr) {
-	old, err := a.Srv().Store.Address().Get(id)
+func (a *App) PatchUserAddress(userID, addressID int64, patch *model.AddressPatch) (*model.Address, *model.AppErr) {
+	old, err := a.Srv().Store.Address().Get(userID, addressID)
 	if err != nil {
 		return nil, err
 	}
 
 	old.Patch(patch)
 	old.PreUpdate()
-	uprod, err := a.Srv().Store.Address().Update(id, old)
+	uaddress, err := a.Srv().Store.Address().Update(addressID, old)
 	if err != nil {
 		return nil, err
 	}
 
-	return uprod, nil
+	return uaddress, nil
 }
 
 // DeleteUserAddress hard deletes the user address

@@ -80,3 +80,27 @@ func (pj *productJoin) ToProduct() *model.Product {
 		},
 	}
 }
+
+// addressJoin is temp join type
+type addressJoin struct {
+	model.Address
+	model.UserAddress `db:"user_address"`
+}
+
+func (aj *addressJoin) ToAddress() *model.Address {
+	return &model.Address{
+		ID:        0,
+		Line1:     aj.Line1,
+		Line2:     aj.Line2,
+		City:      aj.City,
+		Country:   aj.Country,
+		State:     aj.State,
+		ZIP:       aj.ZIP,
+		Latitude:  aj.Latitude,
+		Longitude: aj.Longitude,
+		Phone:     aj.Phone,
+		CreatedAt: aj.CreatedAt,
+		UpdatedAt: aj.UpdatedAt,
+		DeletedAt: aj.DeletedAt,
+	}
+}

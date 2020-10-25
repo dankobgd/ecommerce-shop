@@ -42,10 +42,11 @@ func InitUser(a *API) {
 	a.Routes.Users.Put("/password", a.SessionRequired(a.changeUserPassword))
 	a.Routes.Users.Post("/avatar", a.SessionRequired(a.uploadUserAvatar))
 	a.Routes.Users.Patch("/avatar", a.SessionRequired(a.deleteUserAvatar))
-	a.Routes.Users.Post("/address", a.SessionRequired(a.createUserAddress))
-	a.Routes.Users.Get("/address/{address_id:[A-Za-z0-9]+}", a.SessionRequired(a.getUserAddress))
-	a.Routes.Users.Patch("/address/{address_id:[A-Za-z0-9]+}", a.SessionRequired(a.updateUserAddress))
-	a.Routes.Users.Delete("/address/{address_id:[A-Za-z0-9]+}", a.SessionRequired(a.deleteUserAddress))
+	a.Routes.Users.Post("/addresses", a.SessionRequired(a.createUserAddress))
+	a.Routes.Users.Get("/addresses", a.SessionRequired(a.getUserAddresses))
+	a.Routes.Users.Get("/addresses/{address_id:[A-Za-z0-9]+}", a.SessionRequired(a.getUserAddress))
+	a.Routes.Users.Patch("/addresses/{address_id:[A-Za-z0-9]+}", a.SessionRequired(a.updateUserAddress))
+	a.Routes.Users.Delete("/addresses/{address_id:[A-Za-z0-9]+}", a.SessionRequired(a.deleteUserAddress))
 	a.Routes.Users.Post("/wishlist", a.SessionRequired(a.createWishlist))
 	a.Routes.Users.Get("/wishlist", a.SessionRequired(a.getWishlist))
 	a.Routes.Users.Delete("/wishlist", a.SessionRequired(a.deleteWishlist))
@@ -322,11 +323,11 @@ func (a *API) createUserAddress(w http.ResponseWriter, r *http.Request) {
 	uid := a.app.GetUserIDFromContext(r.Context())
 	addr, e := model.AddressFromJSON(r.Body)
 	if e != nil {
-		respondError(w, model.NewAppErr("createUser", model.ErrInternal, locale.GetUserLocalizer("en"), msgAddressFromJSON, http.StatusInternalServerError, nil))
+		respondError(w, model.NewAppErr("createUserAddress", model.ErrInternal, locale.GetUserLocalizer("en"), msgAddressFromJSON, http.StatusInternalServerError, nil))
 		return
 	}
 
-	address, err := a.app.CreateUserAddress(addr, uid, model.PhysicalAddress)
+	address, err := a.app.CreateUserAddress(addr, uid)
 	if err != nil {
 		respondError(w, err)
 		return
@@ -335,13 +336,24 @@ func (a *API) createUserAddress(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) getUserAddress(w http.ResponseWriter, r *http.Request) {
+	uid := a.app.GetUserIDFromContext(r.Context())
 	addrID, e := strconv.ParseInt(chi.URLParam(r, "address_id"), 10, 64)
 	if e != nil {
 		respondError(w, model.NewAppErr("getUserAddress", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
 		return
 	}
 
-	address, err := a.app.GetUserAddress(addrID)
+	address, err := a.app.GetUserAddress(uid, addrID)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+	respondJSON(w, http.StatusOK, address)
+}
+
+func (a *API) getUserAddresses(w http.ResponseWriter, r *http.Request) {
+	uid := a.app.GetUserIDFromContext(r.Context())
+	address, err := a.app.GetUserAddresses(uid)
 	if err != nil {
 		respondError(w, err)
 		return
@@ -350,6 +362,7 @@ func (a *API) getUserAddress(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) updateUserAddress(w http.ResponseWriter, r *http.Request) {
+	uid := a.app.GetUserIDFromContext(r.Context())
 	addrID, e := strconv.ParseInt(chi.URLParam(r, "address_id"), 10, 64)
 	if e != nil {
 		respondError(w, model.NewAppErr("updateUserAddress", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
@@ -362,7 +375,7 @@ func (a *API) updateUserAddress(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	address, pErr := a.app.PatchUserAddress(addrID, patch)
+	address, pErr := a.app.PatchUserAddress(uid, addrID, patch)
 	if pErr != nil {
 		respondError(w, pErr)
 		return

@@ -97,9 +97,8 @@ type UserLogin struct {
 
 // UserAddress is the contact address info
 type UserAddress struct {
-	UserID        int64 `json:"user_id" db:"user_id"`
-	AddressID     int64 `json:"address_id" db:"address_id"`
-	AddressTypeID int64 `json:"address_type_id" db:"address_type_id"`
+	UserID    int64 `json:"user_id" db:"user_id"`
+	AddressID int64 `json:"address_id" db:"address_id"`
 }
 
 // UserPatch is the user patch model

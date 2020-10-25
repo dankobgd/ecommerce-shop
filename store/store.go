@@ -108,10 +108,11 @@ type OrderDetailStore interface {
 
 // AddressStore is the contact address store
 type AddressStore interface {
-	Save(addr *model.Address, userID int64, addrType model.AddrType) (*model.Address, *model.AppErr)
-	Get(id int64) (*model.Address, *model.AppErr)
-	Update(id int64, addr *model.Address) (*model.Address, *model.AppErr)
-	Delete(id int64) *model.AppErr
+	Save(addr *model.Address, userID int64) (*model.Address, *model.AppErr)
+	Get(userID, addressId int64) (*model.Address, *model.AppErr)
+	GetAll(userID int64) ([]*model.Address, *model.AppErr)
+	Update(addressID int64, addr *model.Address) (*model.Address, *model.AppErr)
+	Delete(addressID int64) *model.AppErr
 }
 
 // CategoryStore is the category store
