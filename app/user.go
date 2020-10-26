@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/dankobgd/ecommerce-shop/model"
@@ -284,7 +285,17 @@ func (a *App) DeleteUserAvatar(userID int64, publicID string) *model.AppErr {
 
 // CreateUserAddress creates the user addresss
 func (a *App) CreateUserAddress(addr *model.Address, userID int64) (*model.Address, *model.AppErr) {
+	geocode, err := a.GetAddressGeocodeResult(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	lat, _ := strconv.ParseFloat(geocode.Lat, 64)
+	lon, _ := strconv.ParseFloat(geocode.Lon, 64)
+	addr.Latitude = &lat
+	addr.Longitude = &lon
 	addr.PreSave()
+
 	return a.Srv().Store.Address().Save(addr, userID)
 }
 

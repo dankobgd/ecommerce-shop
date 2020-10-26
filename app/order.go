@@ -23,53 +23,87 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData, total int)
 		return nil, err
 	}
 
-	o := &model.Order{
-		UserID:                userID,
-		Total:                 total,
-		Status:                model.OrderStatusSuccess.String(),
-		BillingAddressLine1:   data.BillingAddress.Line1,
-		BillingAddressLine2:   data.BillingAddress.Line2,
-		BillingAddressCity:    data.BillingAddress.City,
-		BillingAddressCountry: data.BillingAddress.Country,
-		BillingAddressState:   data.BillingAddress.State,
-		BillingAddressZIP:     data.BillingAddress.ZIP,
-	}
-	o.PreSave()
-
-	if data.SameShippingAsBilling {
-		o.ShippingAddressLine1 = data.BillingAddress.Line1
-		o.ShippingAddressLine2 = data.BillingAddress.Line2
-		o.ShippingAddressCity = data.BillingAddress.City
-		o.ShippingAddressCountry = data.BillingAddress.Country
-		o.ShippingAddressState = data.BillingAddress.State
-		o.ShippingAddressZIP = data.BillingAddress.ZIP
-	}
-
-	billingAddressGeocode, err := a.GetAddressGeocodeResult(data.BillingAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	var shippingAddressGeocode *model.GeocodingResult
-
-	if data.SameShippingAsBilling {
-		shippingAddressGeocode = billingAddressGeocode
-	} else {
-		shippingAddressGeocode, err = a.GetAddressGeocodeResult(data.ShippingAddress)
-		if err != nil {
+	if data.UseExistingBillingAddress == nil && data.SaveAddress != nil {
+		if _, err := a.CreateUserAddress(data.BillingAddress, userID); *data.SaveAddress == true && err != nil {
 			return nil, err
 		}
 	}
 
-	sLat, _ := strconv.ParseFloat(shippingAddressGeocode.Lat, 64)
-	sLon, _ := strconv.ParseFloat(shippingAddressGeocode.Lon, 64)
-	o.ShippingAddressLatitude = &sLat
-	o.ShippingAddressLongitude = &sLon
+	billAddrInfo := &model.Address{}
 
-	bLat, _ := strconv.ParseFloat(billingAddressGeocode.Lat, 64)
-	bLon, _ := strconv.ParseFloat(billingAddressGeocode.Lon, 64)
-	o.BillingAddressLatitude = &bLat
-	o.BillingAddressLongitude = &bLon
+	if data.UseExistingBillingAddress != nil {
+		ua, err := a.GetUserAddress(userID, *data.BillingAddressID)
+		if err != nil {
+			return nil, err
+		}
+		billAddrInfo = ua
+	} else {
+		billAddrInfo = data.BillingAddress
+	}
+
+	o := &model.Order{
+		UserID: userID,
+		Total:  total,
+		Status: model.OrderStatusSuccess.String(),
+	}
+
+	o.BillingAddressLine1 = billAddrInfo.Line1
+	o.BillingAddressLine2 = billAddrInfo.Line2
+	o.BillingAddressCity = billAddrInfo.City
+	o.BillingAddressCountry = billAddrInfo.Country
+	o.BillingAddressState = billAddrInfo.State
+	o.BillingAddressZIP = billAddrInfo.ZIP
+	o.BillingAddressLatitude = billAddrInfo.Latitude
+	o.BillingAddressLongitude = billAddrInfo.Longitude
+
+	o.PreSave()
+
+	if data.SameShippingAsBilling {
+		o.ShippingAddressLine1 = billAddrInfo.Line1
+		o.ShippingAddressLine2 = billAddrInfo.Line2
+		o.ShippingAddressCity = billAddrInfo.City
+		o.ShippingAddressCountry = billAddrInfo.Country
+		o.ShippingAddressState = billAddrInfo.State
+		o.ShippingAddressZIP = billAddrInfo.ZIP
+		o.ShippingAddressLatitude = billAddrInfo.Latitude
+		o.ShippingAddressLongitude = billAddrInfo.Longitude
+	} else {
+		o.ShippingAddressLine1 = data.ShippingAddress.Line1
+		o.ShippingAddressLine2 = data.ShippingAddress.Line2
+		o.ShippingAddressCity = data.ShippingAddress.City
+		o.ShippingAddressCountry = data.ShippingAddress.Country
+		o.ShippingAddressState = data.ShippingAddress.State
+		o.ShippingAddressZIP = data.ShippingAddress.ZIP
+		o.ShippingAddressLatitude = data.ShippingAddress.Latitude
+		o.ShippingAddressLongitude = data.ShippingAddress.Longitude
+	}
+
+	if data.UseExistingBillingAddress == nil || (data.UseExistingBillingAddress != nil && *data.UseExistingBillingAddress == false) {
+		bGeocode, err := a.GetAddressGeocodeResult(data.BillingAddress)
+		if err != nil {
+			return nil, err
+		}
+
+		var sGeocode *model.GeocodingResult
+		if data.SameShippingAsBilling {
+			sGeocode = bGeocode
+		} else {
+			sGeocode, err = a.GetAddressGeocodeResult(data.ShippingAddress)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		bLat, _ := strconv.ParseFloat(bGeocode.Lat, 64)
+		bLon, _ := strconv.ParseFloat(bGeocode.Lon, 64)
+		sLat, _ := strconv.ParseFloat(sGeocode.Lat, 64)
+		sLon, _ := strconv.ParseFloat(sGeocode.Lon, 64)
+
+		o.BillingAddressLatitude = &bLat
+		o.BillingAddressLongitude = &bLon
+		o.ShippingAddressLatitude = &sLat
+		o.ShippingAddressLongitude = &sLon
+	}
 
 	_, cErr := a.PaymentProvider().Charge(data.PaymentMethodID, o, user, uint64(o.Total), "usd")
 	if cErr != nil {

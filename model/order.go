@@ -71,11 +71,14 @@ type CartItem struct {
 
 // OrderRequestData is used to create new order
 type OrderRequestData struct {
-	PaymentMethodID       string      `json:"payment_method_id"`
-	SameShippingAsBilling bool        `json:"same_shipping_as_billing"`
-	Items                 []*CartItem `json:"items"`
-	BillingAddress        *Address    `json:"billing_address"`
-	ShippingAddress       *Address    `json:"shipping_address"`
+	PaymentMethodID           string      `json:"payment_method_id"`
+	Items                     []*CartItem `json:"items"`
+	BillingAddress            *Address    `json:"billing_address"`
+	ShippingAddress           *Address    `json:"shipping_address"`
+	SaveAddress               *bool       `json:"save_address"`
+	UseExistingBillingAddress *bool       `json:"use_existing_billing_address"`
+	BillingAddressID          *int64      `json:"billing_address_id"`
+	SameShippingAsBilling     bool        `json:"same_shipping_as_billing"`
 }
 
 // OrderRequestDataFromJSON decodes the input and returns the order item data list
