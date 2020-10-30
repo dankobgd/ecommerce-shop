@@ -19,6 +19,7 @@ type Store interface {
 	Brand() BrandStore
 	Tag() TagStore
 	Review() ReviewStore
+	Promotion() PromotionStore
 }
 
 // UserStore ris the user store
@@ -109,7 +110,7 @@ type OrderDetailStore interface {
 // AddressStore is the contact address store
 type AddressStore interface {
 	Save(addr *model.Address, userID int64) (*model.Address, *model.AppErr)
-	Get(userID, addressId int64) (*model.Address, *model.AppErr)
+	Get(userID, addressID int64) (*model.Address, *model.AppErr)
 	GetAll(userID int64) ([]*model.Address, *model.AppErr)
 	Update(addressID int64, addr *model.Address) (*model.Address, *model.AppErr)
 	Delete(addressID int64) *model.AppErr
@@ -129,7 +130,7 @@ type CategoryStore interface {
 // BrandStore is the brand store
 type BrandStore interface {
 	BulkInsert(brands []*model.Brand) *model.AppErr
-	Save(c *model.Brand) (*model.Brand, *model.AppErr)
+	Save(b *model.Brand) (*model.Brand, *model.AppErr)
 	Get(id int64) (*model.Brand, *model.AppErr)
 	GetAll(limit, offset int) ([]*model.Brand, *model.AppErr)
 	Update(id int64, addr *model.Brand) (*model.Brand, *model.AppErr)
@@ -139,7 +140,7 @@ type BrandStore interface {
 // TagStore is the tag store
 type TagStore interface {
 	BulkInsert(tags []*model.Tag) *model.AppErr
-	Save(c *model.Tag) (*model.Tag, *model.AppErr)
+	Save(t *model.Tag) (*model.Tag, *model.AppErr)
 	Get(id int64) (*model.Tag, *model.AppErr)
 	GetAll(limit, offset int) ([]*model.Tag, *model.AppErr)
 	Update(id int64, addr *model.Tag) (*model.Tag, *model.AppErr)
@@ -149,9 +150,19 @@ type TagStore interface {
 // ReviewStore is the tag store
 type ReviewStore interface {
 	BulkInsert(tags []*model.Review) *model.AppErr
-	Save(c *model.Review) (*model.Review, *model.AppErr)
+	Save(r *model.Review) (*model.Review, *model.AppErr)
 	Get(id int64) (*model.Review, *model.AppErr)
 	GetAll(limit, offset int) ([]*model.Review, *model.AppErr)
 	Update(id int64, addr *model.Review) (*model.Review, *model.AppErr)
 	Delete(id int64) *model.AppErr
+}
+
+// PromotionStore is the promotion store
+type PromotionStore interface {
+	BulkInsert(promotions []*model.Promotion) *model.AppErr
+	Save(p *model.Promotion) (*model.Promotion, *model.AppErr)
+	Get(code string) (*model.Promotion, *model.AppErr)
+	GetAll(limit, offset int) ([]*model.Promotion, *model.AppErr)
+	Update(code string, p *model.Promotion) (*model.Promotion, *model.AppErr)
+	Delete(code string) *model.AppErr
 }

@@ -76,3 +76,8 @@ func (s *Supplier) Tag() store.TagStore {
 func (s *Supplier) Review() store.ReviewStore {
 	return postgres.NewPgReviewStore(s.Pgst)
 }
+
+// Promotion returns the Promotion store implementation
+func (s *Supplier) Promotion() store.PromotionStore {
+	return postgres.NewPgPromotionStore(s.Pgst)
+}

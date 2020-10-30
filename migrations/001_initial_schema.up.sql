@@ -155,28 +155,27 @@ create table public.product_wishlist (
   unique (user_id, product_id)
 );
 
-create table public.product_discount (
-  id int generated always as identity primary key,
-  product_id int not null,
-  fixed_value int,
-  percentage_value int,
+create table public.promotion (
+  promo_code varchar(30) primary key,
+  type varchar(30) not null,
+  amount int not null,  
   description text,
-  starts_at timestamptz,
-  ends_at timestamptz,
-  foreign key (product_id) references public.product (id) on delete cascade
+  starts_at timestamptz not null,
+  ends_at timestamptz not null
 );
 
-create table public.related_product (
-  id int generated always as identity primary key,
-  product_id int not null,
-  related_product_id int not null,
-  foreign key (product_id) references public.product (id),
-  foreign key (related_product_id) references public.product (id)
+create table public.promotion_detail (
+  user_id int,
+  promo_code varchar(30),
+  foreign key (user_id) references public.user (id) on delete cascade,
+  foreign key (promo_code) references public.promotion (promo_code) on delete cascade,
+  unique (user_id, promo_code)  
 );
 
 create table public.order (
   id int generated always as identity primary key,
-  user_id int not null,  
+  user_id int not null,
+  promo_code varchar(30),
   status varchar(30) default 'pending' not null,
   total int,
   shipped_at timestamptz,
@@ -197,7 +196,8 @@ create table public.order (
   shipping_address_zip text,
   shipping_address_latitude numeric(11, 8),
   shipping_address_longitude numeric(11, 8),  
-  foreign key (user_id) references public.user (id)
+  foreign key (user_id) references public.user (id),
+  foreign key (promo_code) references public.promotion (promo_code)
 );
 
 create table public.order_detail (

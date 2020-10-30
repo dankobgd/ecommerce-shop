@@ -6,8 +6,8 @@ drop table public.address;
 
 drop table public.order_detail;
 drop table public.order;
-drop table public.related_product;
-drop table public.product_discount;
+drop table public.promotion_detail;
+drop table public.promotion;
 drop table public.product_image;
 drop table public.product_tag;
 drop table public.product_info;

@@ -30,6 +30,8 @@ type Routes struct {
 	Tag        chi.Router // 'api/v1/tags/{tag_id:[A-Za-z0-9]+}'
 	Reviews    chi.Router // 'api/v1/reviews'
 	Review     chi.Router // 'api/v1/reviews/{review_id:[A-Za-z0-9]+}'
+	Promotions chi.Router // 'api/v1/promotions'
+	Promotion  chi.Router // 'api/v1/promotions/{promo_code:[A-Za-z0-9]+}'
 }
 
 // Init inits the API
@@ -60,6 +62,8 @@ func Init(a *app.App, r *chi.Mux) {
 	api.Routes.Tag = api.Routes.Tags.Route("/{tag_id:[A-Za-z0-9]+}", nil)
 	api.Routes.Reviews = api.Routes.API.Route("/reviews", nil)
 	api.Routes.Review = api.Routes.Reviews.Route("/{review_id:[A-Za-z0-9]+}", nil)
+	api.Routes.Promotions = api.Routes.API.Route("/promotions", nil)
+	api.Routes.Promotion = api.Routes.Promotions.Route("/{promo_code:[A-Za-z0-9_]+}", nil)
 
 	InitUser(api)
 	InitProducts(api)
@@ -68,4 +72,5 @@ func Init(a *app.App, r *chi.Mux) {
 	InitBrands(api)
 	InitTags(api)
 	InitReviews(api)
+	InitPromotions(api)
 }
