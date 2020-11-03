@@ -33,7 +33,9 @@ type Order struct {
 	TotalRecordsCount
 	ID                       int64      `json:"id" db:"id"`
 	UserID                   int64      `json:"user_id" db:"user_id"`
+	PromoCode                *string    `json:"promo_code" db:"promo_code"`
 	Status                   string     `json:"status" db:"status"`
+	Subtotal                 int        `json:"subtotal" db:"subtotal"`
 	Total                    int        `json:"total" db:"total"`
 	ShippedAt                *time.Time `json:"shipped_at" db:"shipped_at"`
 	CreatedAt                time.Time  `json:"created_at" db:"created_at"`
@@ -79,6 +81,7 @@ type OrderRequestData struct {
 	UseExistingBillingAddress *bool       `json:"use_existing_billing_address"`
 	BillingAddressID          *int64      `json:"billing_address_id"`
 	SameShippingAsBilling     bool        `json:"same_shipping_as_billing"`
+	PromoCode                 *string     `json:"promo_code"`
 }
 
 // OrderRequestDataFromJSON decodes the input and returns the order item data list

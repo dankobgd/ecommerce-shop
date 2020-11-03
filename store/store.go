@@ -165,4 +165,6 @@ type PromotionStore interface {
 	GetAll(limit, offset int) ([]*model.Promotion, *model.AppErr)
 	Update(code string, p *model.Promotion) (*model.Promotion, *model.AppErr)
 	Delete(code string) *model.AppErr
+	Status(code string, userID int64) *model.AppErr
+	InsertDetail(pd *model.PromotionDetail) (*model.PromotionDetail, *model.AppErr)
 }

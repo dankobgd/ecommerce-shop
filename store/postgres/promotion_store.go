@@ -20,13 +20,17 @@ func NewPgPromotionStore(pgst *PgStore) store.PromotionStore {
 }
 
 var (
-	msgUniqueConstraintPromotion = &i18n.Message{ID: "store.postgres.promotion.save.unique_constraint.app_error", Other: "promotion with given promo_code already exists"}
-	msgSavePromotion             = &i18n.Message{ID: "store.postgres.promotion.save.app_error", Other: "could not save promotion"}
-	msgUpdatePromotion           = &i18n.Message{ID: "store.postgres.promotion.update.app_error", Other: "could not update promotion"}
-	msgBulkInsertPromotions      = &i18n.Message{ID: "store.postgres.promotion.bulk.insert.app_error", Other: "could not bulk insert promotions"}
-	msgGetPromotion              = &i18n.Message{ID: "store.postgres.promotion.get.app_error", Other: "could not get the promotion"}
-	msgGetPromotions             = &i18n.Message{ID: "store.postgres.promotion.get.app_error", Other: "could not get the promotion"}
-	msgDeletePromotion           = &i18n.Message{ID: "store.postgres.promotion.delete.app_error", Other: "could not delete promotion"}
+	msgUniqueConstraintPromotion       = &i18n.Message{ID: "store.postgres.promotion.save.unique_constraint.app_error", Other: "promotion with given promo_code already exists"}
+	msgSavePromotion                   = &i18n.Message{ID: "store.postgres.promotion.save.app_error", Other: "could not save promotion"}
+	msgUpdatePromotion                 = &i18n.Message{ID: "store.postgres.promotion.update.app_error", Other: "could not update promotion"}
+	msgBulkInsertPromotions            = &i18n.Message{ID: "store.postgres.promotion.bulk.insert.app_error", Other: "could not bulk insert promotions"}
+	msgGetPromotion                    = &i18n.Message{ID: "store.postgres.promotion.get.app_error", Other: "could not get the promotion"}
+	msgGetPromotions                   = &i18n.Message{ID: "store.postgres.promotion.get.app_error", Other: "could not get the promotion"}
+	msgDeletePromotion                 = &i18n.Message{ID: "store.postgres.promotion.delete.app_error", Other: "could not delete promotion"}
+	msgPromoStatus                     = &i18n.Message{ID: "store.postgres.promotion.status.app_error", Other: "could not get promo_code status for user"}
+	msgPromoCodeUsed                   = &i18n.Message{ID: "store.postgres.promotion.status.app_error", Other: "you have already used this promo code"}
+	msgInsertPromotionDetail           = &i18n.Message{ID: "store.postgres.promotion.insert_detail.app_error", Other: "could not save promotion detail"}
+	msgUniqueConstraintPromotionDetail = &i18n.Message{ID: "store.postgres.promotion.insert_detail.unique_constraint.app_error", Other: "promotion already used by the same user"}
 )
 
 // BulkInsert inserts multiple promotions in the db
@@ -46,7 +50,6 @@ func (s PgPromotionStore) BulkInsert(promotions []*model.Promotion) *model.AppEr
 func (s PgPromotionStore) Save(promotion *model.Promotion) (*model.Promotion, *model.AppErr) {
 	q := `INSERT INTO public.promotion(promo_code, type, amount, description, starts_at, ends_at) VALUES(:promo_code, :type, :amount, :description, :starts_at, :ends_at) RETURNING promo_code`
 	if _, err := s.db.NamedExec(q, promotion); err != nil {
-
 		if IsUniqueConstraintViolationError(err) {
 			return nil, model.NewAppErr("PgPromotionStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgUniqueConstraintPromotion, http.StatusInternalServerError, nil)
 		}
@@ -99,4 +102,30 @@ func (s PgPromotionStore) Delete(code string) *model.AppErr {
 		return model.NewAppErr("PgPromotionStore.Delete", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeletePromotion, http.StatusInternalServerError, nil)
 	}
 	return nil
+}
+
+// Status gets the promo code status for the specific user
+func (s PgPromotionStore) Status(code string, userID int64) *model.AppErr {
+	var exists bool
+	q := `SELECT EXISTS (SELECT 1 FROM promotion p LEFT JOIN promotion_detail pd ON p.promo_code = pd.promo_code WHERE p.promo_code = $1 AND pd.user_id = $2 AND CURRENT_TIMESTAMP BETWEEN p.starts_at AND p.ends_at)`
+	if err := s.db.Get(&exists, q, code, userID); err != nil {
+		return model.NewAppErr("PgPromotionStore.Status", model.ErrInternal, locale.GetUserLocalizer("en"), msgPromoStatus, http.StatusInternalServerError, nil)
+	}
+	if exists {
+		return model.NewAppErr("PgPromotionStore.Status", model.ErrInternal, locale.GetUserLocalizer("en"), msgPromoCodeUsed, http.StatusInternalServerError, nil)
+	}
+	return nil
+}
+
+// InsertDetail inserts the new promotion in the db
+func (s PgPromotionStore) InsertDetail(pdetail *model.PromotionDetail) (*model.PromotionDetail, *model.AppErr) {
+	q := `INSERT INTO public.promotion_detail(user_id, promo_code) VALUES(:user_id, :promo_code) RETURNING *`
+	if _, err := s.db.NamedExec(q, pdetail); err != nil {
+		if IsUniqueConstraintViolationError(err) {
+			return nil, model.NewAppErr("PgPromotionStore.InsertDetail", model.ErrInternal, locale.GetUserLocalizer("en"), msgUniqueConstraintPromotionDetail, http.StatusInternalServerError, nil)
+		}
+
+		return nil, model.NewAppErr("PgPromotionStore.InsertDetail", model.ErrInternal, locale.GetUserLocalizer("en"), msgInsertPromotionDetail, http.StatusInternalServerError, nil)
+	}
+	return pdetail, nil
 }

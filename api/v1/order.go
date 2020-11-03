@@ -40,12 +40,12 @@ func (a *API) createOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	totalPrice := 0
+	subtotal := 0
 	for i, p := range products {
-		totalPrice += p.Price * orderData.Items[i].Quantity
+		subtotal += p.Price * orderData.Items[i].Quantity
 	}
 
-	order, err := a.app.CreateOrder(uid, orderData, totalPrice)
+	order, err := a.app.CreateOrder(uid, orderData, subtotal)
 	if err != nil {
 		respondError(w, err)
 		return
@@ -65,7 +65,7 @@ func (a *API) createOrder(w http.ResponseWriter, r *http.Request) {
 		orderDetails = append(orderDetails, detail)
 	}
 
-	if err := a.app.CreateOrderDetails(orderDetails); err != nil {
+	if err := a.app.CreateOrderDetail(orderDetails); err != nil {
 		respondError(w, err)
 		return
 	}

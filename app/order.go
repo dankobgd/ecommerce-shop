@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"math"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -17,10 +18,36 @@ var (
 )
 
 // CreateOrder creates the new order
-func (a *App) CreateOrder(userID int64, data *model.OrderRequestData, total int) (*model.Order, *model.AppErr) {
+func (a *App) CreateOrder(userID int64, data *model.OrderRequestData, subtotal int) (*model.Order, *model.AppErr) {
 	user, err := a.GetUserByID(userID)
 	if err != nil {
 		return nil, err
+	}
+
+	total := 0
+	if data.PromoCode == nil {
+		total = subtotal
+	} else {
+		if err := a.GetPromotionStatus(*data.PromoCode, userID); err != nil {
+			return nil, err
+		}
+		promo, err := a.GetPromotion(*data.PromoCode)
+		if err != nil {
+			return nil, err
+		}
+
+		if promo.Type == "percentage" {
+			t := float64(subtotal) - float64(promo.Amount)/100*float64(subtotal)
+			total = int(math.Round(t*100) / 100)
+		}
+		if promo.Type == "fixed" {
+			t := (subtotal - promo.Amount)
+			if t < 0 {
+				t = 0
+			}
+			total = t
+		}
+
 	}
 
 	if data.UseExistingBillingAddress == nil && data.SaveAddress != nil {
@@ -42,9 +69,10 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData, total int)
 	}
 
 	o := &model.Order{
-		UserID: userID,
-		Total:  total,
-		Status: model.OrderStatusSuccess.String(),
+		UserID:   userID,
+		Subtotal: subtotal,
+		Total:    total,
+		Status:   model.OrderStatusSuccess.String(),
 	}
 
 	o.BillingAddressLine1 = billAddrInfo.Line1
@@ -110,7 +138,19 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData, total int)
 		return nil, model.NewAppErr("CreateOrder", model.ErrInternal, locale.GetUserLocalizer("en"), &i18n.Message{ID: "app.order.create_order.app_error", Other: "could not charge card: " + cErr.Error()}, http.StatusInternalServerError, nil)
 	}
 
-	return a.Srv().Store.Order().Save(o)
+	order, err := a.Srv().Store.Order().Save(o)
+	if err != nil {
+		return nil, err
+	}
+
+	if data.PromoCode != nil {
+		pd := &model.PromotionDetail{UserID: userID, PromoCode: *data.PromoCode}
+		if _, err := a.CreatePromotionDetail(pd); err != nil {
+			return nil, err
+		}
+	}
+
+	return order, nil
 }
 
 // GetOrder gets the order by id
@@ -128,8 +168,8 @@ func (a *App) UpdateOrder(id int64, o *model.Order) (*model.Order, *model.AppErr
 	return a.Srv().Store.Order().Update(id, o)
 }
 
-// CreateOrderDetails inserts new order details
-func (a *App) CreateOrderDetails(items []*model.OrderDetail) *model.AppErr {
+// CreateOrderDetail inserts new order details
+func (a *App) CreateOrderDetail(items []*model.OrderDetail) *model.AppErr {
 	return a.Srv().Store.OrderDetail().BulkInsert(items)
 }
 

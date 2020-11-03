@@ -380,7 +380,7 @@ func (u *User) PreSave(isSeed ...bool) {
 		u.Locale = userDefaultLocale
 	}
 
-	if !isSeed[0] {
+	if len(isSeed) == 0 || len(isSeed) > 0 && isSeed[0] == false {
 		if len(u.Password) > 0 {
 			u.rawpw = u.Password
 			u.Password = HashPassword(u.Password)

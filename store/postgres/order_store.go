@@ -28,8 +28,8 @@ var (
 
 // Save creates the new order
 func (s PgOrderStore) Save(o *model.Order) (*model.Order, *model.AppErr) {
-	q := `INSERT INTO public.order (user_id, status, total, shipped_at, created_at, billing_address_line_1, billing_address_line_2, billing_address_city, billing_address_country, billing_address_state, billing_address_zip, billing_address_latitude, billing_address_longitude, shipping_address_line_1, shipping_address_line_2, shipping_address_city, shipping_address_country, shipping_address_state, shipping_address_zip, shipping_address_latitude, shipping_address_longitude) 
-	VALUES (:user_id, :status, :total, :shipped_at, :created_at, :billing_address_line_1, :billing_address_line_2, :billing_address_city, :billing_address_country, :billing_address_state, :billing_address_zip, :billing_address_latitude, :billing_address_longitude, :shipping_address_line_1, :shipping_address_line_2, :shipping_address_city, :shipping_address_country, :shipping_address_state, :shipping_address_zip, :shipping_address_latitude, :shipping_address_longitude) RETURNING id`
+	q := `INSERT INTO public.order (user_id, promo_code, status, subtotal, total, shipped_at, created_at, billing_address_line_1, billing_address_line_2, billing_address_city, billing_address_country, billing_address_state, billing_address_zip, billing_address_latitude, billing_address_longitude, shipping_address_line_1, shipping_address_line_2, shipping_address_city, shipping_address_country, shipping_address_state, shipping_address_zip, shipping_address_latitude, shipping_address_longitude) 
+	VALUES (:user_id, :promo_code, :status, :subtotal, :total, :shipped_at, :created_at, :billing_address_line_1, :billing_address_line_2, :billing_address_city, :billing_address_country, :billing_address_state, :billing_address_zip, :billing_address_latitude, :billing_address_longitude, :shipping_address_line_1, :shipping_address_line_2, :shipping_address_city, :shipping_address_country, :shipping_address_state, :shipping_address_zip, :shipping_address_latitude, :shipping_address_longitude) RETURNING id`
 
 	var id int64
 	rows, err := s.db.NamedQuery(q, o)
@@ -53,7 +53,7 @@ func (s PgOrderStore) Save(o *model.Order) (*model.Order, *model.AppErr) {
 
 // Update updates the product
 func (s PgOrderStore) Update(id int64, o *model.Order) (*model.Order, *model.AppErr) {
-	if _, err := s.db.NamedExec(`UPDATE public.order SET status=:status, total=:total, shipped_at=:shipped_at WHERE id=:id`, o); err != nil {
+	if _, err := s.db.NamedExec(`UPDATE public.order SET status=:status, subtotal=:subtotal, total=:total, shipped_at=:shipped_at WHERE id=:id`, o); err != nil {
 		return nil, model.NewAppErr("PgOrderStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateOrder, http.StatusInternalServerError, nil)
 	}
 	return o, nil
