@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/jmoiron/sqlx/types"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -24,14 +25,15 @@ var (
 // Category is the category
 type Category struct {
 	TotalRecordsCount
-	ID          int64     `json:"id" db:"id" schema:"-"`
-	Name        string    `json:"name" db:"name" schema:"name"`
-	Slug        string    `json:"slug" db:"slug" schema:"slug"`
-	Description string    `json:"description" db:"description" schema:"description"`
-	IsFeatured  bool      `json:"is_featured" db:"is_featured" schema:"is_featured"`
-	Logo        string    `json:"logo" db:"logo" schema:"-"`
-	CreatedAt   time.Time `json:"created_at" db:"created_at" schema:"-"`
-	UpdatedAt   time.Time `json:"updated_at" db:"updated_at" schema:"-"`
+	ID          int64          `json:"id" db:"id" schema:"-"`
+	Name        string         `json:"name" db:"name" schema:"name"`
+	Slug        string         `json:"slug" db:"slug" schema:"slug"`
+	Description string         `json:"description" db:"description" schema:"description"`
+	IsFeatured  bool           `json:"is_featured" db:"is_featured" schema:"is_featured"`
+	Logo        string         `json:"logo" db:"logo" schema:"-"`
+	CreatedAt   time.Time      `json:"created_at" db:"created_at" schema:"-"`
+	UpdatedAt   time.Time      `json:"updated_at" db:"updated_at" schema:"-"`
+	Properties  types.JSONText `json:"properties" schema:"-"`
 }
 
 // Validate validates the category and returns an error if it doesn't pass criteria
@@ -126,4 +128,9 @@ func (c *Category) PreUpdate() {
 // SetLogoURL sets the logo url
 func (c *Category) SetLogoURL(url string) {
 	c.Logo = url
+}
+
+// SetProperties sets the product properties variant
+func (c *Category) SetProperties(properties string) {
+	c.Properties = types.JSONText(properties)
 }

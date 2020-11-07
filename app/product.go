@@ -20,7 +20,7 @@ var (
 )
 
 // CreateProduct creates the new product in the system
-func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers []*multipart.FileHeader, tags []*model.ProductTag, properties string) (*model.Product, *model.AppErr) {
+func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers []*multipart.FileHeader, tags []*model.ProductTag) (*model.Product, *model.AppErr) {
 	if fh.Size > model.FileUploadSizeLimit {
 		return nil, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductSizeExceeded, http.StatusInternalServerError, nil)
 	}
@@ -44,7 +44,6 @@ func (a *App) CreateProduct(p *model.Product, fh *multipart.FileHeader, headers 
 	}
 
 	p.SetImageURL(details.SecureURL)
-	p.SetProperties(properties)
 
 	product, pErr := a.Srv().Store.Product().Save(p)
 	if pErr != nil {

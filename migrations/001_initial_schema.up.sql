@@ -8,6 +8,7 @@ create table public.category (
   logo text,
   description text,
   is_featured bool default false not null,
+  properties jsonb,
   created_at timestamptz not null,
   updated_at timestamptz not null
 );
@@ -96,7 +97,6 @@ create table public.product (
   slug varchar(64),
   image_url text not null,
   description text,
-  price int not null,
   in_stock bool default true not null,
   sku text not null,
   is_featured bool default false not null,
@@ -107,25 +107,27 @@ create table public.product (
   foreign key (category_id) references public.category (id) on delete cascade
 );
 
-create table public.product_info (
+create table public.product_pricing (
   id int generated always as identity primary key,
   product_id int not null,
-  info text not null,
+  price int not null,
+  sale_starts timestamptz not null,
+  sale_ends timestamptz not null,
   foreign key (product_id) references public.product (id)
 );
 
 create table public.product_tag (
-  id int generated always as identity primary key,
   product_id int not null,
   tag_id int not null,  
   foreign key (product_id) references public.product (id) on delete cascade,
-  foreign key (tag_id) references public.tag (id) on delete cascade
+  foreign key (tag_id) references public.tag (id) on delete cascade,
+  unique (product_id, tag_id)
 );
 
 create table public.product_image (
-  id int generated always as identity primary key,
   product_id int not null,
   url text not null,
+  public_id text not null,
   created_at timestamptz not null,
   updated_at timestamptz not null,
   foreign key (product_id) references public.product (id) on delete cascade
@@ -207,7 +209,7 @@ create table public.order_detail (
   quantity int not null,
   original_price int not null,
   original_sku text not null,
-  primary key(order_id, product_id)
+  primary key (order_id, product_id)
 );
 
 

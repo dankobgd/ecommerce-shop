@@ -52,8 +52,8 @@ func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
 	mpf := r.MultipartForm
 	model.SchemaDecoder.IgnoreUnknownKeys(true)
 
-	var p model.Product
-	if err := model.SchemaDecoder.Decode(&p, mpf.Value); err != nil {
+	p := &model.Product{}
+	if err := model.SchemaDecoder.Decode(p, mpf.Value); err != nil {
 		respondError(w, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductAvatarMultipart, http.StatusInternalServerError, nil))
 		return
 	}
@@ -62,6 +62,7 @@ func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
 	headers := mpf.File["images"]
 	fh := mpf.File["image"][0]
 	properties := mpf.Value["properties"][0]
+	p.SetProperties(properties)
 
 	tags := make([]*model.ProductTag, 0)
 	for _, tid := range tagids {
@@ -74,7 +75,7 @@ func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
 		tags = append(tags, &model.ProductTag{TagID: model.NewInt64(id)})
 	}
 
-	product, pErr := a.app.CreateProduct(&p, fh, headers, tags, properties)
+	product, pErr := a.app.CreateProduct(p, fh, headers, tags)
 	if pErr != nil {
 		respondError(w, pErr)
 		return

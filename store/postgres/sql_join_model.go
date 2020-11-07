@@ -11,8 +11,18 @@ type productJoin struct {
 	model.Product
 	Tsv  string `json:"-" db:"tsv"`
 	Rank string `json:"-" db:"rank"`
+	*PricingJoin
 	*BrandJoin
 	*CategoryJoin
+}
+
+// PricingJoin is temp join type
+type PricingJoin struct {
+	PID        int64     `db:"id"`
+	ProductID  int64     `db:"product_id"`
+	Price      int       `db:"price"`
+	SaleStarts time.Time `db:"sale_starts"`
+	SaleEnds   time.Time `db:"sale_ends"`
 }
 
 // BrandJoin is temp join type
@@ -49,13 +59,18 @@ func (pj *productJoin) ToProduct() *model.Product {
 		Slug:              pj.Slug,
 		ImageURL:          pj.ImageURL,
 		Description:       pj.Description,
-		Price:             pj.Price,
 		InStock:           pj.InStock,
 		SKU:               pj.SKU,
 		IsFeatured:        pj.IsFeatured,
 		CreatedAt:         pj.CreatedAt,
 		UpdatedAt:         pj.UpdatedAt,
 		Properties:        pj.Properties,
+		ProductPricing: &model.ProductPricing{
+			ID:         pj.PID,
+			Price:      pj.Price,
+			SaleStarts: pj.SaleStarts,
+			SaleEnds:   pj.SaleEnds,
+		},
 		Brand: &model.Brand{
 			ID:          pj.BID,
 			Name:        pj.BName,

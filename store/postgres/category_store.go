@@ -31,7 +31,7 @@ var (
 
 // BulkInsert inserts multiple categories in the db
 func (s PgCategoryStore) BulkInsert(categories []*model.Category) *model.AppErr {
-	q := `INSERT INTO public.category(name, slug, logo, description, is_featured, created_at, updated_at) VALUES(:name, :slug, :logo, :description, :is_featured, :created_at, :updated_at) RETURNING id`
+	q := `INSERT INTO public.category(name, slug, logo, description, is_featured, properties, created_at, updated_at) VALUES(:name, :slug, :logo, :description, :is_featured, :properties, :created_at, :updated_at) RETURNING id`
 
 	if _, err := s.db.NamedExec(q, categories); err != nil {
 		return model.NewAppErr("PgCategoryStore.BulkInsert", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkInsertCategories, http.StatusInternalServerError, nil)
@@ -41,7 +41,7 @@ func (s PgCategoryStore) BulkInsert(categories []*model.Category) *model.AppErr 
 
 // Save inserts the new category in the db
 func (s PgCategoryStore) Save(category *model.Category) (*model.Category, *model.AppErr) {
-	q := `INSERT INTO public.category(name, slug, logo, description, is_featured, created_at, updated_at) VALUES(:name, :slug, :logo, :description, :is_featured, :created_at, :updated_at) RETURNING id`
+	q := `INSERT INTO public.category(name, slug, logo, description, is_featured, properties, created_at, updated_at) VALUES(:name, :slug, :logo, :description, :is_featured, :properties, :created_at, :updated_at) RETURNING id`
 
 	var id int64
 	rows, err := s.db.NamedQuery(q, category)
@@ -65,7 +65,7 @@ func (s PgCategoryStore) Save(category *model.Category) (*model.Category, *model
 
 // Update updates the category
 func (s PgCategoryStore) Update(id int64, category *model.Category) (*model.Category, *model.AppErr) {
-	q := `UPDATE public.category SET name=:name, slug=:slug, description=:description, is_featured=:is_featured, logo=:logo, updated_at=:updated_at WHERE id=:id`
+	q := `UPDATE public.category SET name=:name, slug=:slug, description=:description, is_featured=:is_featured, properties=:properties, logo=:logo, updated_at=:updated_at WHERE id=:id`
 	if _, err := s.db.NamedExec(q, category); err != nil {
 		return nil, model.NewAppErr("PgCategoryStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateCategory, http.StatusInternalServerError, nil)
 	}

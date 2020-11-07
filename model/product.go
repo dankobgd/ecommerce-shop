@@ -27,6 +27,13 @@ var (
 	msgValidateProductSKU         = &i18n.Message{ID: "model.product.validate.sku.app_error", Other: "invalid product sku"}
 	msgValidateProductCrAt        = &i18n.Message{ID: "model.product.validate.created_at.app_error", Other: "invalid created_at timestamp"}
 	msgValidateProductUpAt        = &i18n.Message{ID: "model.product.validate.updated_at.app_error", Other: "invalid updated_at timestamp"}
+
+	msgInvalidProductPricing            = &i18n.Message{ID: "model.product_price.validate.app_error", Other: "invalid product price data"}
+	msgValidateProductPricingID         = &i18n.Message{ID: "model.product_price.validate.id.app_error", Other: "invalid product price id"}
+	msgValidateProductPricingProductID  = &i18n.Message{ID: "model.product_price.validate.product_id.app_error", Other: "invalid product price product_id"}
+	msgValidateProductPricingPrice      = &i18n.Message{ID: "model.product_price.validate.price_app_error", Other: "invalid product price amount"}
+	msgValidateProductPricingSaleStarts = &i18n.Message{ID: "model.product_price.validate.sale_starts.app_error", Other: "invalid product price sale starts"}
+	msgValidateProductPricingSaleEnds   = &i18n.Message{ID: "model.product_price.validate.sale_ends.app_error", Other: "invalid product price sale ends"}
 )
 
 // Product represents the shop product model
@@ -39,15 +46,16 @@ type Product struct {
 	Slug        string         `json:"slug" db:"slug" schema:"slug"`
 	ImageURL    string         `json:"image_url" db:"image_url" schema:"-"`
 	Description string         `json:"description" db:"description" schema:"description"`
-	Price       int            `json:"price" db:"price" schema:"price"`
 	InStock     bool           `json:"in_stock" db:"in_stock" schema:"in_stock"`
 	SKU         string         `json:"sku" db:"sku" schema:"-"`
 	IsFeatured  bool           `json:"is_featured" db:"is_featured" schema:"is_featured"`
 	CreatedAt   time.Time      `json:"created_at" db:"created_at" schema:"-"`
 	UpdatedAt   time.Time      `json:"updated_at" db:"updated_at" schema:"-"`
 	Properties  types.JSONText `json:"properties" schema:"-"`
-	Brand       *Brand         `json:"brand"`
-	Category    *Category      `json:"category"`
+
+	*ProductPricing `db:"price"`
+	Brand           *Brand    `json:"brand"`
+	Category        *Category `json:"category"`
 }
 
 // ProductPatch is the product patch model
@@ -56,7 +64,6 @@ type ProductPatch struct {
 	Slug        *string `json:"slug"`
 	ImageURL    *string `json:"image_url"`
 	Description *string `json:"description"`
-	Price       *int    `json:"price"`
 	InStock     *bool   `json:"in_stock"`
 	IsFeatured  *bool   `json:"is_featured"`
 }
@@ -74,9 +81,6 @@ func (p *Product) Patch(patch *ProductPatch) {
 	}
 	if patch.Description != nil {
 		p.Description = *patch.Description
-	}
-	if patch.Price != nil {
-		p.Price = *patch.Price
 	}
 	if patch.InStock != nil {
 		p.InStock = *patch.InStock
@@ -151,9 +155,6 @@ func (p *Product) Validate() *AppErr {
 	if p.Description == "" {
 		errs.Add(Invalid("description", l, msgValidateProductDescription))
 	}
-	if p.Price == 0 {
-		errs.Add(Invalid("price", l, msgValidateProductPrice))
-	}
 	if p.CreatedAt.IsZero() {
 		errs.Add(Invalid("created_at", l, msgValidateProductCrAt))
 	}
@@ -163,6 +164,43 @@ func (p *Product) Validate() *AppErr {
 
 	if !errs.IsZero() {
 		return NewValidationError("Product", msgInvalidProduct, "", errs)
+	}
+
+	return nil
+}
+
+// ProductPricing has info about price discounts
+type ProductPricing struct {
+	ID         int64     `json:"-"`
+	ProductID  int64     `json:"-"`
+	Price      int       `json:"price"`
+	SaleStarts time.Time `json:"sale_starts"`
+	SaleEnds   time.Time `json:"sale_ends"`
+}
+
+// Validate validates the ProductPricing and returns an error if it doesn't pass criteria
+func (pp *ProductPricing) Validate() *AppErr {
+	var errs ValidationErrors
+	l := locale.GetUserLocalizer("en")
+
+	if pp.ID != 0 {
+		errs.Add(Invalid("id", l, msgValidateProductPricingID))
+	}
+	if pp.ProductID == 0 {
+		errs.Add(Invalid("product_id", l, msgValidateProductPricingProductID))
+	}
+	if pp.Price <= 0 {
+		errs.Add(Invalid("price", l, msgValidateProductPricingPrice))
+	}
+	if pp.SaleStarts.IsZero() {
+		errs.Add(Invalid("sale_starts", l, msgValidateProductPricingSaleStarts))
+	}
+	if pp.SaleEnds.IsZero() {
+		errs.Add(Invalid("sale_ends", l, msgValidateProductPricingSaleEnds))
+	}
+
+	if !errs.IsZero() {
+		return NewValidationError("ProductPricing", msgInvalidProductPricing, "", errs)
 	}
 
 	return nil

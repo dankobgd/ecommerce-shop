@@ -85,6 +85,10 @@ func seedReviewsFn(command *cobra.Command, args []string) error {
 	return seedReviews()
 }
 
+func seedPromotionsFn(command *cobra.Command, args []string) error {
+	return seedPromotions()
+}
+
 func seedProductsFn(command *cobra.Command, args []string) error {
 	return seedProducts()
 }
@@ -102,12 +106,15 @@ func seedDatabaseFn(command *cobra.Command, args []string) error {
 	if err := seedTags(); err != nil {
 		return err
 	}
-	if err := seedProducts(); err != nil {
-		return err
-	}
-	if err := seedReviews(); err != nil {
-		return err
-	}
+	// if err := seedProducts(); err != nil {
+	// 	return err
+	// }
+	// if err := seedReviews(); err != nil {
+	// 	return err
+	// }
+	// if err := seedPromotions(); err != nil {
+	// 	return err
+	// }
 	cmdApp.Log().Info("database seed completed successfully")
 	return nil
 }
@@ -241,6 +248,28 @@ func seedReviews() error {
 	return nil
 }
 
+// seedPromotions populates the product_promotions table
+func seedPromotions() error {
+	var promotions []*model.Promotion
+
+	data, err := ioutil.ReadFile("./data/seeds/promotions.json")
+	if err != nil {
+		cmdApp.Log().Error("could not read promotions.json seed", zlog.String("err: ", err.Error()))
+		return err
+	}
+	if err := json.Unmarshal(data, &promotions); err != nil {
+		cmdApp.Log().Error("could not unmarshal promotions.json", zlog.String("err: ", err.Error()))
+		return err
+	}
+
+	if err := cmdApp.Srv().Store.Promotion().BulkInsert(promotions); err != nil {
+		cmdApp.Log().Error("could not seed promotions", zlog.String("err: ", err.Message))
+		return err
+	}
+	cmdApp.Log().Info("promotions seeded")
+	return nil
+}
+
 type productSeed struct {
 	ID          int64          `json:"id"`
 	BrandID     int64          `json:"brand_id"`
@@ -290,11 +319,13 @@ func seedProducts() error {
 			Slug:        x.Slug,
 			ImageURL:    x.ImageURL,
 			Description: x.Description,
-			Price:       x.Price,
 			InStock:     x.InStock,
 			SKU:         x.SKU,
 			IsFeatured:  x.IsFeatured,
 			Properties:  x.Properties,
+			ProductPricing: &model.ProductPricing{
+				Price: x.Price,
+			},
 		}
 
 		tagList := make([]*model.ProductTag, 0)

@@ -35,8 +35,8 @@ var (
 
 // BulkInsert inserts multiple products into db
 func (s PgProductStore) BulkInsert(products []*model.Product) *model.AppErr {
-	q := `INSERT INTO public.product (name, brand_id, category_id, slug, image_url, description, price, in_stock, sku, is_featured, created_at, updated_at) 
-	VALUES (:name, :brand_id, :category_id, :slug, :image_url, :description, :price, :in_stock, :sku, :is_featured, :created_at, :updated_at)`
+	q := `INSERT INTO public.product (name, brand_id, category_id, slug, image_url, description, in_stock, sku, is_featured, created_at, updated_at) 
+	VALUES (:name, :brand_id, :category_id, :slug, :image_url, :description, :in_stock, :sku, :is_featured, :created_at, :updated_at)`
 
 	if _, err := s.db.NamedExec(q, products); err != nil {
 		return model.NewAppErr("PgProductStore.BulkInsert", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkInsertProducts, http.StatusInternalServerError, nil)
@@ -46,8 +46,8 @@ func (s PgProductStore) BulkInsert(products []*model.Product) *model.AppErr {
 
 // Save inserts the new product in the db
 func (s PgProductStore) Save(p *model.Product) (*model.Product, *model.AppErr) {
-	q := `INSERT INTO public.product (name, brand_id, category_id, slug, image_url, description, price, in_stock, sku, is_featured, created_at, updated_at, properties)
-		VALUES (:name, :brand_id, :category_id, :slug, :image_url, :description, :price, :in_stock, :sku, :is_featured, :created_at, :updated_at, :properties) RETURNING id`
+	q := `INSERT INTO public.product (name, brand_id, category_id, slug, image_url, description, in_stock, sku, is_featured, created_at, updated_at, properties)
+		VALUES (:name, :brand_id, :category_id, :slug, :image_url, :description, :in_stock, :sku, :is_featured, :created_at, :updated_at, :properties) RETURNING id`
 
 	var id int64
 	rows, err := s.db.NamedQuery(q, p)
@@ -92,10 +92,12 @@ func (s PgProductStore) Get(id int64) (*model.Product, *model.AppErr) {
 	 c.logo AS category_logo,
 	 c.created_at AS category_created_at,
    c.updated_at AS category_updated_at
-   FROM public.product p
+	 FROM public.product p
+	 LEFT JOIN product_pricing pp ON p.id = pp.product_id
    LEFT JOIN brand b ON p.brand_id = b.id
 	 LEFT JOIN category c ON p.category_id = c.id
-	 WHERE p.id = $1
+	 WHERE CURRENT_TIMESTAP BETWEEN pp.sale_starts AND pp.sale_ends
+	 AND p.id = $1
    GROUP BY p.id, b.id, c.id`
 
 	var pj productJoin
@@ -127,10 +129,12 @@ func (s PgProductStore) GetAll(filters map[string][]string, limit, offset int) (
 	c.created_at AS category_created_at,
 	c.updated_at AS category_updated_at
 	FROM public.product p
+	LEFT JOIN product_pricing pp ON p.id = pp.product_id
 	LEFT JOIN brand b ON p.brand_id = b.id
 	LEFT JOIN category c ON p.category_id = c.id	
 	LEFT JOIN product_tag pt ON p.id = pt.product_id 
-	LEFT JOIN tag t on t.id = pt.tag_id`
+	LEFT JOIN tag t on t.id = pt.tag_id
+	WHERE CURRENT_TIMESTAP BETWEEN pp.sale_starts AND pp.sale_ends`
 
 	q, args, _ := buildProductsFilterSearchQuery(baseQuery, filters, limit, offset)
 
@@ -166,10 +170,12 @@ func (s PgProductStore) ListByIDS(ids []int64) ([]*model.Product, *model.AppErr)
 	 c.logo AS category_logo,
 	 c.created_at AS category_created_at,
    c.updated_at AS category_updated_at
-   FROM public.product p
+	 FROM public.product p
+	 LEFT JOIN product_pricing pp ON p.id = pp.product_id
    LEFT JOIN brand b ON p.brand_id = b.id
-   LEFT JOIN category c ON p.category_id = c.id
-   WHERE p.id IN (?)`, ids)
+	 LEFT JOIN category c ON p.category_id = c.id
+	 WHERE CURRENT_TIMESTAP BETWEEN pp.sale_starts AND pp.sale_ends
+   AND p.id IN (?)`, ids)
 
 	if err != nil {
 		return nil, model.NewAppErr("PgProductStore.ListByIDS", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProducts, http.StatusInternalServerError, nil)
@@ -190,7 +196,7 @@ func (s PgProductStore) ListByIDS(ids []int64) ([]*model.Product, *model.AppErr)
 
 // Update updates the product
 func (s PgProductStore) Update(id int64, p *model.Product) (*model.Product, *model.AppErr) {
-	q := `UPDATE public.product SET name=:name, brand_id=:brand_id, category_id=:category_id, slug=:slug, image_url=:image_url, description=:description, price=:price, in_stock=:in_stock, sku=:sku, is_featured=:is_featured, updated_at=:updated_at WHERE id=:id`
+	q := `UPDATE public.product SET name=:name, brand_id=:brand_id, category_id=:category_id, slug=:slug, image_url=:image_url, description=:description, in_stock=:in_stock, sku=:sku, is_featured=:is_featured, updated_at=:updated_at WHERE id=:id`
 	if _, err := s.db.NamedExec(q, p); err != nil {
 		return nil, model.NewAppErr("PgProductStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateProduct, http.StatusInternalServerError, nil)
 	}
@@ -317,13 +323,13 @@ func buildProductsFilterSearchQuery(queryString string, filters map[string][]str
 	min, minOk := basic["price_min"]
 	max, maxOk := basic["price_max"]
 	if minOk && maxOk {
-		query += " AND (p.price >= ? AND p.price <= ?)\n"
+		query += " AND (pp.price >= ? AND pp.price <= ?)\n"
 		args = append(args, min[0], max[0])
 	} else if minOk && !maxOk {
-		query += " AND p.price >= ?\n"
+		query += " AND pp.price >= ?\n"
 		args = append(args, min[0])
 	} else if !minOk && maxOk {
-		query += " AND p.price <= ?\n"
+		query += " AND pp.price <= ?\n"
 		args = append(args, max[0])
 	}
 
@@ -424,4 +430,28 @@ func buildProductsFilterSearchQuery(queryString string, filters map[string][]str
 	builtQuery = sqlx.Rebind(sqlx.DOLLAR, builtQuery)
 
 	return builtQuery, builtQueryArgs, nil
+}
+
+// InsertPricing inserts the price info into product_pricing
+func (s PgProductStore) InsertPricing(pricing *model.ProductPricing) (*model.ProductPricing, *model.AppErr) {
+	q := `INSERT INTO public.brand(product_id, price, sale_starts, sale_ends) VALUES(:product_id, :price, :sale_starts, :sale_ends) RETURNING id`
+
+	var id int64
+	rows, err := s.db.NamedQuery(q, pricing)
+	if err != nil {
+		return nil, model.NewAppErr("PgProductStore.InsertPricing", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveBrand, http.StatusInternalServerError, nil)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		rows.Scan(&id)
+	}
+	if err := rows.Err(); err != nil {
+		if IsUniqueConstraintViolationError(err) {
+			return nil, model.NewAppErr("PgProductStore.InsertPricing", model.ErrConflict, locale.GetUserLocalizer("en"), msgUniqueConstraintBrand, http.StatusInternalServerError, nil)
+		}
+		return nil, model.NewAppErr("PgProductStore.InsertPricing", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveBrand, http.StatusInternalServerError, nil)
+	}
+
+	pricing.ID = id
+	return pricing, nil
 }

@@ -40,16 +40,18 @@ func (a *API) createCategory(w http.ResponseWriter, r *http.Request) {
 
 	mpf := r.MultipartForm
 	model.SchemaDecoder.IgnoreUnknownKeys(true)
+	properties := mpf.Value["properties"][0]
+	fh := mpf.File["logo"][0]
 
-	var c model.Category
-	if err := model.SchemaDecoder.Decode(&c, mpf.Value); err != nil {
+	c := &model.Category{}
+	if err := model.SchemaDecoder.Decode(c, mpf.Value); err != nil {
 		respondError(w, model.NewAppErr("createCategory", model.ErrInternal, locale.GetUserLocalizer("en"), msgCategoryMultipartErr, http.StatusInternalServerError, nil))
 		return
 	}
 
-	fh := mpf.File["logo"][0]
+	c.SetProperties(properties)
 
-	category, cErr := a.app.CreateCategory(&c, fh)
+	category, cErr := a.app.CreateCategory(c, fh)
 	if cErr != nil {
 		respondError(w, cErr)
 		return

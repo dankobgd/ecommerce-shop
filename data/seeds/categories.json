@@ -4,132 +4,451 @@
     "slug": "tshirts",
     "description": "tshirts description",
     "is_featured": true,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407627/ecommerce/seeds/tshirt.jpg"
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407627/ecommerce/seeds/tshirt.jpg",
+    "properties": [
+      {
+        "name": "size",
+        "label": "Size",
+        "type": "text",
+        "importance": "1",
+        "filterable": true
+      },
+      {
+        "name": "color",
+        "label": "Color",
+        "type": "text",
+        "importance": "2",
+        "filterable": true
+      },
+      {
+        "name": "theme",
+        "label": "Theme",
+        "type": "text",
+        "importance": "3",
+        "filterable": true
+      },
+      {
+        "name": "fit",
+        "label": "Fit",
+        "type": "text",
+        "importance": "4",
+        "filterable": true
+      }
+    ]
   },
   {
     "name": "shirts",
     "slug": "shirts",
     "description": "shirts description",
     "is_featured": false,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407618/ecommerce/seeds/shirt.jpg"
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407618/ecommerce/seeds/shirt.jpg",
+    "properties": [
+      {
+        "name": "size",
+        "label": "Size",
+        "type": "text",
+        "importance": "1",
+        "filterable": true
+      },
+      {
+        "name": "color",
+        "label": "Color",
+        "type": "text",
+        "importance": "2",
+        "filterable": true
+      },
+      {
+        "name": "theme",
+        "label": "Theme",
+        "type": "text",
+        "importance": "3",
+        "filterable": true
+      },
+      {
+        "name": "fit",
+        "label": "Fit",
+        "type": "text",
+        "importance": "4",
+        "filterable": true
+      }
+    ]
   },
   {
     "name": "shoes",
     "slug": "shoes",
     "description": "shoes description",
     "is_featured": false,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407624/ecommerce/seeds/shoes.jpg"
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407624/ecommerce/seeds/shoes.jpg",
+    "properties": [
+      {
+        "name": "size",
+        "label": "Size",
+        "type": "text",
+        "importance": "1",
+        "filterable": true
+      },
+      {
+        "name": "color",
+        "label": "Color",
+        "type": "text",
+        "importance": "2",
+        "filterable": true
+      },
+      {
+        "name": "theme",
+        "label": "Theme",
+        "type": "text",
+        "importance": "3",
+        "filterable": true
+      }
+    ]
   },
   {
     "name": "sneakers",
     "slug": "sneakers",
     "description": "sneakers description",
     "is_featured": true,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407628/ecommerce/seeds/sneakers.jpg"
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407628/ecommerce/seeds/sneakers.jpg",
+    "properties": [
+      {
+        "name": "size",
+        "label": "Size",
+        "type": "text",
+        "importance": "1",
+        "filterable": true
+      },
+      {
+        "name": "color",
+        "label": "Color",
+        "type": "text",
+        "importance": "2",
+        "filterable": true
+      },
+      {
+        "name": "theme",
+        "label": "Theme",
+        "type": "text",
+        "importance": "3",
+        "filterable": true
+      },
+      {
+        "name": "lace_size",
+        "label": "Lace size",
+        "type": "text",
+        "importance": "4",
+        "filterable": true
+      }
+    ]
   },
   {
     "name": "boots",
     "slug": "boots",
     "description": "boots description",
     "is_featured": false,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407608/ecommerce/seeds/boots.jpg"
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407608/ecommerce/seeds/boots.jpg",
+    "properties": [
+      {
+        "name": "size",
+        "label": "Size",
+        "type": "text",
+        "importance": "1",
+        "filterable": true
+      },
+      {
+        "name": "color",
+        "label": "Color",
+        "type": "text",
+        "importance": "2",
+        "filterable": true
+      },
+      {
+        "name": "theme",
+        "label": "Theme",
+        "type": "text",
+        "importance": "3",
+        "filterable": true
+      }
+    ]
   },
   {
     "name": "jackets",
     "slug": "jackets",
     "description": "jackets description",
     "is_featured": false,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407615/ecommerce/seeds/jacket.jpg"
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407615/ecommerce/seeds/jacket.jpg",
+    "properties": [
+      {
+        "name": "size",
+        "label": "Size",
+        "type": "text",
+        "importance": "1",
+        "filterable": true
+      },
+      {
+        "name": "color",
+        "label": "Color",
+        "type": "text",
+        "importance": "2",
+        "filterable": true
+      },
+      {
+        "name": "theme",
+        "label": "Theme",
+        "type": "text",
+        "importance": "3",
+        "filterable": true
+      }
+    ]
   },
   {
     "name": "shorts",
     "slug": "shorts",
     "description": "shorts description",
     "is_featured": false,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407620/ecommerce/seeds/shorts.jpg"
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407620/ecommerce/seeds/shorts.jpg",
+    "properties": [
+      {
+        "name": "size",
+        "label": "Size",
+        "type": "text",
+        "importance": "1",
+        "filterable": true
+      },
+      {
+        "name": "color",
+        "label": "Color",
+        "type": "text",
+        "importance": "2",
+        "filterable": true
+      },
+      {
+        "name": "theme",
+        "label": "Theme",
+        "type": "text",
+        "importance": "3",
+        "filterable": true
+      }
+    ]
   },
   {
     "name": "jeans",
     "slug": "jeans",
     "description": "jeans description",
     "is_featured": true,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407619/ecommerce/seeds/jeans.jpg"
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407619/ecommerce/seeds/jeans.jpg",
+    "properties": [
+      {
+        "name": "size",
+        "label": "Size",
+        "type": "text",
+        "importance": "1",
+        "filterable": true
+      },
+      {
+        "name": "fit",
+        "label": "Fit",
+        "type": "text",
+        "importance": "2",
+        "filterable": true
+      },
+      {
+        "name": "color",
+        "label": "Color",
+        "type": "text",
+        "importance": "3",
+        "filterable": true
+      }
+    ]
   },
   {
     "name": "sweatpants",
     "slug": "sweatpants",
     "description": "sweatpants description",
     "is_featured": false,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407625/ecommerce/seeds/sweatpants.jpg"
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407625/ecommerce/seeds/sweatpants.jpg",
+    "properties": [
+      {
+        "name": "size",
+        "label": "Size",
+        "type": "text",
+        "importance": "1",
+        "filterable": true
+      },
+      {
+        "name": "color",
+        "label": "Color",
+        "type": "text",
+        "importance": "2",
+        "filterable": true
+      },
+      {
+        "name": "theme",
+        "label": "Theme",
+        "type": "text",
+        "importance": "3",
+        "filterable": true
+      }
+    ]
   },
   {
     "name": "balls",
     "slug": "balls",
     "description": "balls description",
     "is_featured": false,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407606/ecommerce/seeds/ball.jpg"
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407606/ecommerce/seeds/ball.jpg",
+    "properties": [
+      {
+        "name": "type",
+        "label": "Type",
+        "type": "text",
+        "importance": "1",
+        "filterable": true
+      },
+      {
+        "name": "color",
+        "label": "Color",
+        "type": "text",
+        "importance": "2",
+        "filterable": true
+      }
+    ]
   },
   {
     "name": "backpacks",
     "slug": "backpacks",
     "description": "backpacks description",
     "is_featured": true,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407611/ecommerce/seeds/backpack.jpg"
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407611/ecommerce/seeds/backpack.jpg",
+    "properties": [
+      {
+        "name": "size",
+        "label": "Size",
+        "type": "text",
+        "importance": "1",
+        "filterable": true
+      },
+      {
+        "name": "color",
+        "label": "Color",
+        "type": "text",
+        "importance": "2",
+        "filterable": true
+      },
+      {
+        "name": "theme",
+        "label": "Theme",
+        "type": "text",
+        "importance": "3",
+        "filterable": true
+      }
+    ]
   },
   {
     "name": "rackets",
     "slug": "rackets",
     "description": "rackets description",
     "is_featured": false,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407617/ecommerce/seeds/racket.jpg"
-  },
-  {
-    "name": "bags",
-    "slug": "bags",
-    "description": "bags description",
-    "is_featured": false,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407608/ecommerce/seeds/bag.jpg"
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407617/ecommerce/seeds/racket.jpg",
+    "properties": [
+      {
+        "name": "size",
+        "label": "Size",
+        "type": "text",
+        "importance": "1",
+        "filterable": true
+      },
+      {
+        "name": "type",
+        "label": "Type",
+        "type": "text",
+        "importance": "2",
+        "filterable": true
+      }
+    ]
   },
   {
     "name": "skateboards",
     "slug": "skateboards",
     "description": "skateboards description",
     "is_featured": true,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407624/ecommerce/seeds/skateboard.jpg"
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407624/ecommerce/seeds/skateboard.jpg",
+    "properties": [
+      {
+        "name": "color",
+        "label": "Color",
+        "type": "text",
+        "importance": "1",
+        "filterable": true
+      }
+    ]
   },
   {
     "name": "rollerblades",
     "slug": "rollerblades",
     "description": "rollerblades description",
     "is_featured": true,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407617/ecommerce/seeds/rollerblades.jpg"
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407617/ecommerce/seeds/rollerblades.jpg",
+    "properties": [
+      {
+        "name": "color",
+        "label": "Color",
+        "type": "text",
+        "importance": "1",
+        "filterable": true
+      }
+    ]
   },
   {
     "name": "bycicles",
     "slug": "bycicles",
     "description": "bycicles description",
     "is_featured": true,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407607/ecommerce/seeds/bycicle.jpg"
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407607/ecommerce/seeds/bycicle.jpg",
+    "properties": [
+      {
+        "name": "gears",
+        "label": "Gears",
+        "type": "text",
+        "importance": "1",
+        "filterable": true
+      },
+      {
+        "name": "size",
+        "label": "Size",
+        "type": "text",
+        "importance": "2",
+        "filterable": true
+      },
+      {
+        "name": "color",
+        "label": "Color",
+        "type": "text",
+        "importance": "3",
+        "filterable": true
+      }
+    ]
   },
   {
     "name": "hats",
     "slug": "hats",
     "description": "hats description",
     "is_featured": false,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407611/ecommerce/seeds/hat.jpg"
-  },
-  {
-    "name": "helmets",
-    "slug": "helmets",
-    "description": "helmets description",
-    "is_featured": false,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407615/ecommerce/seeds/helmet.jpg"
-  },
-  {
-    "name": "suitcases",
-    "slug": "suitcases",
-    "description": "suitcases description",
-    "is_featured": false,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407622/ecommerce/seeds/suitcase.jpg"
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407611/ecommerce/seeds/hat.jpg",
+    "properties": [
+      {
+        "name": "color",
+        "label": "Color",
+        "type": "text",
+        "importance": "1",
+        "filterable": true
+      },
+      {
+        "name": "theme",
+        "label": "Theme",
+        "type": "text",
+        "importance": "2",
+        "filterable": true
+      }
+    ]
   }
 ]

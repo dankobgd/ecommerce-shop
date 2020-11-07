@@ -1,0 +1,42 @@
+[
+  {
+    "promo_code": "FIRST_TIMER",
+    "type": "percentage",
+    "amount": 70,
+    "description": "First time usage bonus",
+    "starts_at": "2020-11-01T00:00:00.000Z",
+    "ends_at": "2021-05-10T00:00:00.0004Z"
+  },
+  {
+    "promo_code": "2021",
+    "type": "fixed",
+    "amount": 100,
+    "description": "New year's bonus",
+    "starts_at": "2020-12-25T00:00:00.000Z",
+    "ends_at": "2021-01-15T00:00:00.0004Z"
+  },
+  {
+    "promo_code": "WINTER_30",
+    "type": "percentage",
+    "amount": 30,
+    "description": "Winter sale 30%",
+    "starts_at": "2020-11-15T00:00:00.000Z",
+    "ends_at": "2021-02-01T00:00:00.0004Z"
+  },
+  {
+    "promo_code": "SUMMER_2021",
+    "type": "percentage",
+    "amount": 40,
+    "description": "Summer sale 2021",
+    "starts_at": "2021-05-01T00:00:00.000Z",
+    "ends_at": "2021-07-20T00:00:00.0004Z"
+  },
+  {
+    "promo_code": "SPECIAL_50",
+    "type": "fixed",
+    "amount": 50,
+    "description": "Special 50$ bonus",
+    "starts_at": "2020-11-05T00:00:00.000Z",
+    "ends_at": "2021-02-15T00:00:00.0004Z"
+  }
+]

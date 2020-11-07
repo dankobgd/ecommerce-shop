@@ -70,6 +70,7 @@ type ProductStore interface {
 	Delete(id int64) *model.AppErr
 	GetReviews(id int64) ([]*model.Review, *model.AppErr)
 	Search(query string) ([]*model.Product, *model.AppErr)
+	InsertPricing(pricing *model.ProductPricing) (*model.ProductPricing, *model.AppErr)
 }
 
 // ProductTagStore is the product tag store
