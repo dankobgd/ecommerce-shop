@@ -28,36 +28,31 @@ var (
 )
 
 // BulkInsert multiple tags in the db
-func (s PgProductTagStore) BulkInsert(tags []*model.ProductTag) ([]int64, *model.AppErr) {
-	q := `INSERT INTO public.product_tag(tag_id, product_id) VALUES(:tag_id, :product_id) RETURNING id`
+func (s PgProductTagStore) BulkInsert(tags []*model.ProductTag) *model.AppErr {
+	if _, err := s.db.NamedExec(`INSERT INTO public.product_tag(tag_id, product_id) VALUES(:tag_id, :product_id)`, tags); err != nil {
+		return model.NewAppErr("PgProductTagStore.BulkInsert", model.ErrInternal, locale.GetUserLocalizer("en"), msgBUlkInsertTags, http.StatusInternalServerError, nil)
+	}
+	return nil
+}
 
-	var ids []int64
-	rows, err := s.db.NamedQuery(q, tags)
-	if err != nil {
-		return nil, model.NewAppErr("PgProductTagStore.BulkInsertTags", model.ErrInternal, locale.GetUserLocalizer("en"), msgBUlkInsertTags, http.StatusInternalServerError, nil)
+// Save multiple tags in the db
+func (s PgProductTagStore) Save(pid int64, pt *model.ProductTag) (*model.ProductTag, *model.AppErr) {
+	if _, err := s.db.NamedExec(`INSERT INTO public.product_tag(tag_id, product_id) VALUES(:tag_id, :product_id)`, map[string]interface{}{"tag_id": pt.TagID, "product_id": pid}); err != nil {
+		return nil, model.NewAppErr("PgProductTagStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgBUlkInsertTags, http.StatusInternalServerError, nil)
 	}
-	defer rows.Close()
-	for rows.Next() {
-		var id int64
-		rows.Scan(&id)
-		ids = append(ids, id)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, model.NewAppErr("PgProductTagStore.BulkInsertTags", model.ErrInternal, locale.GetUserLocalizer("en"), msgBUlkInsertTags, http.StatusInternalServerError, nil)
-	}
-
-	return ids, nil
+	pt.ProductID = &pid
+	return pt, nil
 }
 
 // Get gets single tag by id
-func (s PgProductTagStore) Get(id int64) (*model.ProductTag, *model.AppErr) {
+func (s PgProductTagStore) Get(pid, tid int64) (*model.ProductTag, *model.AppErr) {
 	q := `SELECT product_tag.*,
 	tag.name AS name,
 	tag.slug AS slug,
 	tag.description AS description
-	FROM public.product_tag LEFT JOIN public.tag on product_tag.tag_id = tag.id WHERE product_tag.product_id = $1`
+	FROM public.product_tag LEFT JOIN public.tag on product_tag.tag_id = tag.id WHERE product_tag.product_id = $1 AND product_tag.tag_id = $2`
 	var tag model.ProductTag
-	if err := s.db.Get(&tag, q, id); err != nil {
+	if err := s.db.Get(&tag, q, pid, tid); err != nil {
 		return nil, model.NewAppErr("PgProductTagStore.Get", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProductTag, http.StatusInternalServerError, nil)
 	}
 	return &tag, nil
@@ -78,17 +73,17 @@ func (s PgProductTagStore) GetAll(pid int64) ([]*model.ProductTag, *model.AppErr
 }
 
 // Update updates the tag
-func (s PgProductTagStore) Update(id int64, pt *model.ProductTag) (*model.ProductTag, *model.AppErr) {
-	q := `UPDATE public.product_tag SET tag_id=:tag_id WHERE id=:id`
-	if _, err := s.db.NamedExec(q, pt); err != nil {
+func (s PgProductTagStore) Update(pid, tid int64, pt *model.ProductTag) (*model.ProductTag, *model.AppErr) {
+	q := `UPDATE public.product_tag SET tag_id=:tag_id WHERE product_id=:product_id AND tag_id=:tid`
+	if _, err := s.db.NamedExec(q, map[string]interface{}{"product_id": pid, "tag_id": pt.TagID, "tid": tid}); err != nil {
 		return nil, model.NewAppErr("PgProductTagStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateProductTag, http.StatusInternalServerError, nil)
 	}
 	return pt, nil
 }
 
 // Delete deletes the tag
-func (s PgProductTagStore) Delete(id int64) *model.AppErr {
-	if _, err := s.db.NamedExec(`DELETE FROM public.product_tag WHERE id=:id`, map[string]interface{}{"id": id}); err != nil {
+func (s PgProductTagStore) Delete(pid, tid int64) *model.AppErr {
+	if _, err := s.db.NamedExec(`DELETE FROM public.product_tag WHERE product_id=:product_id AND tag_id=:tag_id`, map[string]interface{}{"product_id": pid, "tag_id": tid}); err != nil {
 		return model.NewAppErr("PgProductTagStore.Delete", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteProductTag, http.StatusInternalServerError, nil)
 	}
 	return nil

@@ -18,8 +18,7 @@ var (
 
 // ProductTag is the product tag
 type ProductTag struct {
-	ID        *int64 `json:"-" db:"id"`
-	TagID     *int64 `json:"-" db:"tag_id"`
+	TagID     *int64 `json:"tag_id" db:"tag_id"`
 	ProductID *int64 `json:"product_id" db:"product_id"`
 	*Tag
 }
@@ -27,6 +26,13 @@ type ProductTag struct {
 // ProductTagPatch is the patch for product tag
 type ProductTagPatch struct {
 	TagID *int64 `json:"tag_id"`
+}
+
+// ProductTagFromJSON decodes the input and returns the ProductTag
+func ProductTagFromJSON(data io.Reader) (*ProductTag, error) {
+	var pt *ProductTag
+	err := json.NewDecoder(data).Decode(&pt)
+	return pt, err
 }
 
 // Patch patches the product tag
@@ -48,14 +54,11 @@ func (pt *ProductTag) Validate() *AppErr {
 	var errs ValidationErrors
 	l := locale.GetUserLocalizer("en")
 
-	if pt.ID != nil {
-		errs.Add(Invalid("tag.id", l, msgValidateProductTagID))
-	}
 	if pt.TagID != nil {
-		errs.Add(Invalid("tag.product_id", l, msgValidateProductTagTagID))
+		errs.Add(Invalid("tag_id", l, msgValidateProductTagTagID))
 	}
 	if pt.ProductID != nil {
-		errs.Add(Invalid("tag.product_id", l, msgValidateProductTagProductID))
+		errs.Add(Invalid("product_id", l, msgValidateProductTagProductID))
 	}
 
 	if !errs.IsZero() {

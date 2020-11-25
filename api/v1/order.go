@@ -42,7 +42,7 @@ func (a *API) createOrder(w http.ResponseWriter, r *http.Request) {
 
 	subtotal := 0
 	for i, p := range products {
-		subtotal += p.Price * orderData.Items[i].Quantity
+		subtotal += p.Pricing.Price * orderData.Items[i].Quantity
 	}
 
 	order, err := a.app.CreateOrder(uid, orderData, subtotal)
@@ -58,7 +58,7 @@ func (a *API) createOrder(w http.ResponseWriter, r *http.Request) {
 			OrderID:       order.ID,
 			ProductID:     p.ID,
 			Quantity:      orderData.Items[i].Quantity,
-			OriginalPrice: p.Price,
+			OriginalPrice: p.Pricing.Price,
 			OriginalSKU:   p.SKU,
 		}
 

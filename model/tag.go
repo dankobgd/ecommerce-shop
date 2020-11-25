@@ -84,22 +84,22 @@ func (t *Tag) Validate() *AppErr {
 	l := locale.GetUserLocalizer("en")
 
 	if t.ID != 0 {
-		errs.Add(Invalid("tag.id", l, msgValidateTagID))
+		errs.Add(Invalid("id", l, msgValidateTagID))
 	}
 	if t.Name == "" {
-		errs.Add(Invalid("tag.name", l, msgValidateTagName))
+		errs.Add(Invalid("name", l, msgValidateTagName))
 	}
 	if t.Slug == "" {
-		errs.Add(Invalid("tag.slug", l, msgValidateTagSlug))
+		errs.Add(Invalid("slug", l, msgValidateTagSlug))
 	}
 	if t.Description == "" {
-		errs.Add(Invalid("tag.description", l, msgValidateTagDescription))
+		errs.Add(Invalid("description", l, msgValidateTagDescription))
 	}
 	if t.CreatedAt.IsZero() {
-		errs.Add(Invalid("tag.created_at", l, msgValidateTagCrAt))
+		errs.Add(Invalid("created_at", l, msgValidateTagCrAt))
 	}
 	if t.UpdatedAt.IsZero() {
-		errs.Add(Invalid("tag.updated_at", l, msgValidateTagUpAt))
+		errs.Add(Invalid("updated_at", l, msgValidateTagUpAt))
 	}
 
 	if !errs.IsZero() {

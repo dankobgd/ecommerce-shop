@@ -19,9 +19,11 @@ var (
 
 // CreateCategory creates the new category in the system
 func (a *App) CreateCategory(c *model.Category, fh *multipart.FileHeader) (*model.Category, *model.AppErr) {
-	if fh.Size > model.FileUploadSizeLimit {
-		return nil, model.NewAppErr("CreateCategory", model.ErrInternal, locale.GetUserLocalizer("en"), msgCategorySizeExceeded, http.StatusInternalServerError, nil)
+	c.PreSave()
+	if err := c.Validate(fh); err != nil {
+		return nil, err
 	}
+
 	thumbnail, err := fh.Open()
 	if err != nil {
 		return nil, model.NewAppErr("CreateCategory", model.ErrInternal, locale.GetUserLocalizer("en"), msgCategorySizeExceeded, http.StatusInternalServerError, nil)
@@ -31,16 +33,11 @@ func (a *App) CreateCategory(c *model.Category, fh *multipart.FileHeader) (*mode
 		return nil, model.NewAppErr("CreateCategory", model.ErrInternal, locale.GetUserLocalizer("en"), msgCategoryFileErr, http.StatusInternalServerError, nil)
 	}
 
-	c.PreSave()
-	if err := c.Validate(); err != nil {
-		return nil, err
-	}
-
 	details, uErr := a.UploadImage(bytes.NewBuffer(b), fh.Filename)
 	if uErr != nil {
 		return nil, uErr
 	}
-	c.SetLogoURL(details.SecureURL)
+	c.SetLogoDetails(details)
 
 	category, cErr := a.Srv().Store.Category().Save(c)
 	if cErr != nil {
@@ -52,18 +49,49 @@ func (a *App) CreateCategory(c *model.Category, fh *multipart.FileHeader) (*mode
 }
 
 // PatchCategory patches the category
-func (a *App) PatchCategory(cid int64, patch *model.CategoryPatch) (*model.Category, *model.AppErr) {
+func (a *App) PatchCategory(cid int64, patch *model.CategoryPatch, fh *multipart.FileHeader) (*model.Category, *model.AppErr) {
+	if err := patch.Validate(fh); err != nil {
+		return nil, err
+	}
+
 	old, err := a.Srv().Store.Category().Get(cid)
 	if err != nil {
 		return nil, err
 	}
 
+	oldPublicID := old.LogoPublicID
+
+	if fh != nil {
+		thumbnail, err := fh.Open()
+		if err != nil {
+			return nil, model.NewAppErr("patchCategory", model.ErrInternal, locale.GetUserLocalizer("en"), msgCategorySizeExceeded, http.StatusInternalServerError, nil)
+		}
+		b, err := ioutil.ReadAll(thumbnail)
+		if err != nil {
+			return nil, model.NewAppErr("patchCategory", model.ErrInternal, locale.GetUserLocalizer("en"), msgCategoryFileErr, http.StatusInternalServerError, nil)
+		}
+
+		details, uErr := a.UploadImage(bytes.NewBuffer(b), fh.Filename)
+		if uErr != nil {
+			return nil, uErr
+		}
+
+		old.SetLogoDetails(details)
+	}
+
 	old.Patch(patch)
 	old.PreUpdate()
+
 	ucat, err := a.Srv().Store.Category().Update(cid, old)
 	if err != nil {
 		return nil, err
 	}
+
+	defer func() {
+		if err := a.DeleteImage(oldPublicID); err != nil {
+			a.Log().Error(err.Error(), zlog.Err(err))
+		}
+	}()
 
 	return ucat, nil
 }
@@ -80,7 +108,23 @@ func (a *App) GetCategories(limit, offset int) ([]*model.Category, *model.AppErr
 
 // DeleteCategory hard deletes the category from the db
 func (a *App) DeleteCategory(cid int64) *model.AppErr {
-	return a.Srv().Store.Category().Delete(cid)
+	old, e := a.Srv().Store.Category().Get(cid)
+	if e != nil {
+		return e
+	}
+
+	err := a.Srv().Store.Category().Delete(cid)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err := a.DeleteImage(old.LogoPublicID); err != nil {
+			a.Log().Error(err.Error(), zlog.Err(err))
+		}
+	}()
+
+	return nil
 }
 
 // GetFeaturedCategories returns featured categories

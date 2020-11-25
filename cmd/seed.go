@@ -106,15 +106,15 @@ func seedDatabaseFn(command *cobra.Command, args []string) error {
 	if err := seedTags(); err != nil {
 		return err
 	}
-	// if err := seedProducts(); err != nil {
-	// 	return err
-	// }
-	// if err := seedReviews(); err != nil {
-	// 	return err
-	// }
-	// if err := seedPromotions(); err != nil {
-	// 	return err
-	// }
+	if err := seedProducts(); err != nil {
+		return err
+	}
+	if err := seedReviews(); err != nil {
+		return err
+	}
+	if err := seedPromotions(); err != nil {
+		return err
+	}
 	cmdApp.Log().Info("database seed completed successfully")
 	return nil
 }
@@ -271,22 +271,23 @@ func seedPromotions() error {
 }
 
 type productSeed struct {
-	ID          int64          `json:"id"`
-	BrandID     int64          `json:"brand_id"`
-	CategoryID  int64          `json:"category_id"`
-	Name        string         `json:"name"`
-	Slug        string         `json:"slug"`
-	ImageURL    string         `json:"image_url"`
-	Description string         `json:"description"`
-	Price       int            `json:"price"`
-	InStock     bool           `json:"in_stock"`
-	SKU         string         `json:"sku"`
-	IsFeatured  bool           `json:"is_featured"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
-	Tags        []int64        `json:"tags"`
-	Images      []string       `json:"images"`
-	Properties  types.JSONText `json:"properties"`
+	ID            int64          `json:"id"`
+	BrandID       int64          `json:"brand_id"`
+	CategoryID    int64          `json:"category_id"`
+	Name          string         `json:"name"`
+	Slug          string         `json:"slug"`
+	ImageURL      string         `json:"image_url"`
+	ImagePublicID string         `json:"image_public_id"`
+	Description   string         `json:"description"`
+	Price         int            `json:"price"`
+	InStock       bool           `json:"in_stock"`
+	SKU           string         `json:"sku"`
+	IsFeatured    bool           `json:"is_featured"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+	Tags          []int64        `json:"tags"`
+	Images        []string       `json:"images"`
+	Properties    types.JSONText `json:"properties"`
 }
 
 type productData struct {
@@ -322,8 +323,8 @@ func seedProducts() error {
 			InStock:     x.InStock,
 			SKU:         x.SKU,
 			IsFeatured:  x.IsFeatured,
-			Properties:  x.Properties,
-			ProductPricing: &model.ProductPricing{
+			Properties:  &x.Properties,
+			Pricing: &model.ProductPricing{
 				Price: x.Price,
 			},
 		}
@@ -340,6 +341,7 @@ func seedProducts() error {
 			now := time.Now()
 			imgList = append(imgList, &model.ProductImage{
 				URL:       model.NewString(img),
+				PublicID:  model.NewString(""),
 				CreatedAt: &now,
 				UpdatedAt: &now,
 			})
@@ -365,7 +367,7 @@ func seedProducts() error {
 			tag.ProductID = &newProd.ID
 		}
 		if len(item.Tags) > 0 {
-			if _, err := cmdApp.Srv().Store.ProductTag().BulkInsert(item.Tags); err != nil {
+			if err := cmdApp.Srv().Store.ProductTag().BulkInsert(item.Tags); err != nil {
 				cmdApp.Log().Error("could not seed bulk insert tags", zlog.String("err: ", err.Message))
 			}
 		}
@@ -375,7 +377,7 @@ func seedProducts() error {
 			img.PreSave()
 		}
 		if len(item.Imgs) > 0 {
-			if _, err := cmdApp.Srv().Store.ProductImage().BulkInsert(item.Imgs); err != nil {
+			if err := cmdApp.Srv().Store.ProductImage().BulkInsert(item.Imgs); err != nil {
 				cmdApp.Log().Error("could not seed bulk insert images", zlog.String("err: ", err.Message))
 			}
 		}

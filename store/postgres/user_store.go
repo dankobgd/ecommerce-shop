@@ -188,6 +188,7 @@ func (s PgUserStore) GetWishlist(userID int64) ([]*model.Product, *model.AppErr)
 	c.slug AS category_slug,
 	c.description AS category_description,
 	c.logo AS category_logo,
+	c.properties AS category_properties,
 	c.created_at AS category_created_at,
 	c.updated_at AS category_updated_at
 	FROM public.product p

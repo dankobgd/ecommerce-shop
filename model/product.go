@@ -3,16 +3,19 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"mime/multipart"
 	"time"
 
+	"github.com/dankobgd/ecommerce-shop/gocloudinary"
+	"github.com/dankobgd/ecommerce-shop/utils/is"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
 	"github.com/dankobgd/ecommerce-shop/utils/random"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
-// FileUploadSizeLimit for image upload
-const FileUploadSizeLimit int64 = 10 << 20
+// FileUploadSizeLimit for image upload - 3MB
+const FileUploadSizeLimit int64 = 3 << 20
 
 // error msgs
 var (
@@ -34,42 +37,56 @@ var (
 	msgValidateProductPricingPrice      = &i18n.Message{ID: "model.product_price.validate.price_app_error", Other: "invalid product price amount"}
 	msgValidateProductPricingSaleStarts = &i18n.Message{ID: "model.product_price.validate.sale_starts.app_error", Other: "invalid product price sale starts"}
 	msgValidateProductPricingSaleEnds   = &i18n.Message{ID: "model.product_price.validate.sale_ends.app_error", Other: "invalid product price sale ends"}
+	msgValidateProductProperties        = &i18n.Message{ID: "model.product.validate.properties.app_error", Other: "invalid json provided as properties"}
 )
 
 // Product represents the shop product model
 type Product struct {
 	TotalRecordsCount
-	ID          int64          `json:"id" db:"id" schema:"-"`
-	BrandID     int64          `json:"-" db:"brand_id" schema:"brand_id"`
-	CategoryID  int64          `json:"-" db:"category_id" schema:"category_id"`
-	Name        string         `json:"name" db:"name" schema:"name"`
-	Slug        string         `json:"slug" db:"slug" schema:"slug"`
-	ImageURL    string         `json:"image_url" db:"image_url" schema:"-"`
-	Description string         `json:"description" db:"description" schema:"description"`
-	InStock     bool           `json:"in_stock" db:"in_stock" schema:"in_stock"`
-	SKU         string         `json:"sku" db:"sku" schema:"-"`
-	IsFeatured  bool           `json:"is_featured" db:"is_featured" schema:"is_featured"`
-	CreatedAt   time.Time      `json:"created_at" db:"created_at" schema:"-"`
-	UpdatedAt   time.Time      `json:"updated_at" db:"updated_at" schema:"-"`
-	Properties  types.JSONText `json:"properties" schema:"-"`
+	ID             int64           `json:"id" db:"id" schema:"-"`
+	BrandID        int64           `json:"-" db:"brand_id" schema:"brand_id"`
+	CategoryID     int64           `json:"-" db:"category_id" schema:"category_id"`
+	Name           string          `json:"name" db:"name" schema:"name"`
+	Slug           string          `json:"slug" db:"slug" schema:"slug"`
+	ImageURL       string          `json:"image_url" db:"image_url" schema:"-"`
+	ImagePublicID  string          `json:"image_public_id" db:"image_public_id" schema:"-"`
+	Description    string          `json:"description" db:"description" schema:"description"`
+	InStock        bool            `json:"in_stock" db:"in_stock" schema:"in_stock"`
+	SKU            string          `json:"sku" db:"sku" schema:"-"`
+	IsFeatured     bool            `json:"is_featured" db:"is_featured" schema:"is_featured"`
+	CreatedAt      time.Time       `json:"created_at" db:"created_at" schema:"-"`
+	UpdatedAt      time.Time       `json:"updated_at" db:"updated_at" schema:"-"`
+	Properties     *types.JSONText `json:"properties" db:"properties" schema:"-"`
+	PropertiesText *string         `json:"-" schema:"properties"`
 
-	*ProductPricing `db:"price"`
-	Brand           *Brand    `json:"brand"`
-	Category        *Category `json:"category"`
+	Pricing  *ProductPricing `json:"pricing"`
+	Brand    *Brand          `json:"brand"`
+	Category *Category       `json:"category"`
 }
 
 // ProductPatch is the product patch model
 type ProductPatch struct {
-	Name        *string `json:"name"`
-	Slug        *string `json:"slug"`
-	ImageURL    *string `json:"image_url"`
-	Description *string `json:"description"`
-	InStock     *bool   `json:"in_stock"`
-	IsFeatured  *bool   `json:"is_featured"`
+	BrandID        *int64          `json:"brand_id,omitempty" schema:"brand_id"`
+	CategoryID     *int64          `json:"category_id,omitempty" schema:"category_id"`
+	Name           *string         `json:"name,omitempty" schema:"name"`
+	Slug           *string         `json:"slug,omitempty" schema:"slug"`
+	ImageURL       *string         `json:"image_url,omitempty" schema:"-"`
+	ImagePublicID  *string         `json:"image_public_id,omitempty" schema:"-"`
+	Description    *string         `json:"description,omitempty" schema:"description"`
+	InStock        *bool           `json:"in_stock,omitempty" schema:"in_stock"`
+	IsFeatured     *bool           `json:"is_featured,omitempty" schema:"is_featured"`
+	Properties     *types.JSONText `json:"properties,omitempty" schema:"-"`
+	PropertiesText *string         `json:"-" schema:"properties"`
 }
 
 // Patch patches the product fields that are provided
 func (p *Product) Patch(patch *ProductPatch) {
+	if patch.BrandID != nil {
+		p.BrandID = *patch.BrandID
+	}
+	if patch.CategoryID != nil {
+		p.CategoryID = *patch.CategoryID
+	}
 	if patch.Name != nil {
 		p.Name = *patch.Name
 	}
@@ -88,6 +105,9 @@ func (p *Product) Patch(patch *ProductPatch) {
 	if patch.IsFeatured != nil {
 		p.IsFeatured = *patch.IsFeatured
 	}
+	if patch.Properties != nil {
+		p.Properties = patch.Properties
+	}
 }
 
 // ProductPatchFromJSON decodes the input and returns the ProductPatch
@@ -97,14 +117,26 @@ func ProductPatchFromJSON(data io.Reader) (*ProductPatch, error) {
 	return pp, err
 }
 
-// SetImageURL sets the product image url
-func (p *Product) SetImageURL(url string) {
-	p.ImageURL = url
+// SetImageDetails sets the product image_url and public_id
+func (p *Product) SetImageDetails(details *gocloudinary.ResourceDetails) {
+	p.ImageURL = details.SecureURL
+	p.ImagePublicID = details.PublicID
 }
 
-// SetProperties sets the product properties variant
-func (p *Product) SetProperties(properties string) {
-	p.Properties = types.JSONText(properties)
+// SetProperties sets the product properties
+func (p *Product) SetProperties(properties *string) {
+	if properties != nil {
+		props := types.JSONText(*properties)
+		p.Properties = &props
+	}
+}
+
+// SetProperties sets the ProductPatch properties
+func (patch *ProductPatch) SetProperties(properties *string) {
+	if properties != nil {
+		props := types.JSONText(*properties)
+		patch.Properties = &props
+	}
 }
 
 // ProductFromJSON decodes the input and returns the Product
@@ -125,6 +157,7 @@ func (p *Product) PreSave() {
 	p.CreatedAt = time.Now()
 	p.UpdatedAt = p.CreatedAt
 	p.SKU = random.AlphaNumeric(64)
+	p.SetProperties(p.PropertiesText)
 }
 
 // PreUpdate sets the update timestamp
@@ -133,7 +166,7 @@ func (p *Product) PreUpdate() {
 }
 
 // Validate validates the product and returns an error if it doesn't pass criteria
-func (p *Product) Validate() *AppErr {
+func (p *Product) Validate(fh *multipart.FileHeader) *AppErr {
 	var errs ValidationErrors
 	l := locale.GetUserLocalizer("en")
 
@@ -161,6 +194,49 @@ func (p *Product) Validate() *AppErr {
 	if p.UpdatedAt.IsZero() {
 		errs.Add(Invalid("updated_at", l, msgValidateProductUpAt))
 	}
+	if fh == nil {
+		errs.Add(Invalid("image", l, msgValidateProductImage))
+	}
+	if fh != nil && fh.Size > FileUploadSizeLimit {
+		errs.Add(Invalid("image", l, msgValidateProductImageSize))
+	}
+
+	// ideally validate properties against json schema to check for the right keys, values and structure...
+	if p.PropertiesText != nil && !is.ValidJSON(*p.PropertiesText) {
+		errs.Add(Invalid("properties", l, msgValidateProductProperties))
+	}
+
+	if !errs.IsZero() {
+		return NewValidationError("Product", msgInvalidProduct, "", errs)
+	}
+
+	return nil
+}
+
+// Validate validates the product patch and returns an error if it doesn't pass criteria
+func (patch *ProductPatch) Validate(fh *multipart.FileHeader) *AppErr {
+	var errs ValidationErrors
+	l := locale.GetUserLocalizer("en")
+
+	if patch.BrandID != nil && *patch.BrandID == 0 {
+		errs.Add(Invalid("brand_id", l, msgValidateProductBrandID))
+	}
+	if patch.CategoryID != nil && *patch.CategoryID == 0 {
+		errs.Add(Invalid("category_id", l, msgValidateProductCategoryID))
+	}
+	if patch.Name != nil && *patch.Name == "" {
+		errs.Add(Invalid("name", l, msgValidateProductName))
+	}
+	if patch.Slug != nil && *patch.Slug == "" {
+		errs.Add(Invalid("slug", l, msgValidateProductSlug))
+	}
+	if fh != nil && fh.Size > FileUploadSizeLimit {
+		errs.Add(Invalid("image", l, msgValidateProductImageSize))
+	}
+	// ideally validate properties against json schema to check for the right keys, values and structure...
+	if patch.PropertiesText != nil && !is.ValidJSON(*patch.PropertiesText) {
+		errs.Add(Invalid("properties", l, msgValidateProductProperties))
+	}
 
 	if !errs.IsZero() {
 		return NewValidationError("Product", msgInvalidProduct, "", errs)
@@ -171,11 +247,11 @@ func (p *Product) Validate() *AppErr {
 
 // ProductPricing has info about price discounts
 type ProductPricing struct {
-	ID         int64     `json:"-"`
-	ProductID  int64     `json:"-"`
-	Price      int       `json:"price"`
-	SaleStarts time.Time `json:"sale_starts"`
-	SaleEnds   time.Time `json:"sale_ends"`
+	ID         int64     `json:"-" db:"id"`
+	ProductID  int64     `json:"-" db:"product_id"`
+	Price      int       `json:"price" db:"price"`
+	SaleStarts time.Time `json:"sale_starts" db:"sale_starts"`
+	SaleEnds   time.Time `json:"sale_ends" db:"sale_ends"`
 }
 
 // Validate validates the ProductPricing and returns an error if it doesn't pass criteria

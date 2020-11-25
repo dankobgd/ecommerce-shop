@@ -19,9 +19,11 @@ var (
 
 // CreateBrand creates the new brand in the system
 func (a *App) CreateBrand(b *model.Brand, fh *multipart.FileHeader) (*model.Brand, *model.AppErr) {
-	if fh.Size > model.FileUploadSizeLimit {
-		return nil, model.NewAppErr("CreateBrand", model.ErrInternal, locale.GetUserLocalizer("en"), msgBrandSizeExceeded, http.StatusInternalServerError, nil)
+	b.PreSave()
+	if err := b.Validate(fh); err != nil {
+		return nil, err
 	}
+
 	thumbnail, err := fh.Open()
 	if err != nil {
 		return nil, model.NewAppErr("CreateBrand", model.ErrInternal, locale.GetUserLocalizer("en"), msgBrandSizeExceeded, http.StatusInternalServerError, nil)
@@ -31,16 +33,11 @@ func (a *App) CreateBrand(b *model.Brand, fh *multipart.FileHeader) (*model.Bran
 		return nil, model.NewAppErr("CreateBrand", model.ErrInternal, locale.GetUserLocalizer("en"), msgBrandFileErr, http.StatusInternalServerError, nil)
 	}
 
-	b.PreSave()
-	if err := b.Validate(); err != nil {
-		return nil, err
-	}
-
 	details, uErr := a.UploadImage(bytes.NewBuffer(bb), fh.Filename)
 	if uErr != nil {
 		return nil, uErr
 	}
-	b.SetLogoURL(details.SecureURL)
+	b.SetLogoDetails(details)
 
 	brand, bErr := a.Srv().Store.Brand().Save(b)
 	if bErr != nil {
@@ -52,10 +49,34 @@ func (a *App) CreateBrand(b *model.Brand, fh *multipart.FileHeader) (*model.Bran
 }
 
 // PatchBrand patches the brand
-func (a *App) PatchBrand(bid int64, patch *model.BrandPatch) (*model.Brand, *model.AppErr) {
+func (a *App) PatchBrand(bid int64, patch *model.BrandPatch, fh *multipart.FileHeader) (*model.Brand, *model.AppErr) {
+	if err := patch.Validate(fh); err != nil {
+		return nil, err
+	}
+
 	old, err := a.Srv().Store.Brand().Get(bid)
 	if err != nil {
 		return nil, err
+	}
+
+	oldPublicID := old.LogoPublicID
+
+	if fh != nil {
+		thumbnail, err := fh.Open()
+		if err != nil {
+			return nil, model.NewAppErr("patchBrand", model.ErrInternal, locale.GetUserLocalizer("en"), msgBrandSizeExceeded, http.StatusInternalServerError, nil)
+		}
+		b, err := ioutil.ReadAll(thumbnail)
+		if err != nil {
+			return nil, model.NewAppErr("patchBrand", model.ErrInternal, locale.GetUserLocalizer("en"), msgBrandFileErr, http.StatusInternalServerError, nil)
+		}
+
+		details, uErr := a.UploadImage(bytes.NewBuffer(b), fh.Filename)
+		if uErr != nil {
+			return nil, uErr
+		}
+
+		old.SetLogoDetails(details)
 	}
 
 	old.Patch(patch)
@@ -64,6 +85,12 @@ func (a *App) PatchBrand(bid int64, patch *model.BrandPatch) (*model.Brand, *mod
 	if err != nil {
 		return nil, err
 	}
+
+	defer func() {
+		if err := a.DeleteImage(oldPublicID); err != nil {
+			a.Log().Error(err.Error(), zlog.Err(err))
+		}
+	}()
 
 	return ubrand, nil
 }
@@ -80,5 +107,21 @@ func (a *App) GetBrands(limit, offset int) ([]*model.Brand, *model.AppErr) {
 
 // DeleteBrand hard deletes the brand from the db
 func (a *App) DeleteBrand(bid int64) *model.AppErr {
-	return a.Srv().Store.Brand().Delete(bid)
+	old, e := a.Srv().Store.Brand().Get(bid)
+	if e != nil {
+		return e
+	}
+
+	err := a.Srv().Store.Brand().Delete(bid)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err := a.DeleteImage(old.LogoPublicID); err != nil {
+			a.Log().Error(err.Error(), zlog.Err(err))
+		}
+	}()
+
+	return nil
 }

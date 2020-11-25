@@ -75,20 +75,22 @@ type ProductStore interface {
 
 // ProductTagStore is the product tag store
 type ProductTagStore interface {
-	BulkInsert(tags []*model.ProductTag) ([]int64, *model.AppErr)
-	Get(id int64) (*model.ProductTag, *model.AppErr)
+	BulkInsert(tags []*model.ProductTag) *model.AppErr
+	Save(pid int64, pt *model.ProductTag) (*model.ProductTag, *model.AppErr)
+	Get(pid, tid int64) (*model.ProductTag, *model.AppErr)
 	GetAll(pid int64) ([]*model.ProductTag, *model.AppErr)
-	Update(id int64, tag *model.ProductTag) (*model.ProductTag, *model.AppErr)
-	Delete(id int64) *model.AppErr
+	Update(pid, tid int64, tag *model.ProductTag) (*model.ProductTag, *model.AppErr)
+	Delete(pid, id int64) *model.AppErr
 }
 
 // ProductImageStore is the product image store
 type ProductImageStore interface {
-	BulkInsert(imgs []*model.ProductImage) ([]int64, *model.AppErr)
-	Get(id int64) (*model.ProductImage, *model.AppErr)
+	BulkInsert(imgs []*model.ProductImage) *model.AppErr
+	Save(pid int64, img *model.ProductImage) (*model.ProductImage, *model.AppErr)
+	Get(pid, id int64) (*model.ProductImage, *model.AppErr)
 	GetAll(pid int64) ([]*model.ProductImage, *model.AppErr)
-	Update(id int64, img *model.ProductImage) (*model.ProductImage, *model.AppErr)
-	Delete(id int64) *model.AppErr
+	Update(pid, id int64, img *model.ProductImage) (*model.ProductImage, *model.AppErr)
+	Delete(pid, id int64) *model.AppErr
 }
 
 // OrderStore is the order store

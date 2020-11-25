@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/dankobgd/ecommerce-shop/model"
+	"github.com/jmoiron/sqlx/types"
 )
 
 // productJoin is temp join type
@@ -18,46 +19,52 @@ type productJoin struct {
 
 // PricingJoin is temp join type
 type PricingJoin struct {
-	PID        int64     `db:"id"`
-	ProductID  int64     `db:"product_id"`
-	Price      int       `db:"price"`
-	SaleStarts time.Time `db:"sale_starts"`
-	SaleEnds   time.Time `db:"sale_ends"`
+	PID         int64     `db:"pricing_id"`
+	PProductID  int64     `db:"pricing_product_id"`
+	PPrice      int       `db:"pricing_price"`
+	PSaleStarts time.Time `db:"pricing_sale_starts"`
+	PSaleEnds   time.Time `db:"pricing_sale_ends"`
 }
 
 // BrandJoin is temp join type
 type BrandJoin struct {
-	BID          int64     `db:"brand_id"`
-	BName        string    `db:"brand_name"`
-	BSlug        string    `db:"brand_slug"`
-	BType        string    `db:"brand_type"`
-	BDescription string    `db:"brand_description"`
-	BEmail       string    `db:"brand_email"`
-	BLogo        string    `db:"brand_logo"`
-	BWebsiteURL  string    `db:"brand_website_url"`
-	BCreatedAt   time.Time `db:"brand_created_at"`
-	BUpdatedAt   time.Time `db:"brand_updated_at"`
+	BID           int64     `db:"brand_id"`
+	BName         string    `db:"brand_name"`
+	BSlug         string    `db:"brand_slug"`
+	BType         string    `db:"brand_type"`
+	BDescription  string    `db:"brand_description"`
+	BEmail        string    `db:"brand_email"`
+	BLogo         string    `db:"brand_logo"`
+	BLogoPublicID string    `db:"brand_logo_public_id"`
+	BWebsiteURL   string    `db:"brand_website_url"`
+	BCreatedAt    time.Time `db:"brand_created_at"`
+	BUpdatedAt    time.Time `db:"brand_updated_at"`
 }
 
 // CategoryJoin is temp join type
 type CategoryJoin struct {
-	CID          int64     `db:"category_id"`
-	CName        string    `db:"category_name"`
-	CSlug        string    `db:"category_slug"`
-	CLogo        string    `db:"category_logo"`
-	CDescription string    `db:"category_description"`
-	CIsFeatured  bool      `db:"category_is_featured"`
-	CCreatedAt   time.Time `db:"category_created_at"`
-	CUpdatedAt   time.Time `db:"category_updated_at"`
+	CID           int64           `db:"category_id"`
+	CName         string          `db:"category_name"`
+	CSlug         string          `db:"category_slug"`
+	CLogo         string          `db:"category_logo"`
+	CLogoPublicID string          `db:"category_logo_public_id"`
+	CDescription  string          `db:"category_description"`
+	CIsFeatured   bool            `db:"category_is_featured"`
+	CProperties   *types.JSONText `db:"category_properties"`
+	CCreatedAt    time.Time       `db:"category_created_at"`
+	CUpdatedAt    time.Time       `db:"category_updated_at"`
 }
 
 func (pj *productJoin) ToProduct() *model.Product {
 	return &model.Product{
+		BrandID:           pj.BID,
+		CategoryID:        pj.CID,
 		TotalRecordsCount: pj.TotalRecordsCount,
 		ID:                pj.ID,
 		Name:              pj.Name,
 		Slug:              pj.Slug,
 		ImageURL:          pj.ImageURL,
+		ImagePublicID:     pj.ImagePublicID,
 		Description:       pj.Description,
 		InStock:           pj.InStock,
 		SKU:               pj.SKU,
@@ -65,23 +72,23 @@ func (pj *productJoin) ToProduct() *model.Product {
 		CreatedAt:         pj.CreatedAt,
 		UpdatedAt:         pj.UpdatedAt,
 		Properties:        pj.Properties,
-		ProductPricing: &model.ProductPricing{
-			ID:         pj.PID,
-			Price:      pj.Price,
-			SaleStarts: pj.SaleStarts,
-			SaleEnds:   pj.SaleEnds,
-		},
+		// Pricing: &model.ProductPricing{
+		// 	Price:      pj.PPrice,
+		// 	SaleStarts: pj.PSaleStarts,
+		// 	SaleEnds:   pj.PSaleEnds,
+		// },
 		Brand: &model.Brand{
-			ID:          pj.BID,
-			Name:        pj.BName,
-			Slug:        pj.BSlug,
-			Type:        pj.BType,
-			Description: pj.BDescription,
-			Email:       pj.BEmail,
-			WebsiteURL:  pj.BWebsiteURL,
-			Logo:        pj.BLogo,
-			CreatedAt:   pj.BCreatedAt,
-			UpdatedAt:   pj.BUpdatedAt,
+			ID:           pj.BID,
+			Name:         pj.BName,
+			Slug:         pj.BSlug,
+			Type:         pj.BType,
+			Description:  pj.BDescription,
+			Email:        pj.BEmail,
+			WebsiteURL:   pj.BWebsiteURL,
+			Logo:         pj.BLogo,
+			LogoPublicID: pj.BLogoPublicID,
+			CreatedAt:    pj.BCreatedAt,
+			UpdatedAt:    pj.BUpdatedAt,
 		},
 		Category: &model.Category{
 			ID:          pj.CID,
@@ -90,6 +97,7 @@ func (pj *productJoin) ToProduct() *model.Product {
 			Logo:        pj.CLogo,
 			Description: pj.CDescription,
 			IsFeatured:  pj.CIsFeatured,
+			Properties:  pj.CProperties,
 			CreatedAt:   pj.CCreatedAt,
 			UpdatedAt:   pj.CUpdatedAt,
 		},
@@ -104,7 +112,6 @@ type addressJoin struct {
 
 func (aj *addressJoin) ToAddress() *model.Address {
 	return &model.Address{
-		ID:        0,
 		Line1:     aj.Line1,
 		Line2:     aj.Line2,
 		City:      aj.City,

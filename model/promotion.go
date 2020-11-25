@@ -42,19 +42,19 @@ func (p *Promotion) Validate() *AppErr {
 	l := locale.GetUserLocalizer("en")
 
 	if p.PromoCode == "" {
-		errs.Add(Invalid("promotion.promo_code", l, msgValidatePromotionPromoCode))
+		errs.Add(Invalid("promo_code", l, msgValidatePromotionPromoCode))
 	}
 	if p.Type == "" {
-		errs.Add(Invalid("promotion.type", l, msgValidatePromotionType))
+		errs.Add(Invalid("type", l, msgValidatePromotionType))
 	}
 	if p.Amount == 0 {
-		errs.Add(Invalid("promotion.amount", l, msgValidatePromotionAmount))
+		errs.Add(Invalid("amount", l, msgValidatePromotionAmount))
 	}
 	if p.StartsAt.IsZero() {
-		errs.Add(Invalid("promotion.starts_at", l, msgValidatePromotionStartsAt))
+		errs.Add(Invalid("starts_at", l, msgValidatePromotionStartsAt))
 	}
 	if p.EndsAt.IsZero() || p.EndsAt.Before(p.StartsAt) {
-		errs.Add(Invalid("promotion.ends_at", l, msgValidatePromotionEndsAt))
+		errs.Add(Invalid("ends_at", l, msgValidatePromotionEndsAt))
 	}
 
 	if !errs.IsZero() {

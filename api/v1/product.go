@@ -1,6 +1,7 @@
 package apiv1
 
 import (
+	"mime/multipart"
 	"net/http"
 	"strconv"
 
@@ -17,30 +18,34 @@ var (
 	msgProductAvatarMultipart = &i18n.Message{ID: "api.product.create_product.multipart.app_error", Other: "could not decode product multipart data"}
 	msgPatchProduct           = &i18n.Message{ID: "api.product.patch_product.app_error", Other: "could not patch product"}
 	msgURLParamErr            = &i18n.Message{ID: "api.product.url.params.app_error", Other: "could not parse URL params"}
-	msgGetProductProperties   = &i18n.Message{ID: "api.product.get_product_properties.app_error", Other: "could not get product properties json"}
 )
 
 // InitProducts inits the product routes
 func InitProducts(a *API) {
 	a.Routes.Products.Get("/", a.getProducts)
 	a.Routes.Products.Post("/", a.AdminSessionRequired(a.createProduct))
-	a.Routes.Products.Get("/tags/{tag_id:[A-Za-z0-9]+}", a.getSingleTag)
-	a.Routes.Products.Get("/images/{image_id:[A-Za-z0-9]+}", a.getSingleImage)
-	a.Routes.Products.Patch("/tags/{tag_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.patchProductTag))
-	a.Routes.Products.Patch("/images/{image_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.patchProductImage))
-	a.Routes.Products.Delete("/tags/{tag_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.deleteProductTag))
-	a.Routes.Products.Delete("/images/{image_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.deleteProductImage))
-	a.Routes.Products.Get("/properties", a.getProductProperties)
-	a.Routes.Products.Get("/properties", a.getProductProperties)
 	a.Routes.Products.Get("/featured", a.getFeaturedProducts)
 	a.Routes.Products.Get("/search", a.searchProducts)
 
 	a.Routes.Product.Get("/", a.getProduct)
 	a.Routes.Product.Patch("/", a.AdminSessionRequired(a.patchProduct))
 	a.Routes.Product.Delete("/", a.AdminSessionRequired(a.deleteProduct))
-	a.Routes.Product.Get("/tags", a.getProductTags)
-	a.Routes.Product.Get("/images", a.getProductImages)
+
+	// product reviews
 	a.Routes.Product.Get("/reviews", a.getProductReviews)
+
+	// product tags
+	a.Routes.Product.Post("/tags", a.createProductTag)
+	a.Routes.Product.Get("/tags", a.getProductTags)
+	a.Routes.Product.Patch("/tags/{tag_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.patchProductTag))
+	a.Routes.Product.Delete("/tags/{tag_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.deleteProductTag))
+
+	// product images
+	a.Routes.Product.Post("/images", a.createProductImage)
+	a.Routes.Product.Get("/images", a.getProductImages)
+	a.Routes.Product.Patch("/images/{image_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.patchProductImage))
+	a.Routes.Product.Delete("/images/{image_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.deleteProductImage))
+
 }
 
 func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
@@ -59,44 +64,50 @@ func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tagids := mpf.Value["tags"]
-	headers := mpf.File["images"]
-	fh := mpf.File["image"][0]
-	properties := mpf.Value["properties"][0]
-	p.SetProperties(properties)
+	images := mpf.File["images"]
 
-	tags := make([]*model.ProductTag, 0)
-	for _, tid := range tagids {
-		id, err := strconv.ParseInt(tid, 10, 64)
-		if err != nil {
-			respondError(w, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductAvatarMultipart, http.StatusInternalServerError, nil))
-			return
-		}
-
-		tags = append(tags, &model.ProductTag{TagID: model.NewInt64(id)})
+	var thumbnail *multipart.FileHeader
+	if len(mpf.File["image"]) > 0 {
+		thumbnail = mpf.File["image"][0]
 	}
 
-	product, pErr := a.app.CreateProduct(p, fh, headers, tags)
+	product, pErr := a.app.CreateProduct(p, thumbnail, images, tagids)
 	if pErr != nil {
 		respondError(w, pErr)
 		return
 	}
+
 	respondJSON(w, http.StatusCreated, product)
 }
 
 func (a *API) patchProduct(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseMultipartForm(model.FileUploadSizeLimit); err != nil {
+		respondError(w, model.NewAppErr("patchProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductAvatarMultipart, http.StatusInternalServerError, nil))
+		return
+	}
+
+	mpf := r.MultipartForm
+	model.SchemaDecoder.IgnoreUnknownKeys(true)
+
+	patch := &model.ProductPatch{}
+	if err := model.SchemaDecoder.Decode(patch, mpf.Value); err != nil {
+		respondError(w, model.NewAppErr("patchProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductAvatarMultipart, http.StatusInternalServerError, nil))
+		return
+	}
+	patch.SetProperties(patch.PropertiesText)
+
+	var image *multipart.FileHeader
+	if len(mpf.File["image"]) > 0 {
+		image = mpf.File["image"][0]
+	}
+
 	pid, err := strconv.ParseInt(chi.URLParam(r, "product_id"), 10, 64)
 	if err != nil {
 		respondError(w, model.NewAppErr("patchProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
 		return
 	}
 
-	patch, err := model.ProductPatchFromJSON(r.Body)
-	if err != nil {
-		respondError(w, model.NewAppErr("patchProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductPatchFromJSON, http.StatusInternalServerError, nil))
-		return
-	}
-
-	uprod, pErr := a.app.PatchProduct(pid, patch)
+	uprod, pErr := a.app.PatchProduct(pid, patch, image)
 	if err != nil {
 		respondError(w, pErr)
 		return
@@ -151,6 +162,27 @@ func (a *API) getProducts(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, pages)
 }
 
+func (a *API) createProductTag(w http.ResponseWriter, r *http.Request) {
+	pid, e := strconv.ParseInt(chi.URLParam(r, "product_id"), 10, 64)
+	if e != nil {
+		respondError(w, model.NewAppErr("createProductTag", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
+		return
+	}
+
+	pt, e := model.ProductTagFromJSON(r.Body)
+	if e != nil {
+		respondError(w, model.NewAppErr("createProductTag", model.ErrInternal, locale.GetUserLocalizer("en"), msgTagFromJSON, http.StatusInternalServerError, nil))
+		return
+	}
+
+	productTag, err := a.app.CreateProductTag(pid, pt)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+	respondJSON(w, http.StatusCreated, productTag)
+}
+
 func (a *API) getProductTags(w http.ResponseWriter, r *http.Request) {
 	pid, e := strconv.ParseInt(chi.URLParam(r, "product_id"), 10, 64)
 	if e != nil {
@@ -163,6 +195,84 @@ func (a *API) getProductTags(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondJSON(w, http.StatusOK, tags)
+}
+
+func (a *API) patchProductTag(w http.ResponseWriter, r *http.Request) {
+	pid, e := strconv.ParseInt(chi.URLParam(r, "product_id"), 10, 64)
+	if e != nil {
+		respondError(w, model.NewAppErr("patchProductTag", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
+		return
+	}
+	tid, err := strconv.ParseInt(chi.URLParam(r, "tag_id"), 10, 64)
+	if err != nil {
+		respondError(w, model.NewAppErr("patchProductTag", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
+		return
+	}
+
+	patch, err := model.ProductTagPatchFromJSON(r.Body)
+	if err != nil {
+		respondError(w, model.NewAppErr("patchProductTag", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductPatchFromJSON, http.StatusInternalServerError, nil))
+		return
+	}
+
+	utag, pErr := a.app.PatchProductTag(pid, tid, patch)
+	if pErr != nil {
+		respondError(w, pErr)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, utag)
+}
+
+func (a *API) deleteProductTag(w http.ResponseWriter, r *http.Request) {
+	pid, e := strconv.ParseInt(chi.URLParam(r, "product_id"), 10, 64)
+	if e != nil {
+		respondError(w, model.NewAppErr("deleteProductTag", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
+		return
+	}
+	tid, e := strconv.ParseInt(chi.URLParam(r, "tag_id"), 10, 64)
+	if e != nil {
+		respondError(w, model.NewAppErr("deleteProductTag", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
+		return
+	}
+
+	if err := a.app.DeleteProductTag(pid, tid); err != nil {
+		respondError(w, err)
+		return
+	}
+	respondOK(w)
+}
+
+func (a *API) createProductImage(w http.ResponseWriter, r *http.Request) {
+	pid, e := strconv.ParseInt(chi.URLParam(r, "product_id"), 10, 64)
+	if e != nil {
+		respondError(w, model.NewAppErr("createProductImage", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
+		return
+	}
+
+	if err := r.ParseMultipartForm(model.FileUploadSizeLimit); err != nil {
+		respondError(w, model.NewAppErr("createProductImage", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductAvatarMultipart, http.StatusInternalServerError, nil))
+		return
+	}
+
+	mpf := r.MultipartForm
+	model.SchemaDecoder.IgnoreUnknownKeys(true)
+
+	img := &model.ProductImage{}
+	if err := model.SchemaDecoder.Decode(img, mpf.Value); err != nil {
+		respondError(w, model.NewAppErr("createProductImage", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductAvatarMultipart, http.StatusInternalServerError, nil))
+		return
+	}
+
+	image := mpf.File["image"][0]
+
+	productImage, pErr := a.app.CreateProductImage(pid, img, image)
+	if pErr != nil {
+		respondError(w, pErr)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, productImage)
 }
 
 func (a *API) getProductImages(w http.ResponseWriter, r *http.Request) {
@@ -193,111 +303,59 @@ func (a *API) getProductReviews(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, reviews)
 }
 
-func (a *API) getSingleTag(w http.ResponseWriter, r *http.Request) {
-	tid, e := strconv.ParseInt(chi.URLParam(r, "tag_id"), 10, 64)
-	if e != nil {
-		respondError(w, model.NewAppErr("getSingleTag", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
-		return
-	}
-	tag, err := a.app.GetProductTag(tid)
-	if err != nil {
-		respondError(w, err)
-		return
-	}
-	respondJSON(w, http.StatusOK, tag)
-}
-
-func (a *API) getSingleImage(w http.ResponseWriter, r *http.Request) {
-	imgID, e := strconv.ParseInt(chi.URLParam(r, "image_id"), 10, 64)
-	if e != nil {
-		respondError(w, model.NewAppErr("getSingleImage", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
-		return
-	}
-	img, err := a.app.GetImage(imgID)
-	if err != nil {
-		respondError(w, err)
-		return
-	}
-	respondJSON(w, http.StatusOK, img)
-}
-
-func (a *API) patchProductTag(w http.ResponseWriter, r *http.Request) {
-	tid, err := strconv.ParseInt(chi.URLParam(r, "tag_id"), 10, 64)
-	if err != nil {
-		respondError(w, model.NewAppErr("patchProductTag", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
-		return
-	}
-
-	patch, err := model.ProductTagPatchFromJSON(r.Body)
-	if err != nil {
-		respondError(w, model.NewAppErr("patchProductTag", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductPatchFromJSON, http.StatusInternalServerError, nil))
-		return
-	}
-
-	utag, pErr := a.app.PatchProductTag(tid, patch)
-	if pErr != nil {
-		respondError(w, pErr)
-		return
-	}
-
-	respondJSON(w, http.StatusOK, utag)
-}
-
 func (a *API) patchProductImage(w http.ResponseWriter, r *http.Request) {
+	pid, e := strconv.ParseInt(chi.URLParam(r, "product_id"), 10, 64)
+	if e != nil {
+		respondError(w, model.NewAppErr("getProductReviews", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
+		return
+	}
 	imgID, err := strconv.ParseInt(chi.URLParam(r, "image_id"), 10, 64)
 	if err != nil {
 		respondError(w, model.NewAppErr("patchProductImage", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
 		return
 	}
 
-	patch, err := model.ProductImagePatchFromJSON(r.Body)
-	if err != nil {
-		respondError(w, model.NewAppErr("patchProductImage", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductPatchFromJSON, http.StatusInternalServerError, nil))
+	if err := r.ParseMultipartForm(model.FileUploadSizeLimit); err != nil {
+		respondError(w, model.NewAppErr("patchProductImage", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductAvatarMultipart, http.StatusInternalServerError, nil))
 		return
 	}
 
-	uprod, pErr := a.app.PatchProductImage(imgID, patch)
-	if pErr != nil {
+	mpf := r.MultipartForm
+	model.SchemaDecoder.IgnoreUnknownKeys(true)
+	image := mpf.File["image"][0]
+
+	patch := &model.ProductImagePatch{}
+	if err := model.SchemaDecoder.Decode(patch, mpf.Value); err != nil {
+		respondError(w, model.NewAppErr("patchProductImage", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductAvatarMultipart, http.StatusInternalServerError, nil))
+		return
+	}
+
+	uimg, pErr := a.app.PatchProductImage(pid, imgID, patch, image)
+	if err != nil {
 		respondError(w, pErr)
 		return
 	}
 
-	respondJSON(w, http.StatusOK, uprod)
-}
-
-func (a *API) deleteProductTag(w http.ResponseWriter, r *http.Request) {
-	tid, err := strconv.ParseInt(chi.URLParam(r, "tag_id"), 10, 64)
-	if err != nil {
-		respondError(w, model.NewAppErr("deleteProductTag", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
-		return
-	}
-	if err := a.app.DeleteProductTag(tid); err != nil {
-		respondError(w, err)
-		return
-	}
-	respondOK(w)
+	respondJSON(w, http.StatusOK, uimg)
 }
 
 func (a *API) deleteProductImage(w http.ResponseWriter, r *http.Request) {
+	pid, e := strconv.ParseInt(chi.URLParam(r, "product_id"), 10, 64)
+	if e != nil {
+		respondError(w, model.NewAppErr("deleteProductTag", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
+		return
+	}
 	imgID, err := strconv.ParseInt(chi.URLParam(r, "image_id"), 10, 64)
 	if err != nil {
 		respondError(w, model.NewAppErr("deleteProductImage", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
 		return
 	}
-	if err := a.app.DeleteProductImage(imgID); err != nil {
+
+	if err := a.app.DeleteProductImage(pid, imgID); err != nil {
 		respondError(w, err)
 		return
 	}
 	respondOK(w)
-}
-
-func (a *API) getProductProperties(w http.ResponseWriter, r *http.Request) {
-	props, err := a.app.GetProductProperties()
-	if err != nil {
-		respondError(w, err)
-		return
-	}
-	respondJSON(w, http.StatusOK, props)
 }
 
 func (a *API) getFeaturedProducts(w http.ResponseWriter, r *http.Request) {

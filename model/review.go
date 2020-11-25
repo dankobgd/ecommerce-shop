@@ -88,28 +88,28 @@ func (rev *Review) Validate() *AppErr {
 	l := locale.GetUserLocalizer("en")
 
 	if rev.ID != 0 {
-		errs.Add(Invalid("review.id", l, msgValidateReviewID))
+		errs.Add(Invalid("id", l, msgValidateReviewID))
 	}
 	if rev.UserID == 0 {
-		errs.Add(Invalid("review.user_id", l, msgValidateReviewUserID))
+		errs.Add(Invalid("user_id", l, msgValidateReviewUserID))
 	}
 	if rev.ProductID == 0 {
-		errs.Add(Invalid("review.product_id", l, msgValidateReviewProductID))
+		errs.Add(Invalid("product_id", l, msgValidateReviewProductID))
 	}
 	if rev.Rating < 0 || rev.Rating > 5 {
-		errs.Add(Invalid("review.rating", l, msgValidateReviewRating))
+		errs.Add(Invalid("rating", l, msgValidateReviewRating))
 	}
 	if rev.Title == "" {
-		errs.Add(Invalid("review.title", l, msgValidateReviewTitle))
+		errs.Add(Invalid("title", l, msgValidateReviewTitle))
 	}
 	if rev.Comment == "" {
-		errs.Add(Invalid("review.comment", l, msgValidateReviewComment))
+		errs.Add(Invalid("comment", l, msgValidateReviewComment))
 	}
 	if rev.CreatedAt.IsZero() {
-		errs.Add(Invalid("review.created_at", l, msgValidateReviewCrAt))
+		errs.Add(Invalid("created_at", l, msgValidateReviewCrAt))
 	}
 	if rev.UpdatedAt.IsZero() {
-		errs.Add(Invalid("review.updated_at", l, msgValidateReviewUpAt))
+		errs.Add(Invalid("updated_at", l, msgValidateReviewUpAt))
 	}
 
 	if !errs.IsZero() {

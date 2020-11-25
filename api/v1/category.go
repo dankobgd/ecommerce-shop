@@ -1,6 +1,7 @@
 package apiv1
 
 import (
+	"mime/multipart"
 	"net/http"
 	"strconv"
 
@@ -40,8 +41,6 @@ func (a *API) createCategory(w http.ResponseWriter, r *http.Request) {
 
 	mpf := r.MultipartForm
 	model.SchemaDecoder.IgnoreUnknownKeys(true)
-	properties := mpf.Value["properties"][0]
-	fh := mpf.File["logo"][0]
 
 	c := &model.Category{}
 	if err := model.SchemaDecoder.Decode(c, mpf.Value); err != nil {
@@ -49,7 +48,10 @@ func (a *API) createCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.SetProperties(properties)
+	var fh *multipart.FileHeader
+	if len(mpf.File["logo"]) > 0 {
+		fh = mpf.File["logo"][0]
+	}
 
 	category, cErr := a.app.CreateCategory(c, fh)
 	if cErr != nil {
@@ -97,13 +99,27 @@ func (a *API) patchCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	patch, err := model.CategoryPatchFromJSON(r.Body)
-	if err != nil {
-		respondError(w, model.NewAppErr("patchCategory", model.ErrInternal, locale.GetUserLocalizer("en"), msgCategoryPatchFromJSONErr, http.StatusInternalServerError, nil))
+	if err := r.ParseMultipartForm(model.FileUploadSizeLimit); err != nil {
+		respondError(w, model.NewAppErr("patchCategory", model.ErrInternal, locale.GetUserLocalizer("en"), msgCategoryMultipartErr, http.StatusInternalServerError, nil))
 		return
 	}
 
-	ucat, cErr := a.app.PatchCategory(cid, patch)
+	mpf := r.MultipartForm
+	model.SchemaDecoder.IgnoreUnknownKeys(true)
+
+	patch := &model.CategoryPatch{}
+	if err := model.SchemaDecoder.Decode(patch, mpf.Value); err != nil {
+		respondError(w, model.NewAppErr("patchCategory", model.ErrInternal, locale.GetUserLocalizer("en"), msgCategoryMultipartErr, http.StatusInternalServerError, nil))
+		return
+	}
+	patch.SetProperties(patch.PropertiesText)
+
+	var image *multipart.FileHeader
+	if len(mpf.File["logo"]) > 0 {
+		image = mpf.File["logo"][0]
+	}
+
+	ucat, cErr := a.app.PatchCategory(cid, patch, image)
 	if err != nil {
 		respondError(w, cErr)
 		return

@@ -43,7 +43,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Handcrafted Soft Chips",
     "slug": "handcrafted_soft_chips",
     "image_url": "http://placeimg.com/640/480?random=c282eebb-e4e1-463d-b6bf-92bfc42de429",
@@ -89,7 +89,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Handmade Steel Ball",
     "slug": "handmade_steel_ball",
     "image_url": "http://placeimg.com/640/480?random=f594ac68-d030-41bf-88ad-5bb7fa49622a",
@@ -135,7 +135,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Unbranded Plastic Keyboard",
     "slug": "unbranded_plastic_keyboard",
     "image_url": "http://placeimg.com/640/480?random=e6e780d2-3036-4d11-80b7-ca4e83152d0f",
@@ -179,7 +179,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Intelligent Plastic Soap",
     "slug": "intelligent_plastic_soap",
     "image_url": "http://placeimg.com/640/480?random=2265f7b0-d3ed-46fe-b0b0-e76c9689c234",
@@ -201,7 +201,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Ergonomic Soft Computer",
     "slug": "ergonomic_soft_computer",
     "image_url": "http://placeimg.com/640/480?random=e9813803-6e65-4f4b-900c-1104b3213fe2",
@@ -224,7 +224,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Fantastic Metal Computer",
     "slug": "fantastic_metal_computer",
     "image_url": "http://placeimg.com/640/480?random=41c5092d-3360-42a1-9398-4e95fb2f749f",
@@ -357,7 +357,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Awesome Cotton Shirt",
     "slug": "awesome_cotton_shirt",
     "image_url": "http://placeimg.com/640/480?random=af7be2b7-418a-4f60-828d-ce702a2e7844",
@@ -404,7 +404,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Rustic Plastic Ball",
     "slug": "rustic_plastic_ball",
     "image_url": "http://placeimg.com/640/480?random=cb4d37db-79b2-42a9-a12e-dfdad3464943",
@@ -424,7 +424,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Fantastic Granite Soap",
     "slug": "fantastic_granite_soap",
     "image_url": "http://placeimg.com/640/480?random=77dd2696-5925-4dc6-a322-fd70282b3b0d",
@@ -584,7 +584,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Intelligent Granite Ball",
     "slug": "intelligent_granite_ball",
     "image_url": "http://placeimg.com/640/480?random=d3e4c024-45e0-4c71-a1ac-fee5780925fa",
@@ -608,7 +608,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Awesome Wooden Keyboard",
     "slug": "awesome_wooden_keyboard",
     "image_url": "http://placeimg.com/640/480?random=76ec5a26-228f-4834-828d-2c3ac5cc872b",
@@ -715,7 +715,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Fantastic Rubber Shoes",
     "slug": "fantastic_rubber_shoes",
     "image_url": "http://placeimg.com/640/480?random=eca6ee31-ab21-4f75-9a34-39b79352cd06",
@@ -738,7 +738,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Intelligent Fresh Sausages",
     "slug": "intelligent_fresh_sausages",
     "image_url": "http://placeimg.com/640/480?random=daaeb2ce-4eff-4ced-9844-59de31118be9",
@@ -868,7 +868,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Generic Cotton Ball",
     "slug": "generic_cotton_ball",
     "image_url": "http://placeimg.com/640/480?random=c84250d6-413e-406e-83af-1baafcc81fb7",
@@ -1147,7 +1147,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Gorgeous Granite Ball",
     "slug": "gorgeous_granite_ball",
     "image_url": "http://placeimg.com/640/480?random=574408dc-8041-42c9-a060-ea319350fb1f",
@@ -1216,7 +1216,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Handmade Cotton Computer",
     "slug": "handmade_cotton_computer",
     "image_url": "http://placeimg.com/640/480?random=5abf5c78-8be4-402a-a91e-9d0b9db12321",
@@ -1307,7 +1307,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Handcrafted Steel Salad",
     "slug": "handcrafted_steel_salad",
     "image_url": "http://placeimg.com/640/480?random=7482f941-9872-4fc4-bef7-978a71f6298b",
@@ -1332,7 +1332,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Practical Cotton Pants",
     "slug": "practical_cotton_pants",
     "image_url": "http://placeimg.com/640/480?random=59c8aaaf-9c34-4bf9-a49e-9afda578ead7",
@@ -1425,7 +1425,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Awesome Steel Towels",
     "slug": "awesome_steel_towels",
     "image_url": "http://placeimg.com/640/480?random=f49d30ce-b7d8-4549-a41d-235036e13041",
@@ -1496,7 +1496,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Small Concrete Chips",
     "slug": "small_concrete_chips",
     "image_url": "http://placeimg.com/640/480?random=5ddb4776-9a6f-4961-a653-7cd29649043e",
@@ -1516,7 +1516,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Rustic Metal Shoes",
     "slug": "rustic_metal_shoes",
     "image_url": "http://placeimg.com/640/480?random=47e533f9-494a-4663-b653-6bef39700c28",
@@ -1582,7 +1582,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Small Wooden Cheese",
     "slug": "small_wooden_cheese",
     "image_url": "http://placeimg.com/640/480?random=562f0e13-5bf6-4790-9b7b-57bb9727394f",
@@ -1742,7 +1742,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Awesome Concrete Chicken",
     "slug": "awesome_concrete_chicken",
     "image_url": "http://placeimg.com/640/480?random=a0db9e3c-b18a-48a4-9b8a-1a6e2bba17c7",
@@ -1788,7 +1788,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Intelligent Plastic Towels",
     "slug": "intelligent_plastic_towels",
     "image_url": "http://placeimg.com/640/480?random=3d3daf1e-284b-412b-83df-e8b4ad34cb2f",
@@ -1832,7 +1832,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Rustic Metal Pizza",
     "slug": "rustic_metal_pizza",
     "image_url": "http://placeimg.com/640/480?random=173d4405-20f8-4321-aa49-a795411804fb",
@@ -1943,7 +1943,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Gorgeous Frozen Ball",
     "slug": "gorgeous_frozen_ball",
     "image_url": "http://placeimg.com/640/480?random=3b2b4661-723a-4d5e-a43f-dc881cc60b10",
@@ -2103,7 +2103,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Practical Plastic Soap",
     "slug": "practical_plastic_soap",
     "image_url": "http://placeimg.com/640/480?random=866af181-e0a5-426f-b552-3a54e4767396",
@@ -2171,7 +2171,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Small Fresh Shirt",
     "slug": "small_fresh_shirt",
     "image_url": "http://placeimg.com/640/480?random=ab9093d2-5567-412c-b987-6fc4b3320f16",
@@ -2192,7 +2192,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Fantastic Rubber Shirt",
     "slug": "fantastic_rubber_shirt",
     "image_url": "http://placeimg.com/640/480?random=9661853e-2010-4a81-908a-423e9c86b2cd",
@@ -2353,7 +2353,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Gorgeous Rubber Towels",
     "slug": "gorgeous_rubber_towels",
     "image_url": "http://placeimg.com/640/480?random=2d0c335c-3901-41f8-af5b-d650c5a0f404",
@@ -2399,7 +2399,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Incredible Metal Chair",
     "slug": "incredible_metal_chair",
     "image_url": "http://placeimg.com/640/480?random=d7246ed3-4f4e-4e06-84ea-487039a79aa4",
@@ -2485,7 +2485,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Practical Frozen Sausages",
     "slug": "practical_frozen_sausages",
     "image_url": "http://placeimg.com/640/480?random=e76c9a90-268a-49c6-9845-43de76f5dfcf",
@@ -2509,7 +2509,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Gorgeous Frozen Towels",
     "slug": "gorgeous_frozen_towels",
     "image_url": "http://placeimg.com/640/480?random=9c9da9e9-49ce-49c9-bdc1-2036bffe0fa5",
@@ -2557,7 +2557,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Licensed Rubber Chips",
     "slug": "licensed_rubber_chips",
     "image_url": "http://placeimg.com/640/480?random=423c6938-f1f5-42fe-abad-9d26bf4fb7b3",
@@ -2759,7 +2759,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Handcrafted Frozen Bike",
     "slug": "handcrafted_frozen_bike",
     "image_url": "http://placeimg.com/640/480?random=972e30e4-8cbf-4010-942a-f658129c024f",
@@ -2783,7 +2783,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Rustic Soft Table",
     "slug": "rustic_soft_table",
     "image_url": "http://placeimg.com/640/480?random=55628897-8a27-4d66-9125-8b5b413736ce",
@@ -2830,7 +2830,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Rustic Fresh Car",
     "slug": "rustic_fresh_car",
     "image_url": "http://placeimg.com/640/480?random=e9cc46ba-f5fb-48e9-a9dd-70802123a988",
@@ -2853,7 +2853,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Handmade Rubber Towels",
     "slug": "handmade_rubber_towels",
     "image_url": "http://placeimg.com/640/480?random=a2c50e53-0c92-4dab-92b2-827b1b91f12c",
@@ -2895,7 +2895,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Fantastic Granite Bacon",
     "slug": "fantastic_granite_bacon",
     "image_url": "http://placeimg.com/640/480?random=bcf3a3f9-c74d-4204-8b07-ddf4b434fdf1",
@@ -3033,7 +3033,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Refined Metal Shoes",
     "slug": "refined_metal_shoes",
     "image_url": "http://placeimg.com/640/480?random=582e512d-b2bb-45a4-a933-66afc8ef281a",
@@ -3221,7 +3221,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Awesome Fresh Pants",
     "slug": "awesome_fresh_pants",
     "image_url": "http://placeimg.com/640/480?random=6360b333-2b41-4a28-a97b-d620e4f81969",
@@ -3316,7 +3316,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Awesome Wooden Table",
     "slug": "awesome_wooden_table",
     "image_url": "http://placeimg.com/640/480?random=0c696762-a5bb-4616-a26e-738d6e0b8fae",
@@ -3383,7 +3383,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Licensed Rubber Gloves",
     "slug": "licensed_rubber_gloves",
     "image_url": "http://placeimg.com/640/480?random=0500ef31-eb63-48d2-93e5-dd13673718ba",
@@ -3448,7 +3448,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Ergonomic Rubber Cheese",
     "slug": "ergonomic_rubber_cheese",
     "image_url": "http://placeimg.com/640/480?random=b300c516-d5ed-4236-8bde-b719018454a2",
@@ -3468,7 +3468,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Small Wooden Sausages",
     "slug": "small_wooden_sausages",
     "image_url": "http://placeimg.com/640/480?random=13eb8689-f0ef-4677-b15f-6c9def4a603a",
@@ -3490,7 +3490,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Awesome Rubber Ball",
     "slug": "awesome_rubber_ball",
     "image_url": "http://placeimg.com/640/480?random=61dd69e8-8ddd-40ff-b962-b04d1ce03967",
@@ -3602,7 +3602,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Practical Rubber Soap",
     "slug": "practical_rubber_soap",
     "image_url": "http://placeimg.com/640/480?random=3ab41c83-2e23-4162-b7f8-38b2a550839e",
@@ -3757,7 +3757,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Unbranded Granite Bacon",
     "slug": "unbranded_granite_bacon",
     "image_url": "http://placeimg.com/640/480?random=f329f155-8c7f-4d1a-9733-f0ed10c9b6d2",
@@ -3799,7 +3799,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Sleek Soft Tuna",
     "slug": "sleek_soft_tuna",
     "image_url": "http://placeimg.com/640/480?random=0cfc378e-87a1-49db-80dd-bada9d815fea",
@@ -3870,7 +3870,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Small Rubber Pizza",
     "slug": "small_rubber_pizza",
     "image_url": "http://placeimg.com/640/480?random=a666c5c9-bc88-49f9-9ab2-1b81d328caae",
@@ -3911,7 +3911,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Generic Wooden Chips",
     "slug": "generic_wooden_chips",
     "image_url": "http://placeimg.com/640/480?random=e3e52fb5-dbc4-40e3-8873-ecae2e66939a",
@@ -4066,7 +4066,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Handcrafted Frozen Shirt",
     "slug": "handcrafted_frozen_shirt",
     "image_url": "http://placeimg.com/640/480?random=0476c684-51e6-460f-9994-3545fc05af8d",
@@ -4336,7 +4336,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Unbranded Granite Chips",
     "slug": "unbranded_granite_chips",
     "image_url": "http://placeimg.com/640/480?random=56c1a742-aa70-4602-9d3c-8fa64482b14f",
@@ -4471,7 +4471,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Small Rubber Towels",
     "slug": "small_rubber_towels",
     "image_url": "http://placeimg.com/640/480?random=bac5be63-8c31-47a9-8577-2c8a9e68e0a7",
@@ -4700,7 +4700,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Handmade Concrete Table",
     "slug": "handmade_concrete_table",
     "image_url": "http://placeimg.com/640/480?random=12c7bf25-1a81-4869-88dc-47fce870eee9",
@@ -4747,7 +4747,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Awesome Frozen Chips",
     "slug": "awesome_frozen_chips",
     "image_url": "http://placeimg.com/640/480?random=e90e63bf-7af5-40d3-848e-9a5cc6c22524",
@@ -4792,7 +4792,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Incredible Frozen Towels",
     "slug": "incredible_frozen_towels",
     "image_url": "http://placeimg.com/640/480?random=96fb18d2-8370-493d-942a-bcc57bb4d019",
@@ -4816,7 +4816,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Rustic Rubber Pants",
     "slug": "rustic_rubber_pants",
     "image_url": "http://placeimg.com/640/480?random=2748b882-6cfb-40eb-9c37-0e266727ada2",
@@ -4907,7 +4907,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Fantastic Soft Car",
     "slug": "fantastic_soft_car",
     "image_url": "http://placeimg.com/640/480?random=1031b337-67ad-4538-afd7-ba066929d366",
@@ -4977,7 +4977,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Small Wooden Chair",
     "slug": "small_wooden_chair",
     "image_url": "http://placeimg.com/640/480?random=81f84818-3f4a-4748-a334-c6c4d27c592a",
@@ -5001,7 +5001,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Tasty Soft Salad",
     "slug": "tasty_soft_salad",
     "image_url": "http://placeimg.com/640/480?random=fa5e7cf9-4d12-4537-b0fa-18564a915c49",
@@ -5091,7 +5091,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Generic Frozen Keyboard",
     "slug": "generic_frozen_keyboard",
     "image_url": "http://placeimg.com/640/480?random=fc716b3c-4675-4b21-9b79-afabac8c163b",
@@ -5161,7 +5161,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Practical Rubber Shoes",
     "slug": "practical_rubber_shoes",
     "image_url": "http://placeimg.com/640/480?random=8370ea29-752b-430d-bc53-622b4e65e839",
@@ -5186,7 +5186,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Generic Metal Keyboard",
     "slug": "generic_metal_keyboard",
     "image_url": "http://placeimg.com/640/480?random=6b4dc048-e965-4302-930e-94ef8532d6e8",
@@ -5207,7 +5207,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Fantastic Concrete Shirt",
     "slug": "fantastic_concrete_shirt",
     "image_url": "http://placeimg.com/640/480?random=f1b3d807-18b6-40db-baa7-7081943c789a",
@@ -5294,7 +5294,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Refined Soft Car",
     "slug": "refined_soft_car",
     "image_url": "http://placeimg.com/640/480?random=3dfd54c8-bfb2-4f5c-8ef3-1ffc694c01fb",
@@ -5381,7 +5381,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Handcrafted Cotton Shoes",
     "slug": "handcrafted_cotton_shoes",
     "image_url": "http://placeimg.com/640/480?random=6bcac1d3-1320-4fce-a6b3-2834143891c0",
@@ -5480,7 +5480,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Licensed Fresh Hat",
     "slug": "licensed_fresh_hat",
     "image_url": "http://placeimg.com/640/480?random=4b93902e-b993-4557-996c-58e2b107a71e",
@@ -5551,7 +5551,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Generic Frozen Keyboard",
     "slug": "generic_frozen_keyboard",
     "image_url": "http://placeimg.com/640/480?random=cc88f7d9-80ba-4ce7-abba-3d4153914c24",
@@ -5575,7 +5575,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Generic Rubber Shirt",
     "slug": "generic_rubber_shirt",
     "image_url": "http://placeimg.com/640/480?random=4227af1d-b37c-4266-aba2-fed01a63c93a",
@@ -5717,7 +5717,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Ergonomic Fresh Fish",
     "slug": "ergonomic_fresh_fish",
     "image_url": "http://placeimg.com/640/480?random=98e7f89a-7c1b-4f77-98f1-721b04f9968a",
@@ -5803,7 +5803,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Incredible Frozen Chicken",
     "slug": "incredible_frozen_chicken",
     "image_url": "http://placeimg.com/640/480?random=0c757a3c-eafb-49dc-a26a-adfe7e1d2327",
@@ -5848,7 +5848,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Small Cotton Shirt",
     "slug": "small_cotton_shirt",
     "image_url": "http://placeimg.com/640/480?random=ba79bca6-2d56-44aa-b883-33ed5a924732",
@@ -5966,7 +5966,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Handmade Fresh Hat",
     "slug": "handmade_fresh_hat",
     "image_url": "http://placeimg.com/640/480?random=bf6381ae-f39c-469a-892b-1ce3d0ef6458",
@@ -6011,7 +6011,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Small Fresh Bike",
     "slug": "small_fresh_bike",
     "image_url": "http://placeimg.com/640/480?random=958e66d6-6d5a-4ce3-bbeb-62222bb3e4ab",
@@ -6187,7 +6187,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Practical Wooden Mouse",
     "slug": "practical_wooden_mouse",
     "image_url": "http://placeimg.com/640/480?random=7ebfc957-e0c2-4b73-9318-603e1e4193ba",
@@ -6230,7 +6230,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Incredible Cotton Shoes",
     "slug": "incredible_cotton_shoes",
     "image_url": "http://placeimg.com/640/480?random=c136c575-f32b-4c1c-bd3f-fdcfdf2ec501",
@@ -6369,7 +6369,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Awesome Granite Bacon",
     "slug": "awesome_granite_bacon",
     "image_url": "http://placeimg.com/640/480?random=95ab1992-707c-4929-90fb-9bea444b42d3",
@@ -6502,7 +6502,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Rustic Steel Chair",
     "slug": "rustic_steel_chair",
     "image_url": "http://placeimg.com/640/480?random=93e31e26-fe90-4d0d-9a93-3b20bf07572c",
@@ -6525,7 +6525,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Gorgeous Granite Salad",
     "slug": "gorgeous_granite_salad",
     "image_url": "http://placeimg.com/640/480?random=4a7408c3-97d5-4f7c-abac-b647da8eef55",
@@ -6594,7 +6594,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Gorgeous Wooden Computer",
     "slug": "gorgeous_wooden_computer",
     "image_url": "http://placeimg.com/640/480?random=4886e7c0-374d-42a2-a501-516f8e343655",
@@ -6667,7 +6667,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Unbranded Rubber Ball",
     "slug": "unbranded_rubber_ball",
     "image_url": "http://placeimg.com/640/480?random=72a9494a-8d53-4b90-82ef-4a88afd3bdd7",
@@ -6691,7 +6691,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Intelligent Plastic Ball",
     "slug": "intelligent_plastic_ball",
     "image_url": "http://placeimg.com/640/480?random=584be6b3-4c11-4ff3-8478-c7c87418836f",
@@ -6711,7 +6711,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Licensed Fresh Towels",
     "slug": "licensed_fresh_towels",
     "image_url": "http://placeimg.com/640/480?random=2ad3b027-6a5a-49c1-a75d-9efd70830f63",
@@ -6893,7 +6893,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Unbranded Metal Gloves",
     "slug": "unbranded_metal_gloves",
     "image_url": "http://placeimg.com/640/480?random=ef256e36-49ea-4a0e-a145-3afb0df805c2",
@@ -6913,7 +6913,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Handcrafted Plastic Sausages",
     "slug": "handcrafted_plastic_sausages",
     "image_url": "http://placeimg.com/640/480?random=19f1da0c-dd3f-4ce1-923f-fe519085d974",
@@ -7051,7 +7051,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Fantastic Concrete Shirt",
     "slug": "fantastic_concrete_shirt",
     "image_url": "http://placeimg.com/640/480?random=d211f364-b704-429d-87e7-44c803043432",
@@ -7075,7 +7075,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Handmade Granite Soap",
     "slug": "handmade_granite_soap",
     "image_url": "http://placeimg.com/640/480?random=73aea1c8-437e-4700-bf8e-9053fc378ec1",
@@ -7247,7 +7247,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Awesome Soft Keyboard",
     "slug": "awesome_soft_keyboard",
     "image_url": "http://placeimg.com/640/480?random=72e28d17-ac97-4e28-8adf-8adf74ac9800",
@@ -7294,7 +7294,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Handmade Fresh Keyboard",
     "slug": "handmade_fresh_keyboard",
     "image_url": "http://placeimg.com/640/480?random=f4053e68-1ce0-40a1-9591-a092ef416670",
@@ -7611,7 +7611,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Fantastic Steel Hat",
     "slug": "fantastic_steel_hat",
     "image_url": "http://placeimg.com/640/480?random=3cd76409-cbe7-4baf-96b6-af13584cb5b0",
@@ -7660,7 +7660,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Handcrafted Rubber Chair",
     "slug": "handcrafted_rubber_chair",
     "image_url": "http://placeimg.com/640/480?random=26bcdd9c-bb5d-43e6-a04d-4a00bb8c4619",
@@ -7839,7 +7839,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Sleek Rubber Pants",
     "slug": "sleek_rubber_pants",
     "image_url": "http://placeimg.com/640/480?random=467d8ef2-ff8c-42f1-a756-d1f1c1abb976",
@@ -7931,7 +7931,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Sleek Granite Bacon",
     "slug": "sleek_granite_bacon",
     "image_url": "http://placeimg.com/640/480?random=c67c3c5f-ae98-4176-8503-a4d46fcec3c0",
@@ -7976,7 +7976,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Practical Plastic Keyboard",
     "slug": "practical_plastic_keyboard",
     "image_url": "http://placeimg.com/640/480?random=cd3766de-bc14-44c2-849f-06b0f69861b7",
@@ -8043,7 +8043,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Ergonomic Soft Salad",
     "slug": "ergonomic_soft_salad",
     "image_url": "http://placeimg.com/640/480?random=29ae9056-3352-4945-8a0c-388d3dab4ea0",
@@ -8111,7 +8111,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Unbranded Steel Hat",
     "slug": "unbranded_steel_hat",
     "image_url": "http://placeimg.com/640/480?random=791a48dc-534c-40f4-9e79-7f9b15916fa5",
@@ -8131,7 +8131,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Incredible Frozen Ball",
     "slug": "incredible_frozen_ball",
     "image_url": "http://placeimg.com/640/480?random=9d848691-ba67-435c-a611-50305d781d7f",
@@ -8226,7 +8226,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Rustic Steel Mouse",
     "slug": "rustic_steel_mouse",
     "image_url": "http://placeimg.com/640/480?random=cbf488e2-3aef-403e-ac89-15eb63d37b05",
@@ -8270,7 +8270,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Gorgeous Frozen Fish",
     "slug": "gorgeous_frozen_fish",
     "image_url": "http://placeimg.com/640/480?random=922dd5df-7128-4270-a35b-6b741cb2d7ec",
@@ -8399,7 +8399,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Incredible Concrete Pizza",
     "slug": "incredible_concrete_pizza",
     "image_url": "http://placeimg.com/640/480?random=36a005e2-f75b-42d4-afcc-66fb91a259d8",
@@ -8514,7 +8514,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Rustic Cotton Chair",
     "slug": "rustic_cotton_chair",
     "image_url": "http://placeimg.com/640/480?random=28374bee-622a-4492-b9ca-df85726b5b2c",
@@ -8535,7 +8535,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Fantastic Frozen Sausages",
     "slug": "fantastic_frozen_sausages",
     "image_url": "http://placeimg.com/640/480?random=b6616129-b746-4783-ab0f-2d1ac461d98f",
@@ -8785,7 +8785,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Rustic Plastic Tuna",
     "slug": "rustic_plastic_tuna",
     "image_url": "http://placeimg.com/640/480?random=d12bfb71-0c5e-46ec-bce2-c6386a992716",
@@ -8831,7 +8831,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Sleek Concrete Shirt",
     "slug": "sleek_concrete_shirt",
     "image_url": "http://placeimg.com/640/480?random=0e0171f6-a675-4212-a71a-c85b93cb96b3",
@@ -8853,7 +8853,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Awesome Fresh Ball",
     "slug": "awesome_fresh_ball",
     "image_url": "http://placeimg.com/640/480?random=a1c335cc-05aa-48f0-8c23-97c6708e3afb",
@@ -8947,7 +8947,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Tasty Plastic Pants",
     "slug": "tasty_plastic_pants",
     "image_url": "http://placeimg.com/640/480?random=c1d17c8d-973f-4bec-9afe-ff04f0eb1c5e",
@@ -8967,7 +8967,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Incredible Wooden Mouse",
     "slug": "incredible_wooden_mouse",
     "image_url": "http://placeimg.com/640/480?random=5797dbf3-c1f0-4661-953e-35b402e0a0a8",
@@ -9107,7 +9107,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Awesome Steel Cheese",
     "slug": "awesome_steel_cheese",
     "image_url": "http://placeimg.com/640/480?random=9eb389a5-5fd8-411e-bb72-f1015fe8305b",
@@ -9384,7 +9384,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Rustic Cotton Chair",
     "slug": "rustic_cotton_chair",
     "image_url": "http://placeimg.com/640/480?random=809c954e-f7b1-43e7-aef8-f802abdce06f",
@@ -9408,7 +9408,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Refined Frozen Soap",
     "slug": "refined_frozen_soap",
     "image_url": "http://placeimg.com/640/480?random=48aa0f6a-1372-4baf-9fb1-634220e08b42",
@@ -9563,7 +9563,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Small Rubber Computer",
     "slug": "small_rubber_computer",
     "image_url": "http://placeimg.com/640/480?random=eef090c1-7902-4adf-9073-8a21945b99b4",
@@ -9703,7 +9703,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Awesome Rubber Shirt",
     "slug": "awesome_rubber_shirt",
     "image_url": "http://placeimg.com/640/480?random=4dbe2439-e4a5-47a2-8f3f-f98e5b01e925",
@@ -9797,7 +9797,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Refined Frozen Keyboard",
     "slug": "refined_frozen_keyboard",
     "image_url": "http://placeimg.com/640/480?random=f2eb4b72-b1ef-485b-af00-721796b61ff3",
@@ -9846,7 +9846,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Handmade Rubber Keyboard",
     "slug": "handmade_rubber_keyboard",
     "image_url": "http://placeimg.com/640/480?random=de8eba79-f005-4b5b-97e7-1a9347d389ce",
@@ -9990,7 +9990,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Tasty Metal Soap",
     "slug": "tasty_metal_soap",
     "image_url": "http://placeimg.com/640/480?random=1abb8e29-966f-41d5-8464-d18dc1ebeca0",
@@ -10034,7 +10034,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Awesome Metal Bacon",
     "slug": "awesome_metal_bacon",
     "image_url": "http://placeimg.com/640/480?random=0b2140bf-8b42-4dbc-bf90-66517e7f2606",
@@ -10287,7 +10287,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Intelligent Steel Shoes",
     "slug": "intelligent_steel_shoes",
     "image_url": "http://placeimg.com/640/480?random=490e4c01-5ffb-47ea-98ff-d6eec75d7222",
@@ -10354,7 +10354,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Intelligent Granite Computer",
     "slug": "intelligent_granite_computer",
     "image_url": "http://placeimg.com/640/480?random=c85a3f6d-a0aa-49b3-b949-789067c35fb7",
@@ -10377,7 +10377,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Handcrafted Wooden Chicken",
     "slug": "handcrafted_wooden_chicken",
     "image_url": "http://placeimg.com/640/480?random=9663a7b9-2069-4a73-b895-402861365efb",
@@ -10513,7 +10513,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Refined Frozen Pants",
     "slug": "refined_frozen_pants",
     "image_url": "http://placeimg.com/640/480?random=54278dff-6c44-46ca-90f0-0294fdcded3e",
@@ -10559,7 +10559,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Small Fresh Mouse",
     "slug": "small_fresh_mouse",
     "image_url": "http://placeimg.com/640/480?random=2376523e-a8ec-47d5-baab-159152fe86e8",
@@ -10582,7 +10582,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Fantastic Granite Salad",
     "slug": "fantastic_granite_salad",
     "image_url": "http://placeimg.com/640/480?random=0b60fd5c-583c-4af9-bef1-955d04cf2988",
@@ -10855,7 +10855,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Ergonomic Granite Gloves",
     "slug": "ergonomic_granite_gloves",
     "image_url": "http://placeimg.com/640/480?random=d7cb6eaa-2110-428e-a93c-aa7619b7855e",
@@ -11039,7 +11039,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Handmade Soft Bacon",
     "slug": "handmade_soft_bacon",
     "image_url": "http://placeimg.com/640/480?random=c92d98ea-5eb6-4448-858c-3d9edad6d175",
@@ -11063,7 +11063,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Incredible Steel Bike",
     "slug": "incredible_steel_bike",
     "image_url": "http://placeimg.com/640/480?random=46156aff-86c4-4fe5-9758-4fb5273e77b9",
@@ -11107,7 +11107,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Practical Fresh Table",
     "slug": "practical_fresh_table",
     "image_url": "http://placeimg.com/640/480?random=65b16e94-d4d0-46ce-9290-d30af39f6e52",
@@ -11267,7 +11267,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Small Granite Chair",
     "slug": "small_granite_chair",
     "image_url": "http://placeimg.com/640/480?random=32714955-738c-44ae-b9b2-292feb1d98f5",
@@ -11291,7 +11291,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Fantastic Metal Computer",
     "slug": "fantastic_metal_computer",
     "image_url": "http://placeimg.com/640/480?random=c8ef0606-1ea1-49f9-88ea-900ab8be55b9",
@@ -11357,7 +11357,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Practical Soft Ball",
     "slug": "practical_soft_ball",
     "image_url": "http://placeimg.com/640/480?random=7cc9b935-0cad-434f-98d0-69ca8fec881d",
@@ -11450,7 +11450,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Handcrafted Cotton Cheese",
     "slug": "handcrafted_cotton_cheese",
     "image_url": "http://placeimg.com/640/480?random=889756fd-938f-49cc-a36b-b3f9d081c85c",
@@ -11675,7 +11675,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Licensed Rubber Chips",
     "slug": "licensed_rubber_chips",
     "image_url": "http://placeimg.com/640/480?random=f06e0cd3-3f07-46a8-93a3-cd197bac2abe",
@@ -11695,7 +11695,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Small Cotton Tuna",
     "slug": "small_cotton_tuna",
     "image_url": "http://placeimg.com/640/480?random=83d3ccad-a2a5-45ec-af83-28a26688315a",
@@ -11786,7 +11786,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Small Cotton Cheese",
     "slug": "small_cotton_cheese",
     "image_url": "http://placeimg.com/640/480?random=2096f50f-7141-43b7-bbbb-ad594639756e",
@@ -11809,7 +11809,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Licensed Fresh Shirt",
     "slug": "licensed_fresh_shirt",
     "image_url": "http://placeimg.com/640/480?random=d7b39c7f-45d8-4b26-a26b-1e24641d5370",
@@ -11922,7 +11922,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Generic Concrete Car",
     "slug": "generic_concrete_car",
     "image_url": "http://placeimg.com/640/480?random=8b050a20-5f1f-42e4-a956-4ed42d496dca",
@@ -12057,7 +12057,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Fantastic Wooden Chicken",
     "slug": "fantastic_wooden_chicken",
     "image_url": "http://placeimg.com/640/480?random=e915d939-126e-4b7d-8956-631ad3fab570",
@@ -12079,7 +12079,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Handmade Plastic Shoes",
     "slug": "handmade_plastic_shoes",
     "image_url": "http://placeimg.com/640/480?random=0d10ce0c-f89e-40c3-b063-783028b56fdb",
@@ -12211,7 +12211,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Unbranded Concrete Keyboard",
     "slug": "unbranded_concrete_keyboard",
     "image_url": "http://placeimg.com/640/480?random=e21142ee-f354-4353-8db3-0e02a53889f8",
@@ -12384,7 +12384,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Ergonomic Steel Mouse",
     "slug": "ergonomic_steel_mouse",
     "image_url": "http://placeimg.com/640/480?random=e6db228d-b840-4693-80db-28d162e4fdd9",
@@ -12469,7 +12469,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Incredible Fresh Shoes",
     "slug": "incredible_fresh_shoes",
     "image_url": "http://placeimg.com/640/480?random=1d08ced7-4c06-4283-a2b8-f8df0c3b5b76",
@@ -12741,7 +12741,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Handcrafted Wooden Fish",
     "slug": "handcrafted_wooden_fish",
     "image_url": "http://placeimg.com/640/480?random=4d33c4da-5149-4715-b2a3-fb7cba23cc98",
@@ -12947,7 +12947,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Practical Soft Mouse",
     "slug": "practical_soft_mouse",
     "image_url": "http://placeimg.com/640/480?random=ee118639-1364-4141-86ea-3084c95126c9",
@@ -12992,7 +12992,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Sleek Granite Mouse",
     "slug": "sleek_granite_mouse",
     "image_url": "http://placeimg.com/640/480?random=f15cc978-0ca9-4408-b434-2f37916e4fd5",
@@ -13192,7 +13192,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Ergonomic Steel Bacon",
     "slug": "ergonomic_steel_bacon",
     "image_url": "http://placeimg.com/640/480?random=5108c1ef-84c1-42fc-b4ee-6362b4a8bc85",
@@ -13303,7 +13303,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Generic Plastic Car",
     "slug": "generic_plastic_car",
     "image_url": "http://placeimg.com/640/480?random=e45aeeb2-5777-4f10-8715-1ebbf639882f",
@@ -13349,7 +13349,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Unbranded Fresh Pizza",
     "slug": "unbranded_fresh_pizza",
     "image_url": "http://placeimg.com/640/480?random=26e0864e-c0d4-4cd7-aa83-db1698f0b9c3",
@@ -13371,7 +13371,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Handcrafted Rubber Table",
     "slug": "handcrafted_rubber_table",
     "image_url": "http://placeimg.com/640/480?random=8e2fb957-1813-47c9-ae8e-0e95e1cd9e54",
@@ -13393,7 +13393,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Unbranded Fresh Soap",
     "slug": "unbranded_fresh_soap",
     "image_url": "http://placeimg.com/640/480?random=37085f97-eeca-426e-a56e-c46944d3dd2a",
@@ -13413,7 +13413,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Sleek Cotton Computer",
     "slug": "sleek_cotton_computer",
     "image_url": "http://placeimg.com/640/480?random=81b5d40b-ff88-4f1e-a213-9bd67f731c0d",
@@ -13479,7 +13479,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Ergonomic Soft Chair",
     "slug": "ergonomic_soft_chair",
     "image_url": "http://placeimg.com/640/480?random=0b960987-cadf-4c01-b291-a30eba3f31e8",
@@ -13788,7 +13788,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Practical Granite Soap",
     "slug": "practical_granite_soap",
     "image_url": "http://placeimg.com/640/480?random=c42a4a60-cf3d-4839-98c4-b972c84b2d20",
@@ -13988,7 +13988,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Sleek Cotton Towels",
     "slug": "sleek_cotton_towels",
     "image_url": "http://placeimg.com/640/480?random=4a270532-29e2-4840-9f84-02fed6209f1b",
@@ -14147,7 +14147,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Fantastic Frozen Keyboard",
     "slug": "fantastic_frozen_keyboard",
     "image_url": "http://placeimg.com/640/480?random=5b836e90-02b6-4eff-ba7d-474c45da2b0e",
@@ -14279,7 +14279,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Unbranded Granite Cheese",
     "slug": "unbranded_granite_cheese",
     "image_url": "http://placeimg.com/640/480?random=5ca2f2d5-4a4e-419a-a6fc-a46e31a56dba",
@@ -14301,7 +14301,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Awesome Cotton Bacon",
     "slug": "awesome_cotton_bacon",
     "image_url": "http://placeimg.com/640/480?random=a389771f-c2fb-47f5-8d1a-2a4d7543617f",
@@ -14323,7 +14323,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Unbranded Fresh Gloves",
     "slug": "unbranded_fresh_gloves",
     "image_url": "http://placeimg.com/640/480?random=d9c2b1fc-9a3e-474d-a649-8fa12143f120",
@@ -14348,7 +14348,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Sleek Steel Gloves",
     "slug": "sleek_steel_gloves",
     "image_url": "http://placeimg.com/640/480?random=cc240b19-e7dd-4240-a0e5-ba371c3155b6",
@@ -14439,7 +14439,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Rustic Wooden Tuna",
     "slug": "rustic_wooden_tuna",
     "image_url": "http://placeimg.com/640/480?random=c22c21c0-22b9-4205-80a4-7208f3435990",
@@ -14923,7 +14923,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Incredible Concrete Fish",
     "slug": "incredible_concrete_fish",
     "image_url": "http://placeimg.com/640/480?random=099918fa-9914-4b12-87f7-bd975fb9030d",
@@ -14991,7 +14991,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Small Soft Tuna",
     "slug": "small_soft_tuna",
     "image_url": "http://placeimg.com/640/480?random=9d42908d-58f1-43dc-8581-1fc2e9fdb762",
@@ -15015,7 +15015,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Awesome Plastic Ball",
     "slug": "awesome_plastic_ball",
     "image_url": "http://placeimg.com/640/480?random=a0ab60a1-2d88-453e-b9d7-5a7dcb72ca78",
@@ -15180,7 +15180,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Licensed Rubber Pizza",
     "slug": "licensed_rubber_pizza",
     "image_url": "http://placeimg.com/640/480?random=6df16c24-470b-46d7-9890-7a6ce59ae396",
@@ -15363,7 +15363,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Incredible Frozen Pants",
     "slug": "incredible_frozen_pants",
     "image_url": "http://placeimg.com/640/480?random=12263ecc-d759-449a-80f2-840f25f7e828",
@@ -15387,7 +15387,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Practical Frozen Computer",
     "slug": "practical_frozen_computer",
     "image_url": "http://placeimg.com/640/480?random=b6ce61f4-665c-436f-8e48-c1df9a3d060c",
@@ -15411,7 +15411,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Small Metal Car",
     "slug": "small_metal_car",
     "image_url": "http://placeimg.com/640/480?random=5c88ae2d-4ea4-4da0-bbbd-9d0c4c53d6e7",
@@ -15550,7 +15550,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Generic Fresh Chair",
     "slug": "generic_fresh_chair",
     "image_url": "http://placeimg.com/640/480?random=7391b360-e6c7-44d9-9d20-1346fca89051",
@@ -15570,7 +15570,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Gorgeous Plastic Sausages",
     "slug": "gorgeous_plastic_sausages",
     "image_url": "http://placeimg.com/640/480?random=1c4eadd3-4208-4007-a2ac-bbf42a93966a",
@@ -15619,7 +15619,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Handmade Metal Chair",
     "slug": "handmade_metal_chair",
     "image_url": "http://placeimg.com/640/480?random=5847128d-aa26-4179-8d97-ead047b9f90f",
@@ -15710,7 +15710,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Tasty Metal Car",
     "slug": "tasty_metal_car",
     "image_url": "http://placeimg.com/640/480?random=b349a240-a45b-4b20-99e6-89a1133dd1d0",
@@ -15803,7 +15803,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Ergonomic Cotton Salad",
     "slug": "ergonomic_cotton_salad",
     "image_url": "http://placeimg.com/640/480?random=9c274c5a-d86a-456d-a6dd-2185a1389cfb",
@@ -15898,7 +15898,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Sleek Rubber Soap",
     "slug": "sleek_rubber_soap",
     "image_url": "http://placeimg.com/640/480?random=9c247a1a-33a1-40dd-a458-76b8a50dc131",
@@ -15991,7 +15991,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Intelligent Steel Hat",
     "slug": "intelligent_steel_hat",
     "image_url": "http://placeimg.com/640/480?random=abc95aaa-8760-4738-a759-47a7d67c4da8",
@@ -16035,7 +16035,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Practical Fresh Soap",
     "slug": "practical_fresh_soap",
     "image_url": "http://placeimg.com/640/480?random=98281a15-e394-42f2-887c-7fb3e67660b2",
@@ -16085,7 +16085,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Fantastic Cotton Chair",
     "slug": "fantastic_cotton_chair",
     "image_url": "http://placeimg.com/640/480?random=499d3615-3fab-44c7-bac6-7dff66f24f83",
@@ -16106,7 +16106,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Awesome Concrete Gloves",
     "slug": "awesome_concrete_gloves",
     "image_url": "http://placeimg.com/640/480?random=3e282b10-d919-4393-8aa1-2a998a9ac8ce",
@@ -16338,7 +16338,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Handcrafted Wooden Sausages",
     "slug": "handcrafted_wooden_sausages",
     "image_url": "http://placeimg.com/640/480?random=b5c75331-31ff-459b-9dd2-af6d1dabb418",
@@ -16434,7 +16434,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Tasty Fresh Chips",
     "slug": "tasty_fresh_chips",
     "image_url": "http://placeimg.com/640/480?random=a2ea36b4-393d-48f1-874a-8131e844ca36",
@@ -16521,7 +16521,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Intelligent Wooden Towels",
     "slug": "intelligent_wooden_towels",
     "image_url": "http://placeimg.com/640/480?random=05bb4d82-81c0-4144-8e1b-12ceb4905038",
@@ -16654,7 +16654,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Rustic Soft Bacon",
     "slug": "rustic_soft_bacon",
     "image_url": "http://placeimg.com/640/480?random=e8ea0f2b-1864-4641-96d8-0a7840bfcd82",
@@ -16807,7 +16807,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Rustic Rubber Chair",
     "slug": "rustic_rubber_chair",
     "image_url": "http://placeimg.com/640/480?random=f89f8c73-e26e-4dc7-a8c0-ce95e806cf2f",
@@ -16850,7 +16850,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Licensed Wooden Chicken",
     "slug": "licensed_wooden_chicken",
     "image_url": "http://placeimg.com/640/480?random=08390224-0969-4128-85b0-6dd6f6d5bcb6",
@@ -16895,7 +16895,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Practical Fresh Soap",
     "slug": "practical_fresh_soap",
     "image_url": "http://placeimg.com/640/480?random=601b1884-e341-419f-85b5-cd7a1b001392",
@@ -16965,7 +16965,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Handmade Metal Bacon",
     "slug": "handmade_metal_bacon",
     "image_url": "http://placeimg.com/640/480?random=74533aa9-4d69-4139-9c7f-18400114fd7a",
@@ -16985,7 +16985,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Fantastic Frozen Chips",
     "slug": "fantastic_frozen_chips",
     "image_url": "http://placeimg.com/640/480?random=065292bd-93ed-4825-bfb5-abb861f8592b",
@@ -17441,7 +17441,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Incredible Fresh Ball",
     "slug": "incredible_fresh_ball",
     "image_url": "http://placeimg.com/640/480?random=d70858ba-a1c5-43ff-9ddf-498e40ee88be",
@@ -17484,7 +17484,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Practical Steel Tuna",
     "slug": "practical_steel_tuna",
     "image_url": "http://placeimg.com/640/480?random=9a567132-cff2-4a02-ac00-973061875995",
@@ -18031,7 +18031,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Fantastic Granite Gloves",
     "slug": "fantastic_granite_gloves",
     "image_url": "http://placeimg.com/640/480?random=b2439129-152b-4137-a00f-abc345bb7cdb",
@@ -18051,7 +18051,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Ergonomic Fresh Pants",
     "slug": "ergonomic_fresh_pants",
     "image_url": "http://placeimg.com/640/480?random=28c6559e-f1fb-43bb-9733-5a2a9b325d85",
@@ -18140,7 +18140,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Unbranded Fresh Shirt",
     "slug": "unbranded_fresh_shirt",
     "image_url": "http://placeimg.com/640/480?random=74d30934-a1ea-469f-bf82-e3c6c18e4f7f",
@@ -18371,7 +18371,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Sleek Plastic Shirt",
     "slug": "sleek_plastic_shirt",
     "image_url": "http://placeimg.com/640/480?random=119ac47c-bfe3-474d-b416-616a99c8a9c2",
@@ -18787,7 +18787,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Ergonomic Granite Bacon",
     "slug": "ergonomic_granite_bacon",
     "image_url": "http://placeimg.com/640/480?random=437e038c-b529-4b17-9e47-c1599d851116",
@@ -18811,7 +18811,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Small Frozen Bike",
     "slug": "small_frozen_bike",
     "image_url": "http://placeimg.com/640/480?random=04aed6e9-b1ae-413c-a7c1-a58ec6902f6a",
@@ -19078,7 +19078,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Rustic Soft Salad",
     "slug": "rustic_soft_salad",
     "image_url": "http://placeimg.com/640/480?random=1b14dd9f-9407-4f7c-9d6f-5937bc5f0ee5",
@@ -19301,7 +19301,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Generic Soft Chicken",
     "slug": "generic_soft_chicken",
     "image_url": "http://placeimg.com/640/480?random=195a95ba-9044-47e5-9c56-e286e6c06d6b",
@@ -19346,7 +19346,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Incredible Plastic Pants",
     "slug": "incredible_plastic_pants",
     "image_url": "http://placeimg.com/640/480?random=55910e5f-bee7-4343-9840-2c7d1ac87d1a",
@@ -19418,7 +19418,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Unbranded Granite Tuna",
     "slug": "unbranded_granite_tuna",
     "image_url": "http://placeimg.com/640/480?random=55140d13-6ee8-4535-9dc8-e196a53cb4b9",
@@ -19482,7 +19482,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Intelligent Metal Fish",
     "slug": "intelligent_metal_fish",
     "image_url": "http://placeimg.com/640/480?random=97b1e0d7-8188-4bef-8cb7-2d0b97a9ba2f",
@@ -19711,7 +19711,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Licensed Cotton Bike",
     "slug": "licensed_cotton_bike",
     "image_url": "http://placeimg.com/640/480?random=a6a17af3-0ff1-47f1-af16-5c71482588d0",
@@ -19800,7 +19800,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Licensed Metal Chips",
     "slug": "licensed_metal_chips",
     "image_url": "http://placeimg.com/640/480?random=21f31db6-8735-4ccd-a10e-b60e4862773f",
@@ -19846,7 +19846,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Sleek Steel Gloves",
     "slug": "sleek_steel_gloves",
     "image_url": "http://placeimg.com/640/480?random=a4833cc1-9d18-4a6c-9b3d-863e55b9b635",
@@ -19968,7 +19968,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Licensed Metal Car",
     "slug": "licensed_metal_car",
     "image_url": "http://placeimg.com/640/480?random=aae93805-1a30-4414-846a-f82188a69c47",
@@ -20056,7 +20056,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Fantastic Granite Bike",
     "slug": "fantastic_granite_bike",
     "image_url": "http://placeimg.com/640/480?random=f8510508-0020-4f66-9cbb-67ddaf97efff",
@@ -20078,7 +20078,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Generic Wooden Car",
     "slug": "generic_wooden_car",
     "image_url": "http://placeimg.com/640/480?random=afefd8bc-f61c-4be1-8f06-b6309bf8ae64",
@@ -20147,7 +20147,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 19,
+    "category_id": 14,
     "name": "Intelligent Concrete Keyboard",
     "slug": "intelligent_concrete_keyboard",
     "image_url": "http://placeimg.com/640/480?random=65f5cf4d-33cb-4dce-b66f-1a27575ce299",
@@ -20167,7 +20167,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Sleek Rubber Gloves",
     "slug": "sleek_rubber_gloves",
     "image_url": "http://placeimg.com/640/480?random=54fbc72e-37a0-4a7a-afcd-3e30419f44b4",
@@ -20259,7 +20259,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Ergonomic Metal Shoes",
     "slug": "ergonomic_metal_shoes",
     "image_url": "http://placeimg.com/640/480?random=f1a07321-80b5-491a-9e2c-1c349d109fb0",
@@ -20369,7 +20369,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Handmade Plastic Shirt",
     "slug": "handmade_plastic_shirt",
     "image_url": "http://placeimg.com/640/480?random=b87c6f55-31d4-4c6f-bf4d-2bbb9f8d63a5",
@@ -20392,7 +20392,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Unbranded Granite Chicken",
     "slug": "unbranded_granite_chicken",
     "image_url": "http://placeimg.com/640/480?random=d3539065-b72d-4e40-bb33-43825ccd97cf",
@@ -20441,7 +20441,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Handmade Rubber Table",
     "slug": "handmade_rubber_table",
     "image_url": "http://placeimg.com/640/480?random=8203a19b-9047-42ba-a5e1-a60b6e5f2a62",
@@ -20582,7 +20582,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Gorgeous Rubber Gloves",
     "slug": "gorgeous_rubber_gloves",
     "image_url": "http://placeimg.com/640/480?random=62e14d5e-390d-49ef-a849-cb8645202d3e",
@@ -20605,7 +20605,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Ergonomic Rubber Tuna",
     "slug": "ergonomic_rubber_tuna",
     "image_url": "http://placeimg.com/640/480?random=3b8274ab-0091-4cef-89ed-c64f05d6df38",
@@ -20873,7 +20873,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Refined Cotton Fish",
     "slug": "refined_cotton_fish",
     "image_url": "http://placeimg.com/640/480?random=20acc6b2-5cfe-4f17-b8a9-0119e3b01ae2",
@@ -20897,7 +20897,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 17,
+    "category_id": 15,
     "name": "Handmade Concrete Computer",
     "slug": "handmade_concrete_computer",
     "image_url": "http://placeimg.com/640/480?random=6afdfed1-5f99-491d-a389-b84060b9f968",
@@ -20966,7 +20966,7 @@
   },
   {
     "brand_id": 3,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Fantastic Soft Cheese",
     "slug": "fantastic_soft_cheese",
     "image_url": "http://placeimg.com/640/480?random=c5770620-5c4a-44d1-9537-b6f294690803",
@@ -21122,7 +21122,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Rustic Granite Gloves",
     "slug": "rustic_granite_gloves",
     "image_url": "http://placeimg.com/640/480?random=36b14589-1e94-4ab9-80cb-85b437f08104",
@@ -21144,7 +21144,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Rustic Frozen Salad",
     "slug": "rustic_frozen_salad",
     "image_url": "http://placeimg.com/640/480?random=3f778875-747f-4627-89a3-d4cf9066c71b",
@@ -21487,7 +21487,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Ergonomic Granite Bike",
     "slug": "ergonomic_granite_bike",
     "image_url": "http://placeimg.com/640/480?random=79bb7ff2-0cc6-42ef-9086-1f9bc868762e",
@@ -21692,7 +21692,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Fantastic Frozen Bacon",
     "slug": "fantastic_frozen_bacon",
     "image_url": "http://placeimg.com/640/480?random=03590485-4d67-4122-9d46-de082a46be51",
@@ -21830,7 +21830,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Sleek Cotton Shoes",
     "slug": "sleek_cotton_shoes",
     "image_url": "http://placeimg.com/640/480?random=dc407d3f-40dd-47eb-94c7-7542edb40ca4",
@@ -21922,7 +21922,7 @@
   },
   {
     "brand_id": 1,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Tasty Rubber Table",
     "slug": "tasty_rubber_table",
     "image_url": "http://placeimg.com/640/480?random=55592293-848a-454a-aa29-f0a62e54503e",
@@ -22060,7 +22060,7 @@
   },
   {
     "brand_id": 5,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Gorgeous Cotton Ball",
     "slug": "gorgeous_cotton_ball",
     "image_url": "http://placeimg.com/640/480?random=b09bde32-55d0-409b-8cd0-251fe5df53a9",
@@ -22241,7 +22241,7 @@
   },
   {
     "brand_id": 6,
-    "category_id": 18,
+    "category_id": 15,
     "name": "Sleek Wooden Salad",
     "slug": "sleek_wooden_salad",
     "image_url": "http://placeimg.com/640/480?random=21b174d8-a377-42fc-98a6-f5b5c2c16019",
@@ -22598,7 +22598,7 @@
   },
   {
     "brand_id": 4,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Handcrafted Steel Keyboard",
     "slug": "handcrafted_steel_keyboard",
     "image_url": "http://placeimg.com/640/480?random=64ae95f5-a5b6-4b1f-85f0-1457fc94edd3",
@@ -22667,7 +22667,7 @@
   },
   {
     "brand_id": 2,
-    "category_id": 16,
+    "category_id": 15,
     "name": "Intelligent Rubber Chair",
     "slug": "intelligent_rubber_chair",
     "image_url": "http://placeimg.com/640/480?random=d4501f64-260b-4b02-927b-b0e35ac1fe06",

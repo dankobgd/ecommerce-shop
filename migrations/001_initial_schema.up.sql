@@ -3,33 +3,37 @@ create type gender AS ENUM ('m', 'f');
 
 create table public.category (
   id int generated always as identity primary key,
-  name varchar(64),
-  slug varchar(64),
-  logo text,
+  name varchar(64) not null,
+  slug varchar(64) not null,
+  logo text not null,
+  logo_public_id text not null,
   description text,
   is_featured bool default false not null,
   properties jsonb,
   created_at timestamptz not null,
-  updated_at timestamptz not null
+  updated_at timestamptz not null,
+  unique (name, slug)
 );
 
 create table public.brand (
   id int generated always as identity primary key,
   name varchar(64) not null,
-  slug varchar(64),
+  slug varchar(64) not null,
   type varchar(64) not null,
   description text,
   email text not null,
   website_url text not null,
-  logo text,
+  logo text not null,
+  logo_public_id text not null,
   created_at timestamptz not null,
-  updated_at timestamptz not null
+  updated_at timestamptz not null,
+  unique (name, slug)
 );
 
 create table public.tag (
   id int generated always as identity primary key,
-  name varchar(64),
-  slug varchar(64),
+  name varchar(64) not null,
+  slug varchar(64) not null,
   description text,
   created_at timestamptz not null,
   updated_at timestamptz not null
@@ -94,8 +98,9 @@ create table public.product (
   brand_id int not null,
   category_id int not null,
   name varchar(64) not null,  
-  slug varchar(64),
+  slug varchar(64) not null,
   image_url text not null,
+  image_public_id text not null,
   description text,
   in_stock bool default true not null,
   sku text not null,
@@ -125,6 +130,7 @@ create table public.product_tag (
 );
 
 create table public.product_image (
+  id int generated always as identity primary key,
   product_id int not null,
   url text not null,
   public_id text not null,

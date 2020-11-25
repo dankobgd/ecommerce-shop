@@ -31,7 +31,7 @@ var (
 
 // BulkInsert inserts multiple brands in the db
 func (s PgBrandStore) BulkInsert(brands []*model.Brand) *model.AppErr {
-	q := `INSERT INTO public.brand(name, slug, type, logo, description, email, website_url, created_at, updated_at) VALUES(:name, :slug, :type, :logo, :description, :email, :website_url, :created_at, :updated_at) RETURNING id`
+	q := `INSERT INTO public.brand(name, slug, type, logo, logo_public_id, description, email, website_url, created_at, updated_at) VALUES(:name, :slug, :type, :logo, :logo_public_id, :description, :email, :website_url, :created_at, :updated_at) RETURNING id`
 
 	if _, err := s.db.NamedExec(q, brands); err != nil {
 		return model.NewAppErr("PgBrandStore.BulkInsert", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkInsertBrands, http.StatusInternalServerError, nil)
@@ -41,7 +41,7 @@ func (s PgBrandStore) BulkInsert(brands []*model.Brand) *model.AppErr {
 
 // Save inserts the new brand in the db
 func (s PgBrandStore) Save(brand *model.Brand) (*model.Brand, *model.AppErr) {
-	q := `INSERT INTO public.brand(name, slug, type, logo, description, email, website_url, created_at, updated_at) VALUES(:name, :slug, :type, :logo, :description, :email, :website_url, :created_at, :updated_at) RETURNING id`
+	q := `INSERT INTO public.brand(name, slug, type, logo, logo_public_id, description, email, website_url, created_at, updated_at) VALUES(:name, :slug, :type, :logo, :logo_public_id, :description, :email, :website_url, :created_at, :updated_at) RETURNING id`
 
 	var id int64
 	rows, err := s.db.NamedQuery(q, brand)
@@ -65,7 +65,7 @@ func (s PgBrandStore) Save(brand *model.Brand) (*model.Brand, *model.AppErr) {
 
 // Update updates the brand
 func (s PgBrandStore) Update(id int64, brand *model.Brand) (*model.Brand, *model.AppErr) {
-	q := `UPDATE public.brand SET name=:name, slug=:slug, type=:type, description=:description, email=:email, website_url=:website_url, logo=:logo, updated_at=:updated_at WHERE id=:id`
+	q := `UPDATE public.brand SET name=:name, slug=:slug, type=:type, description=:description, email=:email, website_url=:website_url, logo=:logo, logo_public_id=:logo_public_id, updated_at=:updated_at WHERE id=:id`
 	if _, err := s.db.NamedExec(q, brand); err != nil {
 		return nil, model.NewAppErr("PgBrandStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateBrand, http.StatusInternalServerError, nil)
 	}

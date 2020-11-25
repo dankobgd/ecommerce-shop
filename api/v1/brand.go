@@ -1,6 +1,7 @@
 package apiv1
 
 import (
+	"mime/multipart"
 	"net/http"
 	"strconv"
 
@@ -40,15 +41,18 @@ func (a *API) createBrand(w http.ResponseWriter, r *http.Request) {
 	mpf := r.MultipartForm
 	model.SchemaDecoder.IgnoreUnknownKeys(true)
 
-	var b model.Brand
-	if err := model.SchemaDecoder.Decode(&b, mpf.Value); err != nil {
+	b := &model.Brand{}
+	if err := model.SchemaDecoder.Decode(b, mpf.Value); err != nil {
 		respondError(w, model.NewAppErr("createBrand", model.ErrInternal, locale.GetUserLocalizer("en"), msgBrandMultipartErr, http.StatusInternalServerError, nil))
 		return
 	}
 
-	fh := mpf.File["logo"][0]
+	var fh *multipart.FileHeader
+	if len(mpf.File["logo"]) > 0 {
+		fh = mpf.File["logo"][0]
+	}
 
-	brand, bErr := a.app.CreateBrand(&b, fh)
+	brand, bErr := a.app.CreateBrand(b, fh)
 	if bErr != nil {
 		respondError(w, bErr)
 		return
@@ -94,13 +98,26 @@ func (a *API) patchBrand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	patch, err := model.BrandPatchFromJSON(r.Body)
-	if err != nil {
-		respondError(w, model.NewAppErr("patchBrand", model.ErrInternal, locale.GetUserLocalizer("en"), msgBrandPatchFromJSONErr, http.StatusInternalServerError, nil))
+	if err := r.ParseMultipartForm(model.FileUploadSizeLimit); err != nil {
+		respondError(w, model.NewAppErr("patchBrand", model.ErrInternal, locale.GetUserLocalizer("en"), msgBrandMultipartErr, http.StatusInternalServerError, nil))
 		return
 	}
 
-	ubrand, bErr := a.app.PatchBrand(bid, patch)
+	mpf := r.MultipartForm
+	model.SchemaDecoder.IgnoreUnknownKeys(true)
+
+	patch := &model.BrandPatch{}
+	if err := model.SchemaDecoder.Decode(patch, mpf.Value); err != nil {
+		respondError(w, model.NewAppErr("patchBrand", model.ErrInternal, locale.GetUserLocalizer("en"), msgBrandMultipartErr, http.StatusInternalServerError, nil))
+		return
+	}
+
+	var image *multipart.FileHeader
+	if len(mpf.File["logo"]) > 0 {
+		image = mpf.File["logo"][0]
+	}
+
+	ubrand, bErr := a.app.PatchBrand(bid, patch, image)
 	if err != nil {
 		respondError(w, bErr)
 		return

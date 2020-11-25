@@ -28,31 +28,44 @@ var (
 )
 
 // BulkInsert inserts multiple images in the db
-func (s PgProductImageStore) BulkInsert(images []*model.ProductImage) ([]int64, *model.AppErr) {
-	q := `INSERT INTO public.product_image (product_id, url, created_at, updated_at) VALUES(:img_product_id, :img_url, :img_created_at, :img_updated_at) RETURNING id`
+func (s PgProductImageStore) BulkInsert(images []*model.ProductImage) *model.AppErr {
+	q := `INSERT INTO public.product_image (product_id, url, public_id, created_at, updated_at) VALUES(:product_id, :url, :public_id, :created_at, :updated_at)`
+	if _, err := s.db.NamedExec(q, images); err != nil {
+		return model.NewAppErr("PgProductImageStore.BulkInsert", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkInsertImages, http.StatusInternalServerError, nil)
+	}
+	return nil
+}
 
-	var ids []int64
-	rows, err := s.db.NamedQuery(q, images)
+// Save inserts image in the product image table
+func (s PgProductImageStore) Save(pid int64, img *model.ProductImage) (*model.ProductImage, *model.AppErr) {
+	q := `INSERT INTO public.product_image (product_id, url, public_id, created_at, updated_at) VALUES(:product_id, :url, :public_id, :created_at, :updated_at) RETURNING id`
+
+	var id int64
+	rows, err := s.db.NamedQuery(q, map[string]interface{}{"product_id": pid, "url": img.URL, "public_id": img.PublicID, "created_at": img.CreatedAt, "updated_at": img.UpdatedAt})
 	if err != nil {
-		return nil, model.NewAppErr("PgProductImageStore.BulkInsertImages", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkInsertImages, http.StatusInternalServerError, nil)
+		return nil, model.NewAppErr("PgProductImageStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveBrand, http.StatusInternalServerError, nil)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var id int64
 		rows.Scan(&id)
-		ids = append(ids, id)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, model.NewAppErr("PgProductImageStore.BulkInsertImages", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkInsertImages, http.StatusInternalServerError, nil)
+		if IsUniqueConstraintViolationError(err) {
+			return nil, model.NewAppErr("PgProductImageStore.Save", model.ErrConflict, locale.GetUserLocalizer("en"), msgUniqueConstraintBrand, http.StatusInternalServerError, nil)
+		}
+		return nil, model.NewAppErr("PgProductImageStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveBrand, http.StatusInternalServerError, nil)
 	}
-	return ids, nil
+
+	img.ID = &id
+	img.ProductID = &pid
+	return img, nil
 }
 
 // Get gets single image by id
-func (s PgProductImageStore) Get(id int64) (*model.ProductImage, *model.AppErr) {
-	q := `SELECT img.id AS img_id, img.product_id AS img_product_id, img.url AS img_url, img.created_at AS img_created_at, img.updated_at AS img_updated_at FROM public.product_image img WHERE img.id = $1`
+func (s PgProductImageStore) Get(pid, id int64) (*model.ProductImage, *model.AppErr) {
+	q := `SELECT img.id AS id, img.product_id AS product_id, img.url AS url, img.public_id AS public_id, img.created_at AS created_at, img.updated_at AS updated_at FROM public.product_image img WHERE img.id = $1 AND product_id= $2`
 	var img model.ProductImage
-	if err := s.db.Get(&img, q, id); err != nil {
+	if err := s.db.Get(&img, q, id, pid); err != nil {
 		return nil, model.NewAppErr("PgProductImageStore.Get", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProductImage, http.StatusInternalServerError, nil)
 	}
 	return &img, nil
@@ -60,7 +73,7 @@ func (s PgProductImageStore) Get(id int64) (*model.ProductImage, *model.AppErr) 
 
 // GetAll gets all product's images
 func (s PgProductImageStore) GetAll(pid int64) ([]*model.ProductImage, *model.AppErr) {
-	q := `SELECT img.id AS img_id, img.product_id AS img_product_id, img.url AS img_url, img.created_at AS img_created_at, img.updated_at AS img_updated_at FROM public.product_image img WHERE img.product_id = $1`
+	q := `SELECT img.id AS id, img.product_id AS product_id, img.url AS url, img.public_id AS public_id, img.created_at AS created_at, img.updated_at AS updated_at FROM public.product_image img WHERE img.product_id = $1`
 	imgs := make([]*model.ProductImage, 0)
 	if err := s.db.Select(&imgs, q, pid); err != nil {
 		return nil, model.NewAppErr("PgProductImageStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProductImages, http.StatusInternalServerError, nil)
@@ -69,17 +82,17 @@ func (s PgProductImageStore) GetAll(pid int64) ([]*model.ProductImage, *model.Ap
 }
 
 // Update updates the image
-func (s PgProductImageStore) Update(id int64, pi *model.ProductImage) (*model.ProductImage, *model.AppErr) {
-	q := `UPDATE public.product_image SET url=:img_url, created_at=:img_created_at, updated_at=:img_updated_at WHERE id = :img_id`
-	if _, err := s.db.NamedExec(q, pi); err != nil {
+func (s PgProductImageStore) Update(pid, id int64, pi *model.ProductImage) (*model.ProductImage, *model.AppErr) {
+	q := `UPDATE public.product_image SET url=:url, public_id=:public_id, created_at=:created_at, updated_at=:updated_at WHERE id=:id AND product_id=:product_id`
+	if _, err := s.db.NamedExec(q, map[string]interface{}{"product_id": pid, "id": id, "url": pi.URL, "public_id": pi.PublicID, "created_at": pi.CreatedAt, "updated_at": pi.UpdatedAt}); err != nil {
 		return nil, model.NewAppErr("PgProductImageStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateProductImage, http.StatusInternalServerError, nil)
 	}
 	return pi, nil
 }
 
 // Delete deletes the image
-func (s PgProductImageStore) Delete(id int64) *model.AppErr {
-	if _, err := s.db.NamedExec(`DELETE FROM public.product_image WHERE id=:id`, map[string]interface{}{"id": id}); err != nil {
+func (s PgProductImageStore) Delete(pid, id int64) *model.AppErr {
+	if _, err := s.db.NamedExec(`DELETE FROM public.product_image WHERE product_id=:product_id AND id=:id`, map[string]interface{}{"product_id": pid, "id": id}); err != nil {
 		return model.NewAppErr("PgProductImageStore.Delete", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteProductImage, http.StatusInternalServerError, nil)
 	}
 	return nil
