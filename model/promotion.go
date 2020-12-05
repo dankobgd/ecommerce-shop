@@ -25,7 +25,7 @@ type Promotion struct {
 	PromoCode   string    `json:"promo_code" db:"promo_code"`
 	Type        string    `json:"type" db:"type"`
 	Amount      int       `json:"amount" db:"amount"`
-	Description string    `json:"description" db:"description"`
+	Description string    `json:"description,omitempty" db:"description"`
 	StartsAt    time.Time `json:"starts_at" db:"starts_at"`
 	EndsAt      time.Time `json:"ends_at" db:"ends_at"`
 }
@@ -65,27 +65,20 @@ func (p *Promotion) Validate() *AppErr {
 
 // PromotionPatch is the category patch model
 type PromotionPatch struct {
-	PromoCode   *string    `json:"promo_code"`
-	Type        *string    `json:"type"`
-	Amount      *int       `json:"amount"`
-	Description *string    `json:"description"`
-	StartsAt    *time.Time `json:"starts_at"`
-	EndsAt      *time.Time `json:"ends_at"`
+	Type        *string    `json:"type,omitempty"`
+	Amount      *int       `json:"amount,omitempty"`
+	Description *string    `json:"description,omitempty"`
+	StartsAt    *time.Time `json:"starts_at,omitempty"`
+	EndsAt      *time.Time `json:"ends_at,omitempty"`
 }
 
 // Patch patches the category fields that are provided
 func (p *Promotion) Patch(patch *PromotionPatch) {
-	if patch.PromoCode != nil {
-		p.PromoCode = *patch.PromoCode
-	}
 	if patch.Type != nil {
 		p.Type = *patch.Type
 	}
 	if patch.Amount != nil {
 		p.Amount = *patch.Amount
-	}
-	if patch.Description != nil {
-		p.Description = *patch.Description
 	}
 	if patch.StartsAt != nil {
 		p.StartsAt = *patch.StartsAt
@@ -93,6 +86,30 @@ func (p *Promotion) Patch(patch *PromotionPatch) {
 	if patch.EndsAt != nil {
 		p.EndsAt = *patch.EndsAt
 	}
+}
+
+// Validate validates the promotion patch and returns an error if it doesn't pass criteria
+func (patch *PromotionPatch) Validate() *AppErr {
+	var errs ValidationErrors
+	l := locale.GetUserLocalizer("en")
+
+	if patch.Type != nil && *patch.Type == "" {
+		errs.Add(Invalid("type", l, msgValidatePromotionType))
+	}
+	if patch.Amount != nil && *patch.Amount == 0 {
+		errs.Add(Invalid("amount", l, msgValidatePromotionAmount))
+	}
+	if patch.StartsAt != nil && patch.StartsAt.IsZero() {
+		errs.Add(Invalid("starts_at", l, msgValidatePromotionStartsAt))
+	}
+	if patch.EndsAt != nil && patch.EndsAt.IsZero() || patch.EndsAt.Before(*patch.StartsAt) {
+		errs.Add(Invalid("ends_at", l, msgValidatePromotionEndsAt))
+	}
+
+	if !errs.IsZero() {
+		return NewValidationError("Promotion", msgInvalidPromotion, "", errs)
+	}
+	return nil
 }
 
 // PromotionPatchFromJSON decodes the input and returns the PromotionPatch

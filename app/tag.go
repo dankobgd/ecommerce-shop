@@ -23,6 +23,10 @@ func (a *App) CreateTag(t *model.Tag) (*model.Tag, *model.AppErr) {
 
 // PatchTag patches the tag
 func (a *App) PatchTag(tid int64, patch *model.TagPatch) (*model.Tag, *model.AppErr) {
+	if err := patch.Validate(); err != nil {
+		return nil, err
+	}
+
 	old, err := a.Srv().Store.Tag().Get(tid)
 	if err != nil {
 		return nil, err

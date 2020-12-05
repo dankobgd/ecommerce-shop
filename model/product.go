@@ -19,17 +19,16 @@ const FileUploadSizeLimit int64 = 3 << 20
 
 // error msgs
 var (
-	msgInvalidProduct             = &i18n.Message{ID: "model.product.validate.app_error", Other: "invalid product data"}
-	msgValidateProductID          = &i18n.Message{ID: "model.product.validate.id.app_error", Other: "invalid product id"}
-	msgValidateProductBrandID     = &i18n.Message{ID: "model.product.validate.brand_id.app_error", Other: "invalid product brand id"}
-	msgValidateProductCategoryID  = &i18n.Message{ID: "model.product.validate.category_id.app_error", Other: "invalid product category id"}
-	msgValidateProductName        = &i18n.Message{ID: "model.product.validate.name.app_error", Other: "invalid product name"}
-	msgValidateProductSlug        = &i18n.Message{ID: "model.product.validate.slug.app_error", Other: "invalid product slug"}
-	msgValidateProductDescription = &i18n.Message{ID: "model.product.validate.description.app_error", Other: "invalid product description"}
-	msgValidateProductPrice       = &i18n.Message{ID: "model.product.validate.price.app_error", Other: "invalid product price"}
-	msgValidateProductSKU         = &i18n.Message{ID: "model.product.validate.sku.app_error", Other: "invalid product sku"}
-	msgValidateProductCrAt        = &i18n.Message{ID: "model.product.validate.created_at.app_error", Other: "invalid created_at timestamp"}
-	msgValidateProductUpAt        = &i18n.Message{ID: "model.product.validate.updated_at.app_error", Other: "invalid updated_at timestamp"}
+	msgInvalidProduct            = &i18n.Message{ID: "model.product.validate.app_error", Other: "invalid product data"}
+	msgValidateProductID         = &i18n.Message{ID: "model.product.validate.id.app_error", Other: "invalid product id"}
+	msgValidateProductBrandID    = &i18n.Message{ID: "model.product.validate.brand_id.app_error", Other: "invalid product brand id"}
+	msgValidateProductCategoryID = &i18n.Message{ID: "model.product.validate.category_id.app_error", Other: "invalid product category id"}
+	msgValidateProductName       = &i18n.Message{ID: "model.product.validate.name.app_error", Other: "invalid product name"}
+	msgValidateProductSlug       = &i18n.Message{ID: "model.product.validate.slug.app_error", Other: "invalid product slug"}
+	msgValidateProductPrice      = &i18n.Message{ID: "model.product.validate.price.app_error", Other: "invalid product price"}
+	msgValidateProductSKU        = &i18n.Message{ID: "model.product.validate.sku.app_error", Other: "invalid product sku"}
+	msgValidateProductCrAt       = &i18n.Message{ID: "model.product.validate.created_at.app_error", Other: "invalid created_at timestamp"}
+	msgValidateProductUpAt       = &i18n.Message{ID: "model.product.validate.updated_at.app_error", Other: "invalid updated_at timestamp"}
 
 	msgInvalidProductPricing            = &i18n.Message{ID: "model.product_price.validate.app_error", Other: "invalid product price data"}
 	msgValidateProductPricingID         = &i18n.Message{ID: "model.product_price.validate.id.app_error", Other: "invalid product price id"}
@@ -50,7 +49,7 @@ type Product struct {
 	Slug           string          `json:"slug" db:"slug" schema:"slug"`
 	ImageURL       string          `json:"image_url" db:"image_url" schema:"-"`
 	ImagePublicID  string          `json:"image_public_id" db:"image_public_id" schema:"-"`
-	Description    string          `json:"description" db:"description" schema:"description"`
+	Description    string          `json:"description,omitempty" db:"description" schema:"description"`
 	InStock        bool            `json:"in_stock" db:"in_stock" schema:"in_stock"`
 	SKU            string          `json:"sku" db:"sku" schema:"-"`
 	IsFeatured     bool            `json:"is_featured" db:"is_featured" schema:"is_featured"`
@@ -134,8 +133,12 @@ func (p *Product) SetProperties(properties *string) {
 // SetProperties sets the ProductPatch properties
 func (patch *ProductPatch) SetProperties(properties *string) {
 	if properties != nil {
-		props := types.JSONText(*properties)
-		patch.Properties = &props
+		if len(*properties) == 0 {
+			patch.Properties = nil
+		} else {
+			props := types.JSONText(*properties)
+			patch.Properties = &props
+		}
 	}
 }
 
@@ -185,9 +188,6 @@ func (p *Product) Validate(fh *multipart.FileHeader) *AppErr {
 	if p.Slug == "" {
 		errs.Add(Invalid("slug", l, msgValidateProductSlug))
 	}
-	if p.Description == "" {
-		errs.Add(Invalid("description", l, msgValidateProductDescription))
-	}
 	if p.CreatedAt.IsZero() {
 		errs.Add(Invalid("created_at", l, msgValidateProductCrAt))
 	}
@@ -234,7 +234,7 @@ func (patch *ProductPatch) Validate(fh *multipart.FileHeader) *AppErr {
 		errs.Add(Invalid("image", l, msgValidateProductImageSize))
 	}
 	// ideally validate properties against json schema to check for the right keys, values and structure...
-	if patch.PropertiesText != nil && !is.ValidJSON(*patch.PropertiesText) {
+	if patch.PropertiesText != nil && len(*patch.PropertiesText) != 0 && !is.ValidJSON(*patch.PropertiesText) {
 		errs.Add(Invalid("properties", l, msgValidateProductProperties))
 	}
 

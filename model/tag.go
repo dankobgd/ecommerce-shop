@@ -13,13 +13,12 @@ import (
 var (
 	msgInvalidTag = &i18n.Message{ID: "model.tag.validate.app_error", Other: "invalid tag data"}
 
-	msgValidateTagID          = &i18n.Message{ID: "model.tag.validate.id.app_error", Other: "invalid  tag id"}
-	msgValidateTagProductID   = &i18n.Message{ID: "model.tag.validate.product_id.app_error", Other: "invalid tag product id"}
-	msgValidateTagName        = &i18n.Message{ID: "model.tag.validate.name.app_error", Other: "invalid tag name"}
-	msgValidateTagSlug        = &i18n.Message{ID: "model.tag.validate.slug.app_error", Other: "invalid tag slug"}
-	msgValidateTagDescription = &i18n.Message{ID: "model.tag.validate.description.app_error", Other: "invalid tag description"}
-	msgValidateTagCrAt        = &i18n.Message{ID: "model.tag.validate.created_at.app_error", Other: "invalid tag created_at timestamp"}
-	msgValidateTagUpAt        = &i18n.Message{ID: "model.tag.validate.updated_at.app_error", Other: "invalid tag updated_at timestamp"}
+	msgValidateTagID        = &i18n.Message{ID: "model.tag.validate.id.app_error", Other: "invalid  tag id"}
+	msgValidateTagProductID = &i18n.Message{ID: "model.tag.validate.product_id.app_error", Other: "invalid tag product id"}
+	msgValidateTagName      = &i18n.Message{ID: "model.tag.validate.name.app_error", Other: "invalid tag name"}
+	msgValidateTagSlug      = &i18n.Message{ID: "model.tag.validate.slug.app_error", Other: "invalid tag slug"}
+	msgValidateTagCrAt      = &i18n.Message{ID: "model.tag.validate.created_at.app_error", Other: "invalid tag created_at timestamp"}
+	msgValidateTagUpAt      = &i18n.Message{ID: "model.tag.validate.updated_at.app_error", Other: "invalid tag updated_at timestamp"}
 )
 
 // Tag is the tag model
@@ -28,16 +27,16 @@ type Tag struct {
 	ID          int64     `json:"id" db:"id"`
 	Name        string    `json:"name" db:"name"`
 	Slug        string    `json:"slug" db:"slug"`
-	Description string    `json:"description" db:"description"`
+	Description string    `json:"description,omitempty" db:"description"`
 	CreatedAt   time.Time `json:"-" db:"created_at"`
 	UpdatedAt   time.Time `json:"-" db:"updated_at"`
 }
 
 // TagPatch is the patch for tag
 type TagPatch struct {
-	Name        *string `json:"name"`
-	Slug        *string `json:"slug"`
-	Description *string `json:"description"`
+	Name        *string `json:"name,omitempty"`
+	Slug        *string `json:"slug,omitempty"`
+	Description *string `json:"description,omitempty"`
 }
 
 // Patch patches the product tag
@@ -92,14 +91,29 @@ func (t *Tag) Validate() *AppErr {
 	if t.Slug == "" {
 		errs.Add(Invalid("slug", l, msgValidateTagSlug))
 	}
-	if t.Description == "" {
-		errs.Add(Invalid("description", l, msgValidateTagDescription))
-	}
 	if t.CreatedAt.IsZero() {
 		errs.Add(Invalid("created_at", l, msgValidateTagCrAt))
 	}
 	if t.UpdatedAt.IsZero() {
 		errs.Add(Invalid("updated_at", l, msgValidateTagUpAt))
+	}
+
+	if !errs.IsZero() {
+		return NewValidationError("Tag", msgInvalidTag, "", errs)
+	}
+	return nil
+}
+
+// Validate validates the tag patch and returns an error if it doesn't pass criteria
+func (patch *TagPatch) Validate() *AppErr {
+	var errs ValidationErrors
+	l := locale.GetUserLocalizer("en")
+
+	if patch.Name != nil && *patch.Name == "" {
+		errs.Add(Invalid("name", l, msgValidateTagName))
+	}
+	if patch.Slug != nil && *patch.Slug == "" {
+		errs.Add(Invalid("slug", l, msgValidateTagSlug))
 	}
 
 	if !errs.IsZero() {

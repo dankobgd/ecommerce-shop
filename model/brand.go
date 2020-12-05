@@ -14,18 +14,17 @@ import (
 
 // error msgs
 var (
-	msgInvalidBrand             = &i18n.Message{ID: "model.brand.validate.app_error", Other: "invalid brand data"}
-	msgValidateBrandID          = &i18n.Message{ID: "model.brand.validate.id.app_error", Other: "invalid brand id"}
-	msgValidateBrandName        = &i18n.Message{ID: "model.brand.validate.name.app_error", Other: "invalid brand name"}
-	msgValidateBrandSlug        = &i18n.Message{ID: "model.brand.validate.slug.app_error", Other: "invalid brand slug"}
-	msgValidateBrandDescription = &i18n.Message{ID: "model.brand.validate.description.app_error", Other: "invalid brand description"}
-	msgValidateBrandType        = &i18n.Message{ID: "model.brand.validate.type.app_error", Other: "invalid brand type"}
-	msgValidateBrandEmail       = &i18n.Message{ID: "model.brand.validate.email.app_error", Other: "invalid brand email"}
-	msgValidateBrandWebsiteURL  = &i18n.Message{ID: "model.brand.validate.website_url.app_error", Other: "invalid brand website URL"}
-	msgValidateBrandCrAt        = &i18n.Message{ID: "model.brand.validate.created_at.app_error", Other: "invalid brand created_at timestamp"}
-	msgValidateBrandUpAt        = &i18n.Message{ID: "model.brand.validate.updated_at.app_error", Other: "invalid brand updated_at timestamp"}
-	msgValidateBrandLogo        = &i18n.Message{ID: "model.brand.validate.logo.app_error", Other: "invalid brand logo"}
-	msgValidateBrandLogoSize    = &i18n.Message{ID: "model.brand.validate.logo.app_error", Other: "File size exceeded, max 3MB allowed"}
+	msgInvalidBrand            = &i18n.Message{ID: "model.brand.validate.app_error", Other: "invalid brand data"}
+	msgValidateBrandID         = &i18n.Message{ID: "model.brand.validate.id.app_error", Other: "invalid brand id"}
+	msgValidateBrandName       = &i18n.Message{ID: "model.brand.validate.name.app_error", Other: "invalid brand name"}
+	msgValidateBrandSlug       = &i18n.Message{ID: "model.brand.validate.slug.app_error", Other: "invalid brand slug"}
+	msgValidateBrandType       = &i18n.Message{ID: "model.brand.validate.type.app_error", Other: "invalid brand type"}
+	msgValidateBrandEmail      = &i18n.Message{ID: "model.brand.validate.email.app_error", Other: "invalid brand email"}
+	msgValidateBrandWebsiteURL = &i18n.Message{ID: "model.brand.validate.website_url.app_error", Other: "invalid brand website URL"}
+	msgValidateBrandCrAt       = &i18n.Message{ID: "model.brand.validate.created_at.app_error", Other: "invalid brand created_at timestamp"}
+	msgValidateBrandUpAt       = &i18n.Message{ID: "model.brand.validate.updated_at.app_error", Other: "invalid brand updated_at timestamp"}
+	msgValidateBrandLogo       = &i18n.Message{ID: "model.brand.validate.logo.app_error", Other: "invalid brand logo"}
+	msgValidateBrandLogoSize   = &i18n.Message{ID: "model.brand.validate.logo.app_error", Other: "File size exceeded, max 3MB allowed"}
 )
 
 // Brand is the brand of the product
@@ -35,7 +34,7 @@ type Brand struct {
 	Name         string    `json:"name" db:"name" schema:"name"`
 	Slug         string    `json:"slug" db:"slug" schema:"slug"`
 	Type         string    `json:"type" db:"type" schema:"type"`
-	Description  string    `json:"description" db:"description" schema:"description"`
+	Description  string    `json:"description,omitempty" db:"description" schema:"description"`
 	Email        string    `json:"email" db:"email" schema:"email"`
 	WebsiteURL   string    `json:"website_url" db:"website_url" schema:"website_url"`
 	Logo         string    `json:"logo" db:"logo" schema:"-"`
@@ -73,9 +72,6 @@ func (b *Brand) Validate(fh *multipart.FileHeader) *AppErr {
 	}
 	if b.Type == "" {
 		errs.Add(Invalid("type", l, msgValidateBrandType))
-	}
-	if b.Description == "" {
-		errs.Add(Invalid("description", l, msgValidateBrandDescription))
 	}
 	if len(b.Email) == 0 || len(b.Email) > userEmailMaxLength || !is.ValidEmail(b.Email) {
 		errs.Add(Invalid("email", l, msgValidateBrandEmail))

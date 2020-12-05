@@ -38,10 +38,10 @@ type Review struct {
 
 // ReviewPatch is the patch for review
 type ReviewPatch struct {
-	ProductID *int64  `json:"product_id"`
-	Rating    *int    `json:"rating"`
-	Title     *string `json:"title"`
-	Comment   *string `json:"comment"`
+	ProductID *int64  `json:"product_id,omitempty"`
+	Rating    *int    `json:"rating,omitempty"`
+	Title     *string `json:"title,omitempty"`
+	Comment   *string `json:"comment,omitempty"`
 }
 
 // Patch patches the product review
@@ -110,6 +110,27 @@ func (rev *Review) Validate() *AppErr {
 	}
 	if rev.UpdatedAt.IsZero() {
 		errs.Add(Invalid("updated_at", l, msgValidateReviewUpAt))
+	}
+
+	if !errs.IsZero() {
+		return NewValidationError("Review", msgInvalidReview, "", errs)
+	}
+	return nil
+}
+
+// Validate validates the review and returns an error if it doesn't pass criteria
+func (patch *ReviewPatch) Validate() *AppErr {
+	var errs ValidationErrors
+	l := locale.GetUserLocalizer("en")
+
+	if patch.Rating != nil && *patch.Rating < 0 || *patch.Rating > 5 {
+		errs.Add(Invalid("rating", l, msgValidateReviewRating))
+	}
+	if patch.Title != nil && *patch.Title == "" {
+		errs.Add(Invalid("title", l, msgValidateReviewTitle))
+	}
+	if patch.Comment != nil && *patch.Comment == "" {
+		errs.Add(Invalid("comment", l, msgValidateReviewComment))
 	}
 
 	if !errs.IsZero() {

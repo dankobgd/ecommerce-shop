@@ -15,16 +15,15 @@ import (
 
 // error msgs
 var (
-	msgInvalidCategory             = &i18n.Message{ID: "model.category.validate.app_error", Other: "invalid category data"}
-	msgValidateCategoryID          = &i18n.Message{ID: "model.category.validate.id.app_error", Other: "invalid category id"}
-	msgValidateCategoryName        = &i18n.Message{ID: "model.category.validate.name.app_error", Other: "invalid category name"}
-	msgValidateCategorySlug        = &i18n.Message{ID: "model.category.validate.created_at.app_error", Other: "invalid category slug"}
-	msgValidateCategoryDescription = &i18n.Message{ID: "model.category.validate.description.app_error", Other: "invalid category description"}
-	msgValidateCategoryLogo        = &i18n.Message{ID: "model.category.validate.logo.app_error", Other: "invalid logo"}
-	msgValidateCategoryLogoSize    = &i18n.Message{ID: "model.category.validate.logo.app_error", Other: "category file size exceeded, max 3MB"}
-	msgValidateCategoryCrAt        = &i18n.Message{ID: "model.category.validate.created_at.app_error", Other: "invalid category created_at timestamp"}
-	msgValidateCategoryUpAt        = &i18n.Message{ID: "model.category.validate.updated_at.app_error", Other: "invalid category updated_at timestamp"}
-	msgValidateCategoryProperties  = &i18n.Message{ID: "model.category.validate.properties.app_error", Other: "invalid json provided as properties"}
+	msgInvalidCategory            = &i18n.Message{ID: "model.category.validate.app_error", Other: "invalid category data"}
+	msgValidateCategoryID         = &i18n.Message{ID: "model.category.validate.id.app_error", Other: "invalid category id"}
+	msgValidateCategoryName       = &i18n.Message{ID: "model.category.validate.name.app_error", Other: "invalid category name"}
+	msgValidateCategorySlug       = &i18n.Message{ID: "model.category.validate.created_at.app_error", Other: "invalid category slug"}
+	msgValidateCategoryLogo       = &i18n.Message{ID: "model.category.validate.logo.app_error", Other: "invalid logo"}
+	msgValidateCategoryLogoSize   = &i18n.Message{ID: "model.category.validate.logo.app_error", Other: "category file size exceeded, max 3MB"}
+	msgValidateCategoryCrAt       = &i18n.Message{ID: "model.category.validate.created_at.app_error", Other: "invalid category created_at timestamp"}
+	msgValidateCategoryUpAt       = &i18n.Message{ID: "model.category.validate.updated_at.app_error", Other: "invalid category updated_at timestamp"}
+	msgValidateCategoryProperties = &i18n.Message{ID: "model.category.validate.properties.app_error", Other: "invalid json provided as properties"}
 )
 
 // Category is the category
@@ -33,7 +32,7 @@ type Category struct {
 	ID             int64           `json:"id" db:"id" schema:"-"`
 	Name           string          `json:"name" db:"name" schema:"name"`
 	Slug           string          `json:"slug" db:"slug" schema:"slug"`
-	Description    string          `json:"description" db:"description" schema:"description"`
+	Description    string          `json:"description,omitempty" db:"description" schema:"description"`
 	IsFeatured     bool            `json:"is_featured" db:"is_featured" schema:"is_featured"`
 	Logo           string          `json:"logo" db:"logo" schema:"-"`
 	LogoPublicID   string          `json:"logo_public_id" db:"logo_public_id" schema:"-"`
@@ -56,9 +55,6 @@ func (c *Category) Validate(fh *multipart.FileHeader) *AppErr {
 	}
 	if c.Slug == "" {
 		errs.Add(Invalid("slug", l, msgValidateCategorySlug))
-	}
-	if c.Description == "" {
-		errs.Add(Invalid("description", l, msgValidateCategoryDescription))
 	}
 	if c.CreatedAt.IsZero() {
 		errs.Add(Invalid("created_at", l, msgValidateCategoryCrAt))
@@ -108,8 +104,13 @@ func (c *Category) Patch(patch *CategoryPatch) {
 	if patch.IsFeatured != nil {
 		c.IsFeatured = *patch.IsFeatured
 	}
-	if patch.Properties != nil {
-		c.Properties = patch.Properties
+
+	if patch.PropertiesText != nil {
+		if *patch.PropertiesText == "" {
+			c.Properties = nil
+		} else {
+			c.Properties = patch.Properties
+		}
 	}
 }
 
@@ -128,7 +129,7 @@ func (patch *CategoryPatch) Validate(fh *multipart.FileHeader) *AppErr {
 		errs.Add(Invalid("logo", l, msgValidateCategoryLogoSize))
 	}
 	// ideally validate properties against json schema to check for the right keys, values and structure...
-	if patch.PropertiesText != nil && !is.ValidJSON(*patch.PropertiesText) {
+	if patch.PropertiesText != nil && *patch.PropertiesText != "" && !is.ValidJSON(*patch.PropertiesText) {
 		errs.Add(Invalid("properties", l, msgValidateCategoryProperties))
 	}
 
@@ -181,8 +182,12 @@ func (c *Category) SetProperties(properties *string) {
 // SetProperties sets the category patch properties
 func (patch *CategoryPatch) SetProperties(properties *string) {
 	if properties != nil {
-		props := types.JSONText(*properties)
-		patch.Properties = &props
+		if len(*properties) == 0 {
+			patch.Properties = nil
+		} else {
+			props := types.JSONText(*properties)
+			patch.Properties = &props
+		}
 	}
 }
 

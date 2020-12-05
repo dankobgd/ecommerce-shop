@@ -23,6 +23,10 @@ func (a *App) CreateReview(rev *model.Review) (*model.Review, *model.AppErr) {
 
 // PatchReview patches the review
 func (a *App) PatchReview(rid int64, patch *model.ReviewPatch) (*model.Review, *model.AppErr) {
+	if err := patch.Validate(); err != nil {
+		return nil, err
+	}
+
 	old, err := a.Srv().Store.Review().Get(rid)
 	if err != nil {
 		return nil, err
