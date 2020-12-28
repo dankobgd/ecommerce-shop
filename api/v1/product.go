@@ -16,6 +16,7 @@ var (
 	msgProductPatchFromJSON   = &i18n.Message{ID: "api.product.patch_product.app_error", Other: "could not decode product patch data"}
 	msgProductFileErr         = &i18n.Message{ID: "api.product.create_product.formfile.app_error", Other: "error parsing files"}
 	msgProductAvatarMultipart = &i18n.Message{ID: "api.product.create_product.multipart.app_error", Other: "could not decode product multipart data"}
+	msgProductPriceErr        = &i18n.Message{ID: "api.product.create_product.price.app_error", Other: "could not decode product price"}
 	msgPatchProduct           = &i18n.Message{ID: "api.product.patch_product.app_error", Other: "could not patch product"}
 	msgURLParamErr            = &i18n.Message{ID: "api.product.url.params.app_error", Other: "could not parse URL params"}
 )
@@ -63,8 +64,23 @@ func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// or just use gorilla/schema embeded struct with: `schema:"pricing"` and then send formData: Pricing.price
+	price := mpf.Value["price"]
 	tagids := mpf.Value["tags"]
 	images := mpf.File["images"]
+
+	if len(price) == 0 {
+		respondError(w, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductPriceErr, http.StatusInternalServerError, nil))
+		return
+	}
+	priceValue, err := strconv.Atoi(price[0])
+	if err != nil {
+		respondError(w, model.NewAppErr("createProduct", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductPriceErr, http.StatusInternalServerError, nil))
+		return
+	}
+	p.ProductPricing = &model.ProductPricing{
+		Price: priceValue,
+	}
 
 	var thumbnail *multipart.FileHeader
 	if len(mpf.File["image"]) > 0 {

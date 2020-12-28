@@ -1,6 +1,6 @@
 [
   {
-    "name": "tshirts",
+    "name": "Tshirts",
     "slug": "tshirts",
     "description": "tshirts description",
     "is_featured": true,
@@ -144,7 +144,7 @@
     ]
   },
   {
-    "name": "shirts",
+    "name": "Shirts",
     "slug": "shirts",
     "description": "shirts description",
     "is_featured": false,
@@ -288,7 +288,7 @@
     ]
   },
   {
-    "name": "shoes",
+    "name": "Shoes",
     "slug": "shoes",
     "description": "shoes description",
     "is_featured": false,
@@ -541,7 +541,7 @@
     ]
   },
   {
-    "name": "sneakers",
+    "name": "Sneakers",
     "slug": "sneakers",
     "description": "sneakers description",
     "is_featured": true,
@@ -798,7 +798,7 @@
     ]
   },
   {
-    "name": "boots",
+    "name": "Boots",
     "slug": "boots",
     "description": "boots description",
     "is_featured": false,
@@ -1014,7 +1014,7 @@
     ]
   },
   {
-    "name": "jackets",
+    "name": "Jackets",
     "slug": "jackets",
     "description": "jackets description",
     "is_featured": false,
@@ -1166,7 +1166,7 @@
     ]
   },
   {
-    "name": "shorts",
+    "name": "Shorts",
     "slug": "shorts",
     "description": "shorts description",
     "is_featured": false,
@@ -1306,7 +1306,7 @@
     ]
   },
   {
-    "name": "jeans",
+    "name": "Jeans",
     "slug": "jeans",
     "description": "jeans description",
     "is_featured": true,
@@ -1497,7 +1497,7 @@
     ]
   },
   {
-    "name": "sweatpants",
+    "name": "Sweatpants",
     "slug": "sweatpants",
     "description": "sweatpants description",
     "is_featured": false,
@@ -1633,7 +1633,7 @@
     ]
   },
   {
-    "name": "balls",
+    "name": "Balls",
     "slug": "balls",
     "description": "balls description",
     "is_featured": false,
@@ -1736,7 +1736,7 @@
     ]
   },
   {
-    "name": "backpacks",
+    "name": "Backpacks",
     "slug": "backpacks",
     "description": "backpacks description",
     "is_featured": true,
@@ -1876,7 +1876,7 @@
     ]
   },
   {
-    "name": "rackets",
+    "name": "Rackets",
     "slug": "rackets",
     "description": "rackets description",
     "is_featured": false,
@@ -1919,7 +1919,7 @@
     ]
   },
   {
-    "name": "skateboards",
+    "name": "Skateboards",
     "slug": "skateboards",
     "description": "skateboards description",
     "is_featured": true,
@@ -1985,7 +1985,7 @@
     ]
   },
   {
-    "name": "rollerblades",
+    "name": "Rollerblades",
     "slug": "rollerblades",
     "description": "rollerblades description",
     "is_featured": true,
@@ -2051,7 +2051,7 @@
     ]
   },
   {
-    "name": "bycicles",
+    "name": "Bycicles",
     "slug": "bycicles",
     "description": "bycicles description",
     "is_featured": true,
@@ -2155,7 +2155,7 @@
     ]
   },
   {
-    "name": "hats",
+    "name": "Hats",
     "slug": "hats",
     "description": "hats description",
     "is_featured": false,

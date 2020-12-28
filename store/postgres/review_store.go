@@ -25,7 +25,7 @@ var (
 	msgUpdateReview           = &i18n.Message{ID: "store.postgres.review.update.app_error", Other: "could not update review"}
 	msgBulkInsertReviews      = &i18n.Message{ID: "store.postgres.review.bulk.insert.app_error", Other: "could not bulk insert reviews"}
 	msgGetReview              = &i18n.Message{ID: "store.postgres.review.get.app_error", Other: "could not get the review"}
-	msgGetReviews             = &i18n.Message{ID: "store.postgres.review.get.app_error", Other: "could not get the review"}
+	msgGetReviews             = &i18n.Message{ID: "store.postgres.review.get.app_error", Other: "could not get the reviews"}
 	msgDeleteReview           = &i18n.Message{ID: "store.postgres.review.delete.app_error", Other: "could not delete review"}
 )
 
@@ -74,26 +74,54 @@ func (s PgReviewStore) Update(id int64, rev *model.Review) (*model.Review, *mode
 
 // Get gets one review by id
 func (s PgReviewStore) Get(id int64) (*model.Review, *model.AppErr) {
-	var review model.Review
-	if err := s.db.Get(&review, "SELECT * FROM public.product_review WHERE id = $1", id); err != nil {
+	q := `SELECT 
+	r.*,
+	u.id AS user_id,
+	u.first_name AS user_first_name,
+	u.last_name AS user_last_name,
+	u.username AS user_username,
+	u.avatar_url AS user_avatar_url,
+	u.avatar_public_id AS user_avatar_public_id
+	FROM product_review r 
+	LEFT JOIN public.user u ON r.user_id = u.id 
+	WHERE r.id = $1`
+	var rj reviewJoin
+	if err := s.db.Get(&rj, q, id); err != nil {
 		return nil, model.NewAppErr("PgReviewStore.Get", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetReview, http.StatusInternalServerError, nil)
 	}
-	return &review, nil
+	return rj.ToReview(), nil
 }
 
 // GetAll returns all reviews
 func (s PgReviewStore) GetAll(limit, offset int) ([]*model.Review, *model.AppErr) {
-	var reviews = make([]*model.Review, 0)
-	if err := s.db.Select(&reviews, `SELECT COUNT(*) OVER() AS total_count, * FROM public.product_review LIMIT $1 OFFSET $2`, limit, offset); err != nil {
+	q := `SELECT 
+	COUNT(*) OVER() AS total_count,
+	r.*,
+	u.id AS user_id,
+	u.first_name AS user_first_name,
+	u.last_name AS user_last_name,
+	u.username AS user_username,
+	u.avatar_url AS user_avatar_url,
+	u.avatar_public_id AS user_avatar_public_id
+	FROM product_review r 
+	LEFT JOIN public.user u ON r.user_id = u.id 
+	LIMIT $1 OFFSET $2`
+
+	var rj []reviewJoin
+	if err := s.db.Select(&rj, q, limit, offset); err != nil {
 		return nil, model.NewAppErr("PgReviewStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetReviews, http.StatusInternalServerError, nil)
 	}
 
+	var reviews = make([]*model.Review, 0)
+	for _, x := range rj {
+		reviews = append(reviews, x.ToReview())
+	}
 	return reviews, nil
 }
 
 // Delete hard deletes the review
 func (s PgReviewStore) Delete(id int64) *model.AppErr {
-	if _, err := s.db.NamedExec("DELETE from public.product_review WHERE id = :id", map[string]interface{}{"id": id}); err != nil {
+	if _, err := s.db.NamedExec("DELETE from product_review WHERE id = :id", map[string]interface{}{"id": id}); err != nil {
 		return model.NewAppErr("PgReviewStore.Delete", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteReview, http.StatusInternalServerError, nil)
 	}
 	return nil

@@ -49,7 +49,7 @@ func InitUser(a *API) {
 	a.Routes.Users.Delete("/addresses/{address_id:[A-Za-z0-9]+}", a.SessionRequired(a.deleteUserAddress))
 	a.Routes.Users.Post("/wishlist", a.SessionRequired(a.createWishlist))
 	a.Routes.Users.Get("/wishlist", a.SessionRequired(a.getWishlist))
-	a.Routes.Users.Delete("/wishlist", a.SessionRequired(a.deleteWishlist))
+	a.Routes.Users.Delete("/wishlist/{product_id:[A-Za-z0-9]+}", a.SessionRequired(a.deleteWishlist))
 	a.Routes.Users.Delete("/wishlist/clear", a.SessionRequired(a.clearWishlist))
 
 	a.Routes.User.Get("/", a.getUser)
@@ -458,13 +458,11 @@ func (a *API) getWishlist(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) deleteWishlist(w http.ResponseWriter, r *http.Request) {
 	uid := a.app.GetUserIDFromContext(r.Context())
-	props := model.MapStrInterfaceFromJSON(r.Body)
-	productID, ok := props["product_id"].(float64)
-	if !ok {
-		respondError(w, model.NewAppErr("getUserOrders", model.ErrInternal, locale.GetUserLocalizer("en"), msgWishlistParamErr, http.StatusInternalServerError, nil))
+	pid, e := strconv.ParseInt(chi.URLParam(r, "product_id"), 10, 64)
+	if e != nil {
+		respondError(w, model.NewAppErr("deleteWishlist", model.ErrInternal, locale.GetUserLocalizer("en"), msgWishlistParamErr, http.StatusInternalServerError, nil))
 		return
 	}
-	pid := int64(productID)
 
 	err := a.app.DeleteWishlistForUser(uid, pid)
 	if err != nil {

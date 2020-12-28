@@ -118,7 +118,7 @@ create table public.product_pricing (
   price int not null,
   sale_starts timestamptz not null,
   sale_ends timestamptz not null,
-  foreign key (product_id) references public.product (id)
+  foreign key (product_id) references public.product (id) on delete cascade
 );
 
 create table public.product_tag (
@@ -238,6 +238,11 @@ c.description AS category_description,
 c.logo AS category_logo,
 c.created_at AS category_created_at,
 c.updated_at AS category_updated_at,
+pp.id AS pricing_id,
+pp.product_id AS pricing_product_id,
+pp.price AS pricing_price,
+pp.sale_starts AS pricing_sale_starts,
+pp.sale_ends AS pricing_sale_ends,
 (
 setweight(to_tsvector(coalesce(p.name,'')), 'A') ||
 setweight(to_tsvector(coalesce(p.description,'')), 'B') ||
@@ -245,5 +250,7 @@ setweight(to_tsvector(coalesce(c.name,'')), 'C') ||
 setweight(to_tsvector(coalesce(b.name,'')), 'D')
 ) as tsv
 FROM product p
+LEFT JOIN product_pricing pp ON p.id = pp.product_id
 LEFT JOIN brand b ON p.brand_id = b.id
-LEFT JOIN category c ON p.category_id = c.id;
+LEFT JOIN category c ON p.category_id = c.id
+WHERE CURRENT_TIMESTAMP BETWEEN pp.sale_starts AND pp.sale_ends;

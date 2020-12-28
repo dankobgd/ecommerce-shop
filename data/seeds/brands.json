@@ -1,6 +1,6 @@
 [
   {
-    "name": "nike",
+    "name": "Nike",
     "slug": "nike",
     "type": "retail",
     "description": "nike brand description",
@@ -9,7 +9,7 @@
     "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599403904/ecommerce/seeds/nike.svg"
   },
   {
-    "name": "adidas",
+    "name": "Adidas",
     "slug": "adidas",
     "type": "retail",
     "description": "adidas brand description",
@@ -18,7 +18,7 @@
     "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599403887/ecommerce/seeds/adidas.svg"
   },
   {
-    "name": "puma",
+    "name": "Puma",
     "slug": "puma",
     "type": "retail",
     "description": "puma brand description",
@@ -27,7 +27,7 @@
     "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599403904/ecommerce/seeds/Puma.svg"
   },
   {
-    "name": "reebok",
+    "name": "Reebok",
     "slug": "reebok",
     "type": "retail",
     "description": "reebok brand description",
@@ -36,7 +36,7 @@
     "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599403904/ecommerce/seeds/reebok.svg"
   },
   {
-    "name": "fila",
+    "name": "Fila",
     "slug": "fila",
     "type": "retail",
     "description": "fila brand description",
@@ -45,7 +45,7 @@
     "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599403904/ecommerce/seeds/Fila_logo.svg"
   },
   {
-    "name": "kappa",
+    "name": "Kappa",
     "slug": "kappa",
     "type": "retail",
     "description": "kappa brand description",

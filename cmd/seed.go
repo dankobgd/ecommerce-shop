@@ -314,17 +314,19 @@ func seedProducts() error {
 
 	for _, x := range ps {
 		p := &model.Product{
-			BrandID:     x.BrandID,
-			CategoryID:  x.CategoryID,
-			Name:        x.Name,
-			Slug:        x.Slug,
-			ImageURL:    x.ImageURL,
-			Description: x.Description,
-			InStock:     x.InStock,
-			SKU:         x.SKU,
-			IsFeatured:  x.IsFeatured,
-			Properties:  &x.Properties,
-			Pricing: &model.ProductPricing{
+			ID:            x.ID,
+			BrandID:       x.BrandID,
+			CategoryID:    x.CategoryID,
+			Name:          x.Name,
+			Slug:          x.Slug,
+			ImageURL:      x.ImageURL,
+			ImagePublicID: x.ImagePublicID,
+			Description:   x.Description,
+			InStock:       x.InStock,
+			SKU:           x.SKU,
+			IsFeatured:    x.IsFeatured,
+			Properties:    &x.Properties,
+			ProductPricing: &model.ProductPricing{
 				Price: x.Price,
 			},
 		}
@@ -361,6 +363,7 @@ func seedProducts() error {
 		newProd, err := cmdApp.Srv().Store.Product().Save(item.Prod)
 		if err != nil {
 			cmdApp.Log().Error("could not seed save product", zlog.String("err: ", err.Message))
+			return err
 		}
 
 		for _, tag := range item.Tags {
@@ -369,6 +372,7 @@ func seedProducts() error {
 		if len(item.Tags) > 0 {
 			if err := cmdApp.Srv().Store.ProductTag().BulkInsert(item.Tags); err != nil {
 				cmdApp.Log().Error("could not seed bulk insert tags", zlog.String("err: ", err.Message))
+				return err
 			}
 		}
 
@@ -379,6 +383,7 @@ func seedProducts() error {
 		if len(item.Imgs) > 0 {
 			if err := cmdApp.Srv().Store.ProductImage().BulkInsert(item.Imgs); err != nil {
 				cmdApp.Log().Error("could not seed bulk insert images", zlog.String("err: ", err.Message))
+				return err
 			}
 		}
 	}

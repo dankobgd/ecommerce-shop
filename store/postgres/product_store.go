@@ -31,6 +31,7 @@ var (
 	msgUpdateProduct      = &i18n.Message{ID: "store.postgres.product.update.app_error", Other: "could not update product"}
 	msgDeleteProduct      = &i18n.Message{ID: "store.postgres.product.delete.app_error", Other: "could not delete product"}
 	msgInvalidColumn      = &i18n.Message{ID: "store.postgres.product.save.app_error", Other: "could not save product, invalid foreign key value"}
+	msgSavePricing        = &i18n.Message{ID: "store.postgres.product.insert_pricing.app_error", Other: "could not insert pricing data"}
 )
 
 // BulkInsert inserts multiple products into db
@@ -66,6 +67,16 @@ func (s PgProductStore) Save(p *model.Product) (*model.Product, *model.AppErr) {
 		return nil, model.NewAppErr("PgProductStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveProduct, http.StatusInternalServerError, nil)
 	}
 
+	pricing := &model.ProductPricing{
+		ProductID:  id,
+		Price:      p.Price,
+		SaleStarts: p.CreatedAt,
+		SaleEnds:   model.FutureSaleEndsTime,
+	}
+	if _, err := s.InsertPricing(pricing); err != nil {
+		return nil, model.NewAppErr("PgProductStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveProduct, http.StatusInternalServerError, nil)
+	}
+
 	product, pErr := s.Get(id)
 	if pErr != nil {
 		return nil, model.NewAppErr("PgProductStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveProduct, http.StatusInternalServerError, nil)
@@ -93,15 +104,19 @@ func (s PgProductStore) Get(id int64) (*model.Product, *model.AppErr) {
 	 c.logo_public_id AS category_logo_public_id,
 	 c.properties AS category_properties,
 	 c.created_at AS category_created_at,
-   c.updated_at AS category_updated_at
+	 c.updated_at AS category_updated_at,
+	 pp.id AS pricing_id,
+   pp.product_id AS pricing_product_id,
+   pp.price AS pricing_price,
+   pp.sale_starts AS pricing_sale_starts,
+   pp.sale_ends AS pricing_sale_ends
 	 FROM public.product p
 	 LEFT JOIN product_pricing pp ON p.id = pp.product_id
    LEFT JOIN brand b ON p.brand_id = b.id
 	 LEFT JOIN category c ON p.category_id = c.id
-	 -- WHERE CURRENT_TIMESTAMP BETWEEN pp.sale_starts AND pp.sale_ends
-	 -- AND p.id = $1
-	 WHERE p.id = $1
-   GROUP BY p.id, b.id, c.id`
+	 WHERE CURRENT_TIMESTAMP BETWEEN pp.sale_starts AND pp.sale_ends
+	 AND p.id = $1
+   GROUP BY p.id, b.id, c.id, pp.id`
 
 	var pj productJoin
 	if err := s.db.Get(&pj, q, id); err != nil {
@@ -131,14 +146,19 @@ func (s PgProductStore) GetAll(filters map[string][]string, limit, offset int) (
 	c.logo AS category_logo,
 	c.properties AS category_properties,
 	c.created_at AS category_created_at,
-	c.updated_at AS category_updated_at
+	c.updated_at AS category_updated_at,
+	pp.id AS pricing_id,
+  pp.product_id AS pricing_product_id,
+  pp.price AS pricing_price,
+  pp.sale_starts AS pricing_sale_starts,
+  pp.sale_ends AS pricing_sale_ends
 	FROM public.product p
 	LEFT JOIN product_pricing pp ON p.id = pp.product_id
 	LEFT JOIN brand b ON p.brand_id = b.id
 	LEFT JOIN category c ON p.category_id = c.id	
 	LEFT JOIN product_tag pt ON p.id = pt.product_id 
-	LEFT JOIN tag t on t.id = pt.tag_id`
-	// -- WHERE CURRENT_TIMESTAMP BETWEEN pp.sale_starts AND pp.sale_ends
+	LEFT JOIN tag t on t.id = pt.tag_id
+	WHERE CURRENT_TIMESTAMP BETWEEN pp.sale_starts AND pp.sale_ends`
 
 	q, args, _ := buildProductsFilterSearchQuery(baseQuery, filters, limit, offset)
 
@@ -174,14 +194,18 @@ func (s PgProductStore) ListByIDS(ids []int64) ([]*model.Product, *model.AppErr)
 	 c.logo AS category_logo,
 	 c.properties AS category_properties,
 	 c.created_at AS category_created_at,
-   c.updated_at AS category_updated_at
+	 c.updated_at AS category_updated_at,
+	 pp.id AS pricing_id,
+   pp.product_id AS pricing_product_id,
+   pp.price AS pricing_price,
+   pp.sale_starts AS pricing_sale_starts,
+   pp.sale_ends AS pricing_sale_ends
 	 FROM public.product p
 	 LEFT JOIN product_pricing pp ON p.id = pp.product_id
    LEFT JOIN brand b ON p.brand_id = b.id
 	 LEFT JOIN category c ON p.category_id = c.id
-	 -- WHERE CURRENT_TIMESTAMP BETWEEN pp.sale_starts AND pp.sale_ends
-	 -- AND p.id IN (?)
-	 WHERE p.id IN (?)`, ids)
+	 WHERE CURRENT_TIMESTAMP BETWEEN pp.sale_starts AND pp.sale_ends
+	 AND p.id IN (?)`, ids)
 
 	if err != nil {
 		return nil, model.NewAppErr("PgProductStore.ListByIDS", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProducts, http.StatusInternalServerError, nil)
@@ -238,12 +262,19 @@ func (s PgProductStore) GetFeatured(limit, offset int) ([]*model.Product, *model
 	c.logo AS category_logo,
 	c.properties AS category_properties,
 	c.created_at AS category_created_at,
-	c.updated_at AS category_updated_at
+	c.updated_at AS category_updated_at,
+	pp.id AS pricing_id,
+	pp.product_id AS pricing_product_id,
+	pp.price AS pricing_price,
+	pp.sale_starts AS pricing_sale_starts,
+	pp.sale_ends AS pricing_sale_ends
 	FROM public.product p
+	LEFT JOIN product_pricing pp ON p.id = pp.product_id
 	LEFT JOIN brand b ON p.brand_id = b.id
 	LEFT JOIN category c ON p.category_id = c.id
-	WHERE p.is_featured = true
-	GROUP BY p.id, b.id, c.id
+	WHERE CURRENT_TIMESTAMP BETWEEN pp.sale_starts AND pp.sale_ends
+	AND p.is_featured = true
+	GROUP BY p.id, b.id, c.id, pp.id	
 	LIMIT $1 OFFSET $2`
 
 	var pj []productJoin
@@ -261,9 +292,24 @@ func (s PgProductStore) GetFeatured(limit, offset int) ([]*model.Product, *model
 
 // GetReviews returns all reviews
 func (s PgProductStore) GetReviews(id int64) ([]*model.Review, *model.AppErr) {
-	var reviews = make([]*model.Review, 0)
-	if err := s.db.Select(&reviews, `SELECT * FROM public.product_review WHERE product_id = $1`, id); err != nil {
+	q := `SELECT r.*,
+	u.id AS user_id,
+	u.first_name AS user_first_name,
+	u.last_name AS user_last_name,
+	u.username AS user_username,
+	u.avatar_url AS user_avatar_url,
+	u.avatar_public_id AS user_avatar_public_id
+	FROM product_review r LEFT JOIN public.user u ON r.user_id = u.id 
+	WHERE r.product_id = $1`
+
+	var rj []reviewJoin
+	if err := s.db.Select(&rj, q, id); err != nil {
 		return nil, model.NewAppErr("PgProductStore.GetReviews", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetReviews, http.StatusInternalServerError, nil)
+	}
+
+	var reviews = make([]*model.Review, 0)
+	for _, x := range rj {
+		reviews = append(reviews, x.ToReview())
 	}
 
 	return reviews, nil
@@ -285,6 +331,32 @@ func (s PgProductStore) Search(filter string) ([]*model.Product, *model.AppErr) 
 
 	return products, nil
 }
+
+// InsertPricing inserts the price info into product_pricing
+func (s PgProductStore) InsertPricing(pricing *model.ProductPricing) (*model.ProductPricing, *model.AppErr) {
+	q := `INSERT INTO public.product_pricing(product_id, price, sale_starts, sale_ends) VALUES(:product_id, :price, :sale_starts, :sale_ends) RETURNING id`
+
+	var id int64
+	rows, err := s.db.NamedQuery(q, pricing)
+	if err != nil {
+		return nil, model.NewAppErr("PgProductStore.InsertPricing", model.ErrInternal, locale.GetUserLocalizer("en"), msgSavePricing, http.StatusInternalServerError, nil)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		rows.Scan(&id)
+	}
+	if err := rows.Err(); err != nil {
+		if IsUniqueConstraintViolationError(err) {
+			return nil, model.NewAppErr("PgProductStore.InsertPricing", model.ErrConflict, locale.GetUserLocalizer("en"), msgUniqueConstraintBrand, http.StatusInternalServerError, nil)
+		}
+		return nil, model.NewAppErr("PgProductStore.InsertPricing", model.ErrInternal, locale.GetUserLocalizer("en"), msgSavePricing, http.StatusInternalServerError, nil)
+	}
+
+	pricing.PriceID = id
+	return pricing, nil
+}
+
+// generate dynamic search query for get all products (shop search page with all sidebar filters...)
 
 type prop struct {
 	name   string
@@ -324,7 +396,7 @@ func buildProductsFilterSearchQuery(queryString string, filters map[string][]str
 		}
 	}
 
-	query := fmt.Sprintf("%s WHERE 1 = 1", queryString)
+	query := fmt.Sprintf("%s", queryString)
 	var args []interface{}
 
 	// handle price range filters
@@ -417,11 +489,11 @@ func buildProductsFilterSearchQuery(queryString string, filters map[string][]str
 					str += fmt.Sprintf(" %s %sp.properties->>'%s' = '%s'%s", innerClause, groupStart, prop.name, val, groupEnd)
 				}
 			}
-			query += fmt.Sprintf(" %s (c.name = '%s'%s)%s", outerClause, cat.category, str, outerParensClose)
+			query += fmt.Sprintf(" %s (c.slug = '%s'%s)%s", outerClause, cat.category, str, outerParensClose)
 		}
 	}
 
-	query += " \nGROUP BY p.id, b.id, c.id"
+	query += " \nGROUP BY p.id, b.id, c.id, pp.id"
 	if limit != 0 {
 		query += " LIMIT ?"
 		args = append(args, strconv.Itoa(limit))
@@ -438,28 +510,4 @@ func buildProductsFilterSearchQuery(queryString string, filters map[string][]str
 	builtQuery = sqlx.Rebind(sqlx.DOLLAR, builtQuery)
 
 	return builtQuery, builtQueryArgs, nil
-}
-
-// InsertPricing inserts the price info into product_pricing
-func (s PgProductStore) InsertPricing(pricing *model.ProductPricing) (*model.ProductPricing, *model.AppErr) {
-	q := `INSERT INTO public.brand(product_id, price, sale_starts, sale_ends) VALUES(:product_id, :price, :sale_starts, :sale_ends) RETURNING id`
-
-	var id int64
-	rows, err := s.db.NamedQuery(q, pricing)
-	if err != nil {
-		return nil, model.NewAppErr("PgProductStore.InsertPricing", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveBrand, http.StatusInternalServerError, nil)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		rows.Scan(&id)
-	}
-	if err := rows.Err(); err != nil {
-		if IsUniqueConstraintViolationError(err) {
-			return nil, model.NewAppErr("PgProductStore.InsertPricing", model.ErrConflict, locale.GetUserLocalizer("en"), msgUniqueConstraintBrand, http.StatusInternalServerError, nil)
-		}
-		return nil, model.NewAppErr("PgProductStore.InsertPricing", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveBrand, http.StatusInternalServerError, nil)
-	}
-
-	pricing.ID = id
-	return pricing, nil
 }

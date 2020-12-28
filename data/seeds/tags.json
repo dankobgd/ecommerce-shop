@@ -1,86 +1,86 @@
 [
   {
-    "name": "men",
+    "name": "Men",
     "slug": "men",
     "description": "men related products"
   },
   {
-    "name": "women",
+    "name": "Women",
     "slug": "women",
     "description": "women related products"
   },
   {
-    "name": "children",
+    "name": "Children",
     "slug": "children",
     "description": "children related products"
   },
   {
-    "name": "sports",
+    "name": "Sports",
     "slug": "sports",
     "description": "sports related products"
   },
   {
-    "name": "winter",
+    "name": "Winter",
     "slug": "winter",
     "description": "winter related products"
   },
   {
-    "name": "summer",
+    "name": "Summer",
     "slug": "summer",
     "description": "summer related products"
   },
   {
-    "name": "running",
+    "name": "Running",
     "slug": "running",
     "description": "running related products"
   },
   {
-    "name": "basketball",
+    "name": "Basketball",
     "slug": "basketball",
     "description": "basketball related products"
   },
   {
-    "name": "football",
+    "name": "Football",
     "slug": "football",
     "description": "football related products"
   },
   {
-    "name": "volleyball",
+    "name": "Volleyball",
     "slug": "volleyball",
     "description": "volleyball related products"
   },
   {
-    "name": "handball",
+    "name": "Handball",
     "slug": "handball",
     "description": "handball related products"
   },
   {
-    "name": "tennis",
+    "name": "Tennis",
     "slug": "tennis",
     "description": "tennis related products"
   },
   {
-    "name": "fitness",
+    "name": "Fitness",
     "slug": "fitness",
     "description": "fitness related products"
   },
   {
-    "name": "swimming",
+    "name": "Swimming",
     "slug": "swimming",
     "description": "swimming related products"
   },
   {
-    "name": "lifestyle",
+    "name": "Lifestyle",
     "slug": "lifestyle",
     "description": "lifestyle related products"
   },
   {
     "name": "Mountain climbing",
-    "slug": "Mountain climbing",
+    "slug": "mountain_climbing",
     "description": "Mountain climbing related products"
   },
   {
-    "name": "other",
+    "name": "Other",
     "slug": "other",
     "description": "other related products"
   }

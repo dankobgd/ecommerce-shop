@@ -14,6 +14,9 @@ import (
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
+// FutureSaleEndsTime is the products sale end time
+var FutureSaleEndsTime = time.Date(2050, 01, 01, 00, 00, 00, 000000000, time.UTC)
+
 // FileUploadSizeLimit for image upload - 3MB
 const FileUploadSizeLimit int64 = 3 << 20
 
@@ -58,9 +61,9 @@ type Product struct {
 	Properties     *types.JSONText `json:"properties" db:"properties" schema:"-"`
 	PropertiesText *string         `json:"-" schema:"properties"`
 
-	Pricing  *ProductPricing `json:"pricing"`
-	Brand    *Brand          `json:"brand"`
-	Category *Category       `json:"category"`
+	*ProductPricing `schema:"-"`
+	Brand           *Brand    `json:"brand" schema:"-"`
+	Category        *Category `json:"category" schema:"-"`
 }
 
 // ProductPatch is the product patch model
@@ -247,7 +250,7 @@ func (patch *ProductPatch) Validate(fh *multipart.FileHeader) *AppErr {
 
 // ProductPricing has info about price discounts
 type ProductPricing struct {
-	ID         int64     `json:"-" db:"id"`
+	PriceID    int64     `json:"-" db:"price_id"`
 	ProductID  int64     `json:"-" db:"product_id"`
 	Price      int       `json:"price" db:"price"`
 	SaleStarts time.Time `json:"sale_starts" db:"sale_starts"`
@@ -259,7 +262,7 @@ func (pp *ProductPricing) Validate() *AppErr {
 	var errs ValidationErrors
 	l := locale.GetUserLocalizer("en")
 
-	if pp.ID != 0 {
+	if pp.PriceID != 0 {
 		errs.Add(Invalid("id", l, msgValidateProductPricingID))
 	}
 	if pp.ProductID == 0 {

@@ -190,13 +190,20 @@ func (s PgUserStore) GetWishlist(userID int64) ([]*model.Product, *model.AppErr)
 	c.logo AS category_logo,
 	c.properties AS category_properties,
 	c.created_at AS category_created_at,
-	c.updated_at AS category_updated_at
+	c.updated_at AS category_updated_at,
+	pp.id AS pricing_id,
+  pp.product_id AS pricing_product_id,
+  pp.price AS pricing_price,
+  pp.sale_starts AS pricing_sale_starts,
+  pp.sale_ends AS pricing_sale_ends
 	FROM public.product p
+	LEFT JOIN product_pricing pp ON p.id = pp.product_id
 	LEFT JOIN brand b ON p.brand_id = b.id
 	LEFT JOIN category c ON p.category_id = c.id	
 	LEFT JOIN product_wishlist w ON p.id = w.product_id
 	LEFT JOIN public.user u ON u.id = w.user_id
-	WHERE u.id = $1`
+	WHERE CURRENT_TIMESTAMP BETWEEN pp.sale_starts AND pp.sale_ends
+	AND u.id = $1`
 
 	var pj []productJoin
 	if err := s.db.Select(&pj, q, userID); err != nil {

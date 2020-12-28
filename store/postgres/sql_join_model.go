@@ -72,11 +72,13 @@ func (pj *productJoin) ToProduct() *model.Product {
 		CreatedAt:         pj.CreatedAt,
 		UpdatedAt:         pj.UpdatedAt,
 		Properties:        pj.Properties,
-		// Pricing: &model.ProductPricing{
-		// 	Price:      pj.PPrice,
-		// 	SaleStarts: pj.PSaleStarts,
-		// 	SaleEnds:   pj.PSaleEnds,
-		// },
+		ProductPricing: &model.ProductPricing{
+			PriceID:    pj.PID,
+			ProductID:  pj.PProductID,
+			Price:      pj.PPrice,
+			SaleStarts: pj.PSaleStarts,
+			SaleEnds:   pj.PSaleEnds,
+		},
 		Brand: &model.Brand{
 			ID:           pj.BID,
 			Name:         pj.BName,
@@ -91,15 +93,16 @@ func (pj *productJoin) ToProduct() *model.Product {
 			UpdatedAt:    pj.BUpdatedAt,
 		},
 		Category: &model.Category{
-			ID:          pj.CID,
-			Name:        pj.CName,
-			Slug:        pj.CSlug,
-			Logo:        pj.CLogo,
-			Description: pj.CDescription,
-			IsFeatured:  pj.CIsFeatured,
-			Properties:  pj.CProperties,
-			CreatedAt:   pj.CCreatedAt,
-			UpdatedAt:   pj.CUpdatedAt,
+			ID:           pj.CID,
+			Name:         pj.CName,
+			Slug:         pj.CSlug,
+			Logo:         pj.CLogo,
+			LogoPublicID: pj.CLogoPublicID,
+			Description:  pj.CDescription,
+			IsFeatured:   pj.CIsFeatured,
+			Properties:   pj.CProperties,
+			CreatedAt:    pj.CCreatedAt,
+			UpdatedAt:    pj.CUpdatedAt,
 		},
 	}
 }
@@ -125,4 +128,41 @@ func (aj *addressJoin) ToAddress() *model.Address {
 		UpdatedAt: aj.UpdatedAt,
 		DeletedAt: aj.DeletedAt,
 	}
+}
+
+// reviewJoin is temp join type
+type reviewJoin struct {
+	*model.Review
+	*UserJoin
+}
+
+func (rj *reviewJoin) ToReview() *model.Review {
+	return &model.Review{
+		ID:        rj.ID,
+		UserID:    rj.UID,
+		ProductID: rj.ProductID,
+		Rating:    rj.Rating,
+		Title:     rj.Title,
+		Comment:   rj.Comment,
+		CreatedAt: rj.CreatedAt,
+		UpdatedAt: rj.UpdatedAt,
+		User: &model.User{
+			ID:             rj.UID,
+			FirstName:      rj.UFirstName,
+			LastName:       rj.ULastName,
+			Username:       rj.UUsername,
+			AvatarURL:      rj.UAvatarURL,
+			AvatarPublicID: rj.UAvatarPublicID,
+		},
+	}
+}
+
+// UserJoin is temp join type
+type UserJoin struct {
+	UID             int64   `db:"user_id"`
+	UFirstName      string  `db:"user_first_name"`
+	ULastName       string  `db:"user_last_name"`
+	UUsername       string  `db:"user_username"`
+	UAvatarURL      *string `db:"user_avatar_url"`
+	UAvatarPublicID *string `db:"user_avatar_public_id"`
 }

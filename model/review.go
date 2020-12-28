@@ -32,8 +32,9 @@ type Review struct {
 	Rating    int       `json:"rating" db:"rating"`
 	Title     string    `json:"title" db:"title"`
 	Comment   string    `json:"comment" db:"comment"`
-	CreatedAt time.Time `json:"-" db:"created_at"`
-	UpdatedAt time.Time `json:"-" db:"updated_at"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	User      *User     `json:"user"`
 }
 
 // ReviewPatch is the patch for review
