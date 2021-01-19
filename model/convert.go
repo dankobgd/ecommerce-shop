@@ -50,13 +50,24 @@ func StrArrayToJSON(obj []string) string {
 	return string(b)
 }
 
-// StrArrayFromJSON will decode the array
-func StrArrayFromJSON(data io.Reader) []string {
+// StrSliceFromJSON will decode the array
+func StrSliceFromJSON(data io.Reader) []string {
 	decoder := json.NewDecoder(data)
 
 	var obj []string
 	if err := decoder.Decode(&obj); err != nil {
 		return make([]string, 0)
+	}
+	return obj
+}
+
+// IntSliceFromJSON will decode the array
+func IntSliceFromJSON(data io.Reader) []int {
+	decoder := json.NewDecoder(data)
+
+	var obj []int
+	if err := decoder.Decode(&obj); err != nil {
+		return make([]int, 0)
 	}
 	return obj
 }

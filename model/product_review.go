@@ -23,9 +23,8 @@ var (
 	msgValidateReviewUpAt      = &i18n.Message{ID: "model.review.validate.updated_at.app_error", Other: "invalid review updated_at timestamp"}
 )
 
-// Review is the review model
-type Review struct {
-	TotalRecordsCount
+// ProductReview is the review model
+type ProductReview struct {
 	ID        int64     `json:"id" db:"id"`
 	UserID    int64     `json:"user_id" db:"user_id"`
 	ProductID int64     `json:"product_id" db:"product_id"`
@@ -37,16 +36,15 @@ type Review struct {
 	User      *User     `json:"user"`
 }
 
-// ReviewPatch is the patch for review
-type ReviewPatch struct {
-	ProductID *int64  `json:"product_id,omitempty"`
-	Rating    *int    `json:"rating,omitempty"`
-	Title     *string `json:"title,omitempty"`
-	Comment   *string `json:"comment,omitempty"`
+// ProductReviewPatch is the patch for review
+type ProductReviewPatch struct {
+	Rating  *int    `json:"rating,omitempty"`
+	Title   *string `json:"title,omitempty"`
+	Comment *string `json:"comment,omitempty"`
 }
 
 // Patch patches the product review
-func (rev *Review) Patch(patch *ReviewPatch) {
+func (rev *ProductReview) Patch(patch *ProductReviewPatch) {
 	if patch.Rating != nil {
 		rev.Rating = *patch.Rating
 	}
@@ -59,43 +57,37 @@ func (rev *Review) Patch(patch *ReviewPatch) {
 }
 
 // ReviewFromJSON decodes the input and returns the Review
-func ReviewFromJSON(data io.Reader) (*Review, error) {
-	var rev *Review
+func ReviewFromJSON(data io.Reader) (*ProductReview, error) {
+	var rev *ProductReview
 	err := json.NewDecoder(data).Decode(&rev)
 	return rev, err
 }
 
 // ReviewPatchFromJSON decodes the input and returns the ReviewPatch
-func ReviewPatchFromJSON(data io.Reader) (*ReviewPatch, error) {
-	var p *ReviewPatch
+func ReviewPatchFromJSON(data io.Reader) (*ProductReviewPatch, error) {
+	var p *ProductReviewPatch
 	err := json.NewDecoder(data).Decode(&p)
 	return p, err
 }
 
 // PreSave will fill timestamps
-func (rev *Review) PreSave() {
+func (rev *ProductReview) PreSave() {
 	rev.CreatedAt = time.Now()
 	rev.UpdatedAt = rev.CreatedAt
 }
 
 // PreUpdate sets the update timestamp
-func (rev *Review) PreUpdate() {
+func (rev *ProductReview) PreUpdate() {
 	rev.UpdatedAt = time.Now()
 }
 
 // Validate validates the review and returns an error if it doesn't pass criteria
-func (rev *Review) Validate() *AppErr {
+func (rev *ProductReview) Validate() *AppErr {
 	var errs ValidationErrors
 	l := locale.GetUserLocalizer("en")
 
 	if rev.ID != 0 {
 		errs.Add(Invalid("id", l, msgValidateReviewID))
-	}
-	if rev.UserID == 0 {
-		errs.Add(Invalid("user_id", l, msgValidateReviewUserID))
-	}
-	if rev.ProductID == 0 {
-		errs.Add(Invalid("product_id", l, msgValidateReviewProductID))
 	}
 	if rev.Rating < 0 || rev.Rating > 5 {
 		errs.Add(Invalid("rating", l, msgValidateReviewRating))
@@ -120,7 +112,7 @@ func (rev *Review) Validate() *AppErr {
 }
 
 // Validate validates the review and returns an error if it doesn't pass criteria
-func (patch *ReviewPatch) Validate() *AppErr {
+func (patch *ProductReviewPatch) Validate() *AppErr {
 	var errs ValidationErrors
 	l := locale.GetUserLocalizer("en")
 

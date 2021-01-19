@@ -12,6 +12,7 @@ import (
 )
 
 var (
+	msgInvalidProductImage      = &i18n.Message{ID: "model.product.validate.app_error", Other: "invalid product image data"}
 	msgValidateProductImage     = &i18n.Message{ID: "model.product_image.validate.url.app_error", Other: "invalid product image"}
 	msgValidateProductImageSize = &i18n.Message{ID: "model.product_image.validate.url.app_error", Other: "File size exceeded, max 3MB allowed"}
 )
@@ -45,15 +46,16 @@ func (img *ProductImage) Validate(fh *multipart.FileHeader) *AppErr {
 	l := locale.GetUserLocalizer("en")
 
 	if fh == nil {
-		errs.Add(Invalid("image", l, msgValidateBrandLogo))
+		errs.Add(Invalid("image", l, msgValidateProductImage))
 	}
 	if fh != nil && fh.Size > FileUploadSizeLimit {
-		errs.Add(Invalid("image", l, msgValidateBrandLogoSize))
+		errs.Add(Invalid("image", l, msgValidateProductImageSize))
 	}
 
 	if !errs.IsZero() {
-		return NewValidationError("ProductImage", msgInvalidBrand, "", errs)
+		return NewValidationError("ProductImage", msgInvalidProductImage, "", errs)
 	}
+
 	return nil
 }
 
@@ -67,7 +69,7 @@ func (patch *ProductImagePatch) Validate(fh *multipart.FileHeader) *AppErr {
 	}
 
 	if !errs.IsZero() {
-		return NewValidationError("ProductImagePatch", msgInvalidBrand, "", errs)
+		return NewValidationError("ProductImagePatch", msgInvalidProductImage, "", errs)
 	}
 	return nil
 }

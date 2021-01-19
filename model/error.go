@@ -13,6 +13,7 @@ import (
 const (
 	ErrConflict        = "Conflict"        // action cannot be performed
 	ErrInternal        = "Internal"        // internal error
+	ErrBadRequest      = "Bad Request"     // bad request
 	ErrInvalid         = "Invalid"         // validation failed
 	ErrNotFound        = "Not Found"       // entity does not exist
 	ErrUnauthorized    = "Unauthorized"    // permission denied

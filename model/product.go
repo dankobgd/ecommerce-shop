@@ -33,13 +33,14 @@ var (
 	msgValidateProductCrAt       = &i18n.Message{ID: "model.product.validate.created_at.app_error", Other: "invalid created_at timestamp"}
 	msgValidateProductUpAt       = &i18n.Message{ID: "model.product.validate.updated_at.app_error", Other: "invalid updated_at timestamp"}
 
-	msgInvalidProductPricing            = &i18n.Message{ID: "model.product_price.validate.app_error", Other: "invalid product price data"}
-	msgValidateProductPricingID         = &i18n.Message{ID: "model.product_price.validate.id.app_error", Other: "invalid product price id"}
-	msgValidateProductPricingProductID  = &i18n.Message{ID: "model.product_price.validate.product_id.app_error", Other: "invalid product price product_id"}
-	msgValidateProductPricingPrice      = &i18n.Message{ID: "model.product_price.validate.price_app_error", Other: "invalid product price amount"}
-	msgValidateProductPricingSaleStarts = &i18n.Message{ID: "model.product_price.validate.sale_starts.app_error", Other: "invalid product price sale starts"}
-	msgValidateProductPricingSaleEnds   = &i18n.Message{ID: "model.product_price.validate.sale_ends.app_error", Other: "invalid product price sale ends"}
-	msgValidateProductProperties        = &i18n.Message{ID: "model.product.validate.properties.app_error", Other: "invalid json provided as properties"}
+	msgInvalidProductPricing               = &i18n.Message{ID: "model.product_price.validate.app_error", Other: "invalid product price data"}
+	msgValidateProductPricingID            = &i18n.Message{ID: "model.product_price.validate.id.app_error", Other: "invalid product price id"}
+	msgValidateProductPricingProductID     = &i18n.Message{ID: "model.product_price.validate.product_id.app_error", Other: "invalid product price product_id"}
+	msgValidateProductPricingPrice         = &i18n.Message{ID: "model.product_price.validate.price_app_error", Other: "invalid product price amount"}
+	msgValidateProductPricingOriginalPrice = &i18n.Message{ID: "model.product_price.validate.original_price_app_error", Other: "invalid product original price amount"}
+	msgValidateProductPricingSaleStarts    = &i18n.Message{ID: "model.product_price.validate.sale_starts.app_error", Other: "invalid product price sale starts"}
+	msgValidateProductPricingSaleEnds      = &i18n.Message{ID: "model.product_price.validate.sale_ends.app_error", Other: "invalid product price sale ends"}
+	msgValidateProductProperties           = &i18n.Message{ID: "model.product.validate.properties.app_error", Other: "invalid json provided as properties"}
 )
 
 // Product represents the shop product model
@@ -52,7 +53,7 @@ type Product struct {
 	Slug           string          `json:"slug" db:"slug" schema:"slug"`
 	ImageURL       string          `json:"image_url" db:"image_url" schema:"-"`
 	ImagePublicID  string          `json:"image_public_id" db:"image_public_id" schema:"-"`
-	Description    string          `json:"description,omitempty" db:"description" schema:"description"`
+	Description    string          `json:"description" db:"description" schema:"description"`
 	InStock        bool            `json:"in_stock" db:"in_stock" schema:"in_stock"`
 	SKU            string          `json:"sku" db:"sku" schema:"-"`
 	IsFeatured     bool            `json:"is_featured" db:"is_featured" schema:"is_featured"`
@@ -250,11 +251,43 @@ func (patch *ProductPatch) Validate(fh *multipart.FileHeader) *AppErr {
 
 // ProductPricing has info about price discounts
 type ProductPricing struct {
-	PriceID    int64     `json:"-" db:"price_id"`
-	ProductID  int64     `json:"-" db:"product_id"`
-	Price      int       `json:"price" db:"price"`
-	SaleStarts time.Time `json:"sale_starts" db:"sale_starts"`
-	SaleEnds   time.Time `json:"sale_ends" db:"sale_ends"`
+	PriceID       int64     `json:"price_id" db:"price_id"`
+	ProductID     int64     `json:"product_id" db:"product_id"`
+	Price         int       `json:"price" db:"price"`
+	OriginalPrice int       `json:"original_price" db:"original_price"`
+	SaleStarts    time.Time `json:"sale_starts" db:"sale_starts"`
+	SaleEnds      time.Time `json:"sale_ends" db:"sale_ends"`
+}
+
+// ProductPricingPatch is the ProductPricing patch model
+type ProductPricingPatch struct {
+	Price         *int       `json:"price" db:"price"`
+	OriginalPrice *int       `json:"original_price" db:"original_price"`
+	SaleStarts    *time.Time `json:"sale_starts" db:"sale_starts"`
+	SaleEnds      *time.Time `json:"sale_ends" db:"sale_ends"`
+}
+
+// Patch patches the ProductPricing fields that are provided
+func (pp *ProductPricing) Patch(patch *ProductPricingPatch) {
+	if patch.Price != nil {
+		pp.Price = *patch.Price
+	}
+	if patch.OriginalPrice != nil {
+		pp.OriginalPrice = *patch.OriginalPrice
+	}
+	if patch.SaleStarts != nil {
+		pp.SaleStarts = *patch.SaleStarts
+	}
+	if patch.SaleEnds != nil {
+		pp.SaleEnds = *patch.SaleEnds
+	}
+}
+
+// ProductPricingFromJSON decodes the input and returns the ProductPricing
+func ProductPricingFromJSON(data io.Reader) (*ProductPricing, error) {
+	var pp *ProductPricing
+	err := json.NewDecoder(data).Decode(&pp)
+	return pp, err
 }
 
 // Validate validates the ProductPricing and returns an error if it doesn't pass criteria
@@ -270,6 +303,9 @@ func (pp *ProductPricing) Validate() *AppErr {
 	}
 	if pp.Price <= 0 {
 		errs.Add(Invalid("price", l, msgValidateProductPricingPrice))
+	}
+	if pp.OriginalPrice <= 0 {
+		errs.Add(Invalid("original_price", l, msgValidateProductPricingOriginalPrice))
 	}
 	if pp.SaleStarts.IsZero() {
 		errs.Add(Invalid("sale_starts", l, msgValidateProductPricingSaleStarts))

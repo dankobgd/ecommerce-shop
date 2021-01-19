@@ -88,8 +88,10 @@ func (a *App) PatchCategory(cid int64, patch *model.CategoryPatch, fh *multipart
 	}
 
 	defer func() {
-		if err := a.DeleteImage(oldPublicID); err != nil {
-			a.Log().Error(err.Error(), zlog.Err(err))
+		if oldPublicID != "" {
+			if err := a.DeleteImage(oldPublicID); err != nil {
+				a.Log().Error(err.Error(), zlog.Err(err))
+			}
 		}
 	}()
 
@@ -119,8 +121,10 @@ func (a *App) DeleteCategory(cid int64) *model.AppErr {
 	}
 
 	defer func() {
-		if err := a.DeleteImage(old.LogoPublicID); err != nil {
-			a.Log().Error(err.Error(), zlog.Err(err))
+		if old.LogoPublicID != "" {
+			if err := a.DeleteImage(old.LogoPublicID); err != nil {
+				a.Log().Error(err.Error(), zlog.Err(err))
+			}
 		}
 	}()
 

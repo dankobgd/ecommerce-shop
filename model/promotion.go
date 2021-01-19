@@ -80,6 +80,9 @@ func (p *Promotion) Patch(patch *PromotionPatch) {
 	if patch.Amount != nil {
 		p.Amount = *patch.Amount
 	}
+	if patch.Description != nil {
+		p.Description = *patch.Description
+	}
 	if patch.StartsAt != nil {
 		p.StartsAt = *patch.StartsAt
 	}

@@ -12,13 +12,13 @@ type Store interface {
 	Product() ProductStore
 	ProductTag() ProductTagStore
 	ProductImage() ProductImageStore
+	ProductReview() ProductReviewStore
 	Order() OrderStore
 	OrderDetail() OrderDetailStore
 	Address() AddressStore
 	Category() CategoryStore
 	Brand() BrandStore
 	Tag() TagStore
-	Review() ReviewStore
 	Promotion() PromotionStore
 }
 
@@ -68,9 +68,11 @@ type ProductStore interface {
 	GetFeatured(limit, offset int) ([]*model.Product, *model.AppErr)
 	Update(id int64, u *model.Product) (*model.Product, *model.AppErr)
 	Delete(id int64) *model.AppErr
-	GetReviews(id int64) ([]*model.Review, *model.AppErr)
+	GetReviews(id int64) ([]*model.ProductReview, *model.AppErr)
 	Search(query string) ([]*model.Product, *model.AppErr)
+	GetLatestPricing(pid int64) (*model.ProductPricing, *model.AppErr)
 	InsertPricing(pricing *model.ProductPricing) (*model.ProductPricing, *model.AppErr)
+	UpdatePricing(pricing *model.ProductPricing) (*model.ProductPricing, *model.AppErr)
 }
 
 // ProductTagStore is the product tag store
@@ -80,6 +82,7 @@ type ProductTagStore interface {
 	Get(pid, tid int64) (*model.ProductTag, *model.AppErr)
 	GetAll(pid int64) ([]*model.ProductTag, *model.AppErr)
 	Update(pid, tid int64, tag *model.ProductTag) (*model.ProductTag, *model.AppErr)
+	Replace(pid int64, tagIDs []int) ([]*model.ProductTag, *model.AppErr)
 	Delete(pid, id int64) *model.AppErr
 }
 
@@ -93,12 +96,22 @@ type ProductImageStore interface {
 	Delete(pid, id int64) *model.AppErr
 }
 
+// ProductReviewStore is the review store
+type ProductReviewStore interface {
+	BulkInsert(reviews []*model.ProductReview) *model.AppErr
+	Save(pid int64, review *model.ProductReview) (*model.ProductReview, *model.AppErr)
+	Get(pid, rid int64) (*model.ProductReview, *model.AppErr)
+	GetAll(pid int64) ([]*model.ProductReview, *model.AppErr)
+	Update(pid, rid int64, rev *model.ProductReview) (*model.ProductReview, *model.AppErr)
+	Delete(pid, rid int64) *model.AppErr
+}
+
 // OrderStore is the order store
 type OrderStore interface {
 	Save(order *model.Order) (*model.Order, *model.AppErr)
 	Get(id int64) (*model.Order, *model.AppErr)
 	GetAll(limit, offset int) ([]*model.Order, *model.AppErr)
-	Update(id int64, o *model.Order) (*model.Order, *model.AppErr)
+	Update(id int64, order *model.Order) (*model.Order, *model.AppErr)
 	Delete(id int64) *model.AppErr
 }
 
@@ -147,16 +160,6 @@ type TagStore interface {
 	Get(id int64) (*model.Tag, *model.AppErr)
 	GetAll(limit, offset int) ([]*model.Tag, *model.AppErr)
 	Update(id int64, addr *model.Tag) (*model.Tag, *model.AppErr)
-	Delete(id int64) *model.AppErr
-}
-
-// ReviewStore is the tag store
-type ReviewStore interface {
-	BulkInsert(tags []*model.Review) *model.AppErr
-	Save(r *model.Review) (*model.Review, *model.AppErr)
-	Get(id int64) (*model.Review, *model.AppErr)
-	GetAll(limit, offset int) ([]*model.Review, *model.AppErr)
-	Update(id int64, addr *model.Review) (*model.Review, *model.AppErr)
 	Delete(id int64) *model.AppErr
 }
 

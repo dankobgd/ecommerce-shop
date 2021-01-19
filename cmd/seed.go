@@ -225,7 +225,7 @@ func seedTags() error {
 
 // seedReviews populates the product_review table
 func seedReviews() error {
-	var reviews []*model.Review
+	var reviews []*model.ProductReview
 
 	data, err := ioutil.ReadFile("./data/seeds/reviews.json")
 	if err != nil {
@@ -240,7 +240,7 @@ func seedReviews() error {
 	for _, t := range reviews {
 		t.PreSave()
 	}
-	if err := cmdApp.Srv().Store.Review().BulkInsert(reviews); err != nil {
+	if err := cmdApp.Srv().Store.ProductReview().BulkInsert(reviews); err != nil {
 		cmdApp.Log().Error("could not seed reviews", zlog.String("err: ", err.Message))
 		return err
 	}
@@ -280,6 +280,7 @@ type productSeed struct {
 	ImagePublicID string         `json:"image_public_id"`
 	Description   string         `json:"description"`
 	Price         int            `json:"price"`
+	OriginalPrice int            `json:"original_price"`
 	InStock       bool           `json:"in_stock"`
 	SKU           string         `json:"sku"`
 	IsFeatured    bool           `json:"is_featured"`
@@ -327,7 +328,8 @@ func seedProducts() error {
 			IsFeatured:    x.IsFeatured,
 			Properties:    &x.Properties,
 			ProductPricing: &model.ProductPricing{
-				Price: x.Price,
+				Price:         x.Price,
+				OriginalPrice: x.Price,
 			},
 		}
 

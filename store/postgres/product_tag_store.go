@@ -6,6 +6,7 @@ import (
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/store"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/jmoiron/sqlx"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -20,11 +21,12 @@ func NewPgProductTagStore(pgst *PgStore) store.ProductTagStore {
 }
 
 var (
-	msgBUlkInsertTags   = &i18n.Message{ID: "store.postgres.product_tag.bulk_insert.app_error", Other: "could not bulk insert product tags"}
-	msgGetProductTag    = &i18n.Message{ID: "store.postgres.product_tag.get.app_error", Other: "could not get product tag"}
-	msgGetProductTags   = &i18n.Message{ID: "store.postgres.product_tag.get_all.app_error", Other: "could not get product tags"}
-	msgUpdateProductTag = &i18n.Message{ID: "store.postgres.product_tag.update.app_error", Other: "could not update product tag"}
-	msgDeleteProductTag = &i18n.Message{ID: "store.postgres.product_tag.delete.app_error", Other: "could not delete product tag"}
+	msgBUlkInsertTags     = &i18n.Message{ID: "store.postgres.product_tag.bulk_insert.app_error", Other: "could not bulk insert product tags"}
+	msgGetProductTag      = &i18n.Message{ID: "store.postgres.product_tag.get.app_error", Other: "could not get product tag"}
+	msgGetProductTags     = &i18n.Message{ID: "store.postgres.product_tag.get_all.app_error", Other: "could not get product tags"}
+	msgUpdateProductTag   = &i18n.Message{ID: "store.postgres.product_tag.update.app_error", Other: "could not update product tag"}
+	msgReplaceProductTags = &i18n.Message{ID: "store.postgres.product_tag.replace.app_error", Other: "could not replace product tags"}
+	msgDeleteProductTag   = &i18n.Message{ID: "store.postgres.product_tag.delete.app_error", Other: "could not delete product tag"}
 )
 
 // BulkInsert multiple tags in the db
@@ -79,6 +81,48 @@ func (s PgProductTagStore) Update(pid, tid int64, pt *model.ProductTag) (*model.
 		return nil, model.NewAppErr("PgProductTagStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateProductTag, http.StatusInternalServerError, nil)
 	}
 	return pt, nil
+}
+
+// Replace replaces the tags with provided ones (deletes and inserts)
+func (s PgProductTagStore) Replace(pid int64, tagIDs []int) ([]*model.ProductTag, *model.AppErr) {
+	ptags := make([]*model.ProductTag, 0)
+
+	if len(tagIDs) == 0 {
+		if _, err := s.db.NamedExec(`DELETE FROM product_tag WHERE product_id=:product_id `, map[string]interface{}{"product_id": pid}); err != nil {
+			return nil, model.NewAppErr("PgProductStore.Replace", model.ErrInternal, locale.GetUserLocalizer("en"), msgReplaceProductTags, http.StatusInternalServerError, nil)
+		}
+		return ptags, nil
+	}
+
+	for _, id := range tagIDs {
+		ptags = append(ptags, &model.ProductTag{TagID: model.NewInt64(int64(id)), ProductID: model.NewInt64(pid)})
+	}
+
+	tx, txErr := s.db.Beginx()
+
+	if txErr != nil {
+		tx.Rollback()
+		return nil, model.NewAppErr("PgProductStore.Replace", model.ErrInternal, locale.GetUserLocalizer("en"), msgReplaceProductTags, http.StatusInternalServerError, nil)
+	}
+
+	if _, err := tx.NamedExec(`INSERT INTO product_tag(tag_id, product_id) VALUES(:tag_id, :product_id) ON CONFLICT (product_id, tag_id) DO NOTHING`, ptags); err != nil {
+		tx.Rollback()
+		return nil, model.NewAppErr("PgProductStore.Replace", model.ErrInternal, locale.GetUserLocalizer("en"), msgReplaceProductTags, http.StatusInternalServerError, nil)
+	}
+
+	q, args, e := sqlx.In(`DELETE FROM product_tag WHERE product_id = ? AND tag_id NOT IN (?)`, pid, tagIDs)
+	if e != nil {
+		tx.Rollback()
+		return nil, model.NewAppErr("PgProductStore.Replace", model.ErrInternal, locale.GetUserLocalizer("en"), msgReplaceProductTags, http.StatusInternalServerError, nil)
+	}
+	if _, err := tx.Exec(s.db.Rebind(q), args...); err != nil {
+		tx.Rollback()
+		return nil, model.NewAppErr("PgProductStore.Replace", model.ErrInternal, locale.GetUserLocalizer("en"), msgReplaceProductTags, http.StatusInternalServerError, nil)
+	}
+
+	tx.Commit()
+
+	return ptags, nil
 }
 
 // Delete deletes the tag

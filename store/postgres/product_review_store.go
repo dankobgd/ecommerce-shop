@@ -15,7 +15,7 @@ type PgReviewStore struct {
 }
 
 // NewPgReviewStore creates the new review store
-func NewPgReviewStore(pgst *PgStore) store.ReviewStore {
+func NewPgReviewStore(pgst *PgStore) store.ProductReviewStore {
 	return &PgReviewStore{*pgst}
 }
 
@@ -30,8 +30,8 @@ var (
 )
 
 // BulkInsert inserts multiple reviews in the db
-func (s PgReviewStore) BulkInsert(reviews []*model.Review) *model.AppErr {
-	q := `INSERT INTO public.product_review(user_id, product_id, rating, title, comment, created_at, updated_at) VALUES(:user_id, :product_id, :rating, :title, :comment, :created_at, :updated_at) RETURNING id`
+func (s PgReviewStore) BulkInsert(reviews []*model.ProductReview) *model.AppErr {
+	q := `INSERT INTO product_review(user_id, product_id, rating, title, comment, created_at, updated_at) VALUES(:user_id, :product_id, :rating, :title, :comment, :created_at, :updated_at) RETURNING id`
 
 	if _, err := s.db.NamedExec(q, reviews); err != nil {
 		return model.NewAppErr("PgReviewStore.BulkInsert", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkInsertReviews, http.StatusInternalServerError, nil)
@@ -40,8 +40,8 @@ func (s PgReviewStore) BulkInsert(reviews []*model.Review) *model.AppErr {
 }
 
 // Save inserts the new review in the db
-func (s PgReviewStore) Save(review *model.Review) (*model.Review, *model.AppErr) {
-	q := `INSERT INTO public.product_review(user_id, product_id, rating, title, comment, created_at, updated_at) VALUES(:user_id, :product_id, :rating, :title, :comment, :created_at, :updated_at) RETURNING id`
+func (s PgReviewStore) Save(pid int64, review *model.ProductReview) (*model.ProductReview, *model.AppErr) {
+	q := `INSERT INTO product_review(user_id, product_id, rating, title, comment, created_at, updated_at) VALUES(:user_id, :product_id, :rating, :title, :comment, :created_at, :updated_at) RETURNING id`
 
 	var id int64
 	rows, err := s.db.NamedQuery(q, review)
@@ -63,17 +63,8 @@ func (s PgReviewStore) Save(review *model.Review) (*model.Review, *model.AppErr)
 	return review, nil
 }
 
-// Update updates the review
-func (s PgReviewStore) Update(id int64, rev *model.Review) (*model.Review, *model.AppErr) {
-	q := `UPDATE public.product_review SET product_id=:product_id, rating=:rating, title=:title, comment=:comment, updated_at=:updated_at WHERE id=:id`
-	if _, err := s.db.NamedExec(q, rev); err != nil {
-		return nil, model.NewAppErr("PgReviewStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateReview, http.StatusInternalServerError, nil)
-	}
-	return rev, nil
-}
-
 // Get gets one review by id
-func (s PgReviewStore) Get(id int64) (*model.Review, *model.AppErr) {
+func (s PgReviewStore) Get(pid, rid int64) (*model.ProductReview, *model.AppErr) {
 	q := `SELECT 
 	r.*,
 	u.id AS user_id,
@@ -84,18 +75,17 @@ func (s PgReviewStore) Get(id int64) (*model.Review, *model.AppErr) {
 	u.avatar_public_id AS user_avatar_public_id
 	FROM product_review r 
 	LEFT JOIN public.user u ON r.user_id = u.id 
-	WHERE r.id = $1`
+	WHERE r.product_id = $1 AND r.id = $2`
 	var rj reviewJoin
-	if err := s.db.Get(&rj, q, id); err != nil {
+	if err := s.db.Get(&rj, q, pid, rid); err != nil {
 		return nil, model.NewAppErr("PgReviewStore.Get", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetReview, http.StatusInternalServerError, nil)
 	}
 	return rj.ToReview(), nil
 }
 
 // GetAll returns all reviews
-func (s PgReviewStore) GetAll(limit, offset int) ([]*model.Review, *model.AppErr) {
+func (s PgReviewStore) GetAll(pid int64) ([]*model.ProductReview, *model.AppErr) {
 	q := `SELECT 
-	COUNT(*) OVER() AS total_count,
 	r.*,
 	u.id AS user_id,
 	u.first_name AS user_first_name,
@@ -104,24 +94,34 @@ func (s PgReviewStore) GetAll(limit, offset int) ([]*model.Review, *model.AppErr
 	u.avatar_url AS user_avatar_url,
 	u.avatar_public_id AS user_avatar_public_id
 	FROM product_review r 
-	LEFT JOIN public.user u ON r.user_id = u.id 
-	LIMIT $1 OFFSET $2`
+	LEFT JOIN public.user u ON r.user_id = u.id
+	WHERE r.product_id = $1`
 
 	var rj []reviewJoin
-	if err := s.db.Select(&rj, q, limit, offset); err != nil {
+	if err := s.db.Select(&rj, q, pid); err != nil {
 		return nil, model.NewAppErr("PgReviewStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetReviews, http.StatusInternalServerError, nil)
 	}
 
-	var reviews = make([]*model.Review, 0)
+	var reviews = make([]*model.ProductReview, 0)
 	for _, x := range rj {
 		reviews = append(reviews, x.ToReview())
 	}
 	return reviews, nil
 }
 
+// Update updates the review
+func (s PgReviewStore) Update(pid, rid int64, rev *model.ProductReview) (*model.ProductReview, *model.AppErr) {
+	q := `UPDATE product_review SET rating=:rating, title=:title, comment=:comment, updated_at=:updated_at WHERE product_id=:product_id AND id=:review_id`
+	m := map[string]interface{}{"product_id": pid, "review_id": rid, "rating": rev.Rating, "title": rev.Title, "comment": rev.Comment, "updated_at": rev.UpdatedAt}
+	if _, err := s.db.NamedExec(q, m); err != nil {
+		return nil, model.NewAppErr("PgReviewStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateReview, http.StatusInternalServerError, nil)
+	}
+	return rev, nil
+}
+
 // Delete hard deletes the review
-func (s PgReviewStore) Delete(id int64) *model.AppErr {
-	if _, err := s.db.NamedExec("DELETE from product_review WHERE id = :id", map[string]interface{}{"id": id}); err != nil {
+func (s PgReviewStore) Delete(pid, rid int64) *model.AppErr {
+	if _, err := s.db.NamedExec("DELETE from product_review WHERE product_id=:product_id AND id=:review_id", map[string]interface{}{"product_id": pid, "review_id": rid}); err != nil {
 		return model.NewAppErr("PgReviewStore.Delete", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteReview, http.StatusInternalServerError, nil)
 	}
 	return nil

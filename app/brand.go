@@ -87,9 +87,12 @@ func (a *App) PatchBrand(bid int64, patch *model.BrandPatch, fh *multipart.FileH
 	}
 
 	defer func() {
-		if err := a.DeleteImage(oldPublicID); err != nil {
-			a.Log().Error(err.Error(), zlog.Err(err))
+		if oldPublicID != "" {
+			if err := a.DeleteImage(oldPublicID); err != nil {
+				a.Log().Error(err.Error(), zlog.Err(err))
+			}
 		}
+
 	}()
 
 	return ubrand, nil
@@ -118,8 +121,10 @@ func (a *App) DeleteBrand(bid int64) *model.AppErr {
 	}
 
 	defer func() {
-		if err := a.DeleteImage(old.LogoPublicID); err != nil {
-			a.Log().Error(err.Error(), zlog.Err(err))
+		if old.LogoPublicID != "" {
+			if err := a.DeleteImage(old.LogoPublicID); err != nil {
+				a.Log().Error(err.Error(), zlog.Err(err))
+			}
 		}
 	}()
 

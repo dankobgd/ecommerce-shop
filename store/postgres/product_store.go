@@ -31,7 +31,9 @@ var (
 	msgUpdateProduct      = &i18n.Message{ID: "store.postgres.product.update.app_error", Other: "could not update product"}
 	msgDeleteProduct      = &i18n.Message{ID: "store.postgres.product.delete.app_error", Other: "could not delete product"}
 	msgInvalidColumn      = &i18n.Message{ID: "store.postgres.product.save.app_error", Other: "could not save product, invalid foreign key value"}
+	msgGetPricing         = &i18n.Message{ID: "store.postgres.product.get_pricing.app_error", Other: "could not get latest pricing"}
 	msgSavePricing        = &i18n.Message{ID: "store.postgres.product.insert_pricing.app_error", Other: "could not insert pricing data"}
+	msgUpdatePricing      = &i18n.Message{ID: "store.postgres.product.update_pricing.app_error", Other: "could not update pricing data"}
 )
 
 // BulkInsert inserts multiple products into db
@@ -68,10 +70,11 @@ func (s PgProductStore) Save(p *model.Product) (*model.Product, *model.AppErr) {
 	}
 
 	pricing := &model.ProductPricing{
-		ProductID:  id,
-		Price:      p.Price,
-		SaleStarts: p.CreatedAt,
-		SaleEnds:   model.FutureSaleEndsTime,
+		ProductID:     id,
+		Price:         p.Price,
+		OriginalPrice: p.OriginalPrice,
+		SaleStarts:    p.CreatedAt,
+		SaleEnds:      model.FutureSaleEndsTime,
 	}
 	if _, err := s.InsertPricing(pricing); err != nil {
 		return nil, model.NewAppErr("PgProductStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgSaveProduct, http.StatusInternalServerError, nil)
@@ -87,7 +90,7 @@ func (s PgProductStore) Save(p *model.Product) (*model.Product, *model.AppErr) {
 
 // Get gets one product by id
 func (s PgProductStore) Get(id int64) (*model.Product, *model.AppErr) {
-	q := `SELECT p.*,
+	q := `SELECT DISTINCT ON (p.id) p.*,
    b.name AS brand_name,
    b.slug AS brand_slug,
    b.type AS brand_type,
@@ -108,6 +111,7 @@ func (s PgProductStore) Get(id int64) (*model.Product, *model.AppErr) {
 	 pp.id AS pricing_id,
    pp.product_id AS pricing_product_id,
    pp.price AS pricing_price,
+   pp.original_price AS pricing_original_price,
    pp.sale_starts AS pricing_sale_starts,
    pp.sale_ends AS pricing_sale_ends
 	 FROM public.product p
@@ -116,7 +120,8 @@ func (s PgProductStore) Get(id int64) (*model.Product, *model.AppErr) {
 	 LEFT JOIN category c ON p.category_id = c.id
 	 WHERE CURRENT_TIMESTAMP BETWEEN pp.sale_starts AND pp.sale_ends
 	 AND p.id = $1
-   GROUP BY p.id, b.id, c.id, pp.id`
+	 GROUP BY p.id, b.id, c.id, pp.id
+	 ORDER BY p.id, pp.id DESC`
 
 	var pj productJoin
 	if err := s.db.Get(&pj, q, id); err != nil {
@@ -128,8 +133,8 @@ func (s PgProductStore) Get(id int64) (*model.Product, *model.AppErr) {
 
 // GetAll returns all products
 func (s PgProductStore) GetAll(filters map[string][]string, limit, offset int) ([]*model.Product, *model.AppErr) {
-	baseQuery := `SELECT 
-	COUNT(*) OVER() AS total_count,
+	baseQuery := `SELECT DISTINCT ON (p.id)
+	(SELECT COUNT(DISTINCT product.id) FROM product LEFT JOIN product_pricing on product.id = product_pricing.product_id) AS total_count,
 	p.*,
 	b.name AS brand_name,
 	b.slug AS brand_slug,
@@ -149,7 +154,8 @@ func (s PgProductStore) GetAll(filters map[string][]string, limit, offset int) (
 	c.updated_at AS category_updated_at,
 	pp.id AS pricing_id,
   pp.product_id AS pricing_product_id,
-  pp.price AS pricing_price,
+	pp.price AS pricing_price,
+	pp.original_price AS pricing_original_price,
   pp.sale_starts AS pricing_sale_starts,
   pp.sale_ends AS pricing_sale_ends
 	FROM public.product p
@@ -177,8 +183,9 @@ func (s PgProductStore) GetAll(filters map[string][]string, limit, offset int) (
 
 // ListByIDS returns all products where ids are in slice
 func (s PgProductStore) ListByIDS(ids []int64) ([]*model.Product, *model.AppErr) {
-	q, args, err := sqlx.In(`
-	 SELECT p.*,
+	q, args, err := sqlx.In(`SELECT DISTINCT ON (p.id)
+	 (SELECT COUNT(DISTINCT product.id) FROM product LEFT JOIN product_pricing on product.id = product_pricing.product_id WHERE product.id IN (?)) AS total_count,
+	 p.*,
    b.name AS brand_name,
    b.slug AS brand_slug,
    b.type AS brand_type,
@@ -197,7 +204,8 @@ func (s PgProductStore) ListByIDS(ids []int64) ([]*model.Product, *model.AppErr)
 	 c.updated_at AS category_updated_at,
 	 pp.id AS pricing_id,
    pp.product_id AS pricing_product_id,
-   pp.price AS pricing_price,
+	 pp.price AS pricing_price,
+	 pp.original_price AS pricing_original_price,
    pp.sale_starts AS pricing_sale_starts,
    pp.sale_ends AS pricing_sale_ends
 	 FROM public.product p
@@ -205,7 +213,7 @@ func (s PgProductStore) ListByIDS(ids []int64) ([]*model.Product, *model.AppErr)
    LEFT JOIN brand b ON p.brand_id = b.id
 	 LEFT JOIN category c ON p.category_id = c.id
 	 WHERE CURRENT_TIMESTAMP BETWEEN pp.sale_starts AND pp.sale_ends
-	 AND p.id IN (?)`, ids)
+	 AND p.id IN (?)`, ids, ids)
 
 	if err != nil {
 		return nil, model.NewAppErr("PgProductStore.ListByIDS", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProducts, http.StatusInternalServerError, nil)
@@ -226,7 +234,6 @@ func (s PgProductStore) ListByIDS(ids []int64) ([]*model.Product, *model.AppErr)
 
 // Update updates the product
 func (s PgProductStore) Update(id int64, p *model.Product) (*model.Product, *model.AppErr) {
-
 	q := `UPDATE public.product SET brand_id=:brand_id, category_id=:category_id, name=:name, slug=:slug, image_url=:image_url, image_public_id=:image_public_id, description=:description, in_stock=:in_stock, sku=:sku, is_featured=:is_featured, updated_at=:updated_at, properties=:properties WHERE id=:id`
 	if _, err := s.db.NamedExec(q, p); err != nil {
 		return nil, model.NewAppErr("PgProductStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateProduct, http.StatusInternalServerError, nil)
@@ -244,8 +251,8 @@ func (s PgProductStore) Delete(id int64) *model.AppErr {
 
 // GetFeatured returns featured products
 func (s PgProductStore) GetFeatured(limit, offset int) ([]*model.Product, *model.AppErr) {
-	q := `SELECT 
-	COUNT(*) OVER() AS total_count,
+	q := `SELECT DISTINCT ON (p.id)
+	(SELECT COUNT(DISTINCT product.id) FROM product LEFT JOIN product_pricing on product.id = product_pricing.product_id WHERE product.is_featured = true) AS total_count,
 	p.*,
 	b.name AS brand_name,
 	b.slug AS brand_slug,
@@ -266,6 +273,7 @@ func (s PgProductStore) GetFeatured(limit, offset int) ([]*model.Product, *model
 	pp.id AS pricing_id,
 	pp.product_id AS pricing_product_id,
 	pp.price AS pricing_price,
+	pp.original_price AS pricing_original_price,
 	pp.sale_starts AS pricing_sale_starts,
 	pp.sale_ends AS pricing_sale_ends
 	FROM public.product p
@@ -274,7 +282,8 @@ func (s PgProductStore) GetFeatured(limit, offset int) ([]*model.Product, *model
 	LEFT JOIN category c ON p.category_id = c.id
 	WHERE CURRENT_TIMESTAMP BETWEEN pp.sale_starts AND pp.sale_ends
 	AND p.is_featured = true
-	GROUP BY p.id, b.id, c.id, pp.id	
+	GROUP BY p.id, b.id, c.id, pp.id
+	ORDER BY p.id DESC, pp.id DESC
 	LIMIT $1 OFFSET $2`
 
 	var pj []productJoin
@@ -291,7 +300,7 @@ func (s PgProductStore) GetFeatured(limit, offset int) ([]*model.Product, *model
 }
 
 // GetReviews returns all reviews
-func (s PgProductStore) GetReviews(id int64) ([]*model.Review, *model.AppErr) {
+func (s PgProductStore) GetReviews(id int64) ([]*model.ProductReview, *model.AppErr) {
 	q := `SELECT r.*,
 	u.id AS user_id,
 	u.first_name AS user_first_name,
@@ -307,7 +316,7 @@ func (s PgProductStore) GetReviews(id int64) ([]*model.Review, *model.AppErr) {
 		return nil, model.NewAppErr("PgProductStore.GetReviews", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetReviews, http.StatusInternalServerError, nil)
 	}
 
-	var reviews = make([]*model.Review, 0)
+	var reviews = make([]*model.ProductReview, 0)
 	for _, x := range rj {
 		reviews = append(reviews, x.ToReview())
 	}
@@ -332,9 +341,20 @@ func (s PgProductStore) Search(filter string) ([]*model.Product, *model.AppErr) 
 	return products, nil
 }
 
+// GetLatestPricing gets latest pricing record
+func (s PgProductStore) GetLatestPricing(pid int64) (*model.ProductPricing, *model.AppErr) {
+	q := `SELECT pp.id AS price_id, pp.product_id, pp.price, pp.original_price, pp.sale_starts, pp.sale_ends FROM product_pricing pp WHERE product_id = $1 ORDER BY id DESC LIMIT 1`
+	var pricing model.ProductPricing
+	if err := s.db.Get(&pricing, q, pid); err != nil {
+		return nil, model.NewAppErr("PgProductStore.GetLatestPricing", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetPricing, http.StatusInternalServerError, nil)
+	}
+
+	return &pricing, nil
+}
+
 // InsertPricing inserts the price info into product_pricing
 func (s PgProductStore) InsertPricing(pricing *model.ProductPricing) (*model.ProductPricing, *model.AppErr) {
-	q := `INSERT INTO public.product_pricing(product_id, price, sale_starts, sale_ends) VALUES(:product_id, :price, :sale_starts, :sale_ends) RETURNING id`
+	q := `INSERT INTO product_pricing(product_id, price, original_price, sale_starts, sale_ends) VALUES(:product_id, :price, :original_price, :sale_starts, :sale_ends) RETURNING id`
 
 	var id int64
 	rows, err := s.db.NamedQuery(q, pricing)
@@ -353,6 +373,15 @@ func (s PgProductStore) InsertPricing(pricing *model.ProductPricing) (*model.Pro
 	}
 
 	pricing.PriceID = id
+	return pricing, nil
+}
+
+// UpdatePricing updates the ProductPricing
+func (s PgProductStore) UpdatePricing(pricing *model.ProductPricing) (*model.ProductPricing, *model.AppErr) {
+	q := `UPDATE product_pricing SET price=:price, original_price=:original_price, sale_starts=:sale_starts, sale_ends=:sale_ends WHERE id=:price_id`
+	if _, err := s.db.NamedExec(q, pricing); err != nil {
+		return nil, model.NewAppErr("PgProductStore.UpdatePricing", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdatePricing, http.StatusInternalServerError, nil)
+	}
 	return pricing, nil
 }
 
@@ -389,7 +418,7 @@ func buildProductsFilterSearchQuery(queryString string, filters map[string][]str
 	specific := make(map[string][]string, 0)
 
 	for filter, val := range filters {
-		if filter == "category" || filter == "brand" || filter == "tag" || filter == "price_min" || filter == "price_max" {
+		if filter == "page" || filter == "per_page" || filter == "category" || filter == "brand" || filter == "tag" || filter == "price_min" || filter == "price_max" {
 			basic[filter] = val
 		} else {
 			specific[filter] = val
@@ -415,13 +444,13 @@ func buildProductsFilterSearchQuery(queryString string, filters map[string][]str
 
 	// handle brand filters
 	if brand, ok := basic["brand"]; ok {
-		query += " AND b.name IN (?)\n"
+		query += " AND b.slug IN (?)\n"
 		args = append(args, brand)
 	}
 
 	// handle tag filters
 	if tag, ok := basic["tag"]; ok {
-		query += " AND t.name IN (?)\n"
+		query += " AND t.slug IN (?)\n"
 		args = append(args, tag)
 	}
 
@@ -494,6 +523,7 @@ func buildProductsFilterSearchQuery(queryString string, filters map[string][]str
 	}
 
 	query += " \nGROUP BY p.id, b.id, c.id, pp.id"
+	query += " \nORDER BY p.id DESC, pp.id DESC"
 	if limit != 0 {
 		query += " LIMIT ?"
 		args = append(args, strconv.Itoa(limit))

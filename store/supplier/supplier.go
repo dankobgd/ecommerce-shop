@@ -42,6 +42,11 @@ func (s *Supplier) ProductImage() store.ProductImageStore {
 	return postgres.NewPgProductImageStore(s.Pgst)
 }
 
+// ProductReview returns the Review store implementation
+func (s *Supplier) ProductReview() store.ProductReviewStore {
+	return postgres.NewPgReviewStore(s.Pgst)
+}
+
 // Order returns the Order store implementation
 func (s *Supplier) Order() store.OrderStore {
 	return postgres.NewPgOrderStore(s.Pgst)
@@ -70,11 +75,6 @@ func (s *Supplier) Brand() store.BrandStore {
 // Tag returns the Tag store implementation
 func (s *Supplier) Tag() store.TagStore {
 	return postgres.NewPgTagStore(s.Pgst)
-}
-
-// Review returns the Review store implementation
-func (s *Supplier) Review() store.ReviewStore {
-	return postgres.NewPgReviewStore(s.Pgst)
 }
 
 // Promotion returns the Promotion store implementation

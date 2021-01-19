@@ -19,11 +19,12 @@ type productJoin struct {
 
 // PricingJoin is temp join type
 type PricingJoin struct {
-	PID         int64     `db:"pricing_id"`
-	PProductID  int64     `db:"pricing_product_id"`
-	PPrice      int       `db:"pricing_price"`
-	PSaleStarts time.Time `db:"pricing_sale_starts"`
-	PSaleEnds   time.Time `db:"pricing_sale_ends"`
+	PID            int64     `db:"pricing_id"`
+	PProductID     int64     `db:"pricing_product_id"`
+	PPrice         int       `db:"pricing_price"`
+	POriginalPrice int       `db:"pricing_original_price"`
+	PSaleStarts    time.Time `db:"pricing_sale_starts"`
+	PSaleEnds      time.Time `db:"pricing_sale_ends"`
 }
 
 // BrandJoin is temp join type
@@ -73,11 +74,12 @@ func (pj *productJoin) ToProduct() *model.Product {
 		UpdatedAt:         pj.UpdatedAt,
 		Properties:        pj.Properties,
 		ProductPricing: &model.ProductPricing{
-			PriceID:    pj.PID,
-			ProductID:  pj.PProductID,
-			Price:      pj.PPrice,
-			SaleStarts: pj.PSaleStarts,
-			SaleEnds:   pj.PSaleEnds,
+			PriceID:       pj.PID,
+			ProductID:     pj.PProductID,
+			Price:         pj.PPrice,
+			OriginalPrice: pj.POriginalPrice,
+			SaleStarts:    pj.PSaleStarts,
+			SaleEnds:      pj.PSaleEnds,
 		},
 		Brand: &model.Brand{
 			ID:           pj.BID,
@@ -132,12 +134,12 @@ func (aj *addressJoin) ToAddress() *model.Address {
 
 // reviewJoin is temp join type
 type reviewJoin struct {
-	*model.Review
+	*model.ProductReview
 	*UserJoin
 }
 
-func (rj *reviewJoin) ToReview() *model.Review {
-	return &model.Review{
+func (rj *reviewJoin) ToReview() *model.ProductReview {
+	return &model.ProductReview{
 		ID:        rj.ID,
 		UserID:    rj.UID,
 		ProductID: rj.ProductID,

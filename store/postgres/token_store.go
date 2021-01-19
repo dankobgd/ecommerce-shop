@@ -62,7 +62,7 @@ func (s PgTokenStore) Cleanup() *model.AppErr {
 
 // RemoveByType deletes all tokens of same type
 func (s PgTokenStore) RemoveByType(tokenType model.TokenType) *model.AppErr {
-	if _, err := s.db.Exec("DELETE FROM public.token WHERE type = :type", map[string]interface{}{"type": tokenType.String()}); err != nil {
+	if _, err := s.db.NamedExec("DELETE FROM public.token WHERE type = :type", map[string]interface{}{"type": tokenType.String()}); err != nil {
 		return model.NewAppErr("PgTokenStore.RemoveByType", model.ErrInternal, locale.GetUserLocalizer("en"), msgRemoveAllTokensType, http.StatusInternalServerError, nil)
 	}
 	return nil

@@ -116,6 +116,7 @@ create table public.product_pricing (
   id int generated always as identity primary key,
   product_id int not null,
   price int not null,
+  original_price int not null,
   sale_starts timestamptz not null,
   sale_ends timestamptz not null,
   foreign key (product_id) references public.product (id) on delete cascade
@@ -241,6 +242,7 @@ c.updated_at AS category_updated_at,
 pp.id AS pricing_id,
 pp.product_id AS pricing_product_id,
 pp.price AS pricing_price,
+pp.original_price AS pricing_original_price,
 pp.sale_starts AS pricing_sale_starts,
 pp.sale_ends AS pricing_sale_ends,
 (

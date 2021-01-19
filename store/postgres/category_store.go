@@ -84,7 +84,7 @@ func (s PgCategoryStore) Get(id int64) (*model.Category, *model.AppErr) {
 // GetAll returns all categories
 func (s PgCategoryStore) GetAll(limit, offset int) ([]*model.Category, *model.AppErr) {
 	var categories = make([]*model.Category, 0)
-	if err := s.db.Select(&categories, `SELECT COUNT(*) OVER() AS total_count, * FROM public.category LIMIT $1 OFFSET $2`, limit, offset); err != nil {
+	if err := s.db.Select(&categories, `SELECT COUNT(*) OVER() AS total_count, * FROM public.category ORDER BY id DESC LIMIT $1 OFFSET $2`, limit, offset); err != nil {
 		return nil, model.NewAppErr("PgCategoryStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetCategories, http.StatusInternalServerError, nil)
 	}
 
@@ -94,7 +94,7 @@ func (s PgCategoryStore) GetAll(limit, offset int) ([]*model.Category, *model.Ap
 // GetFeatured returns all featured categories
 func (s PgCategoryStore) GetFeatured(limit, offset int) ([]*model.Category, *model.AppErr) {
 	var categories = make([]*model.Category, 0)
-	if err := s.db.Select(&categories, `SELECT COUNT(*) OVER() AS total_count, * FROM public.category WHERE is_featured = true ORDER BY updated_at LIMIT $1 OFFSET $2`, limit, offset); err != nil {
+	if err := s.db.Select(&categories, `SELECT COUNT(*) OVER() AS total_count, * FROM public.category WHERE is_featured = true ORDER BY id DESC LIMIT $1 OFFSET $2`, limit, offset); err != nil {
 		return nil, model.NewAppErr("PgCategoryStore.GetFeatured", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetCategories, http.StatusInternalServerError, nil)
 	}
 

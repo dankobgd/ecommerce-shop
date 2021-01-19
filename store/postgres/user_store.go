@@ -173,7 +173,7 @@ func (s PgUserStore) CreateWishlist(userID, productID int64) *model.AppErr {
 
 // GetWishlist gets users wishlist products
 func (s PgUserStore) GetWishlist(userID int64) ([]*model.Product, *model.AppErr) {
-	q := `SELECT 
+	q := `SELECT DISTINCT ON (p.id)
 	p.*,
 	b.name AS brand_name,
 	b.slug AS brand_slug,
@@ -193,7 +193,8 @@ func (s PgUserStore) GetWishlist(userID int64) ([]*model.Product, *model.AppErr)
 	c.updated_at AS category_updated_at,
 	pp.id AS pricing_id,
   pp.product_id AS pricing_product_id,
-  pp.price AS pricing_price,
+	pp.price AS pricing_price,
+	pp.original_price AS pricing_original_price,
   pp.sale_starts AS pricing_sale_starts,
   pp.sale_ends AS pricing_sale_ends
 	FROM public.product p
@@ -203,7 +204,8 @@ func (s PgUserStore) GetWishlist(userID int64) ([]*model.Product, *model.AppErr)
 	LEFT JOIN product_wishlist w ON p.id = w.product_id
 	LEFT JOIN public.user u ON u.id = w.user_id
 	WHERE CURRENT_TIMESTAMP BETWEEN pp.sale_starts AND pp.sale_ends
-	AND u.id = $1`
+	AND u.id = $1
+	ORDER BY p.id, pp.id DESC`
 
 	var pj []productJoin
 	if err := s.db.Select(&pj, q, userID); err != nil {

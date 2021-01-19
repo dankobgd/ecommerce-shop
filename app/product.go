@@ -17,6 +17,8 @@ var (
 	msgProductSizeExceeded = &i18n.Message{ID: "app.product.create_product.image_size.app_error", Other: "upload image size exceeded"}
 	msgProductFileErr      = &i18n.Message{ID: "app.product.create_product.formfile.app_error", Other: "error parsing files"}
 	msgErrPropsJSONFile    = &i18n.Message{ID: "app.product.get_product_properties.app_error", Other: "error parsing properties json file"}
+	msgProductImageFileErr = &i18n.Message{ID: "app.product.create_product_image.formfile.app_error", Other: "error parsing product image"}
+	msgProductImagesErr    = &i18n.Message{ID: "app.product.create_product_images.formfile.app_error", Other: "No images provided"}
 )
 
 // CreateProduct creates the new product in the system
@@ -144,8 +146,10 @@ func (a *App) PatchProduct(pid int64, patch *model.ProductPatch, fh *multipart.F
 	}
 
 	defer func() {
-		if err := a.DeleteImage(oldPublicID); err != nil {
-			a.Log().Error(err.Error(), zlog.Err(err))
+		if oldPublicID != "" {
+			if err := a.DeleteImage(oldPublicID); err != nil {
+				a.Log().Error(err.Error(), zlog.Err(err))
+			}
 		}
 	}()
 
@@ -172,6 +176,24 @@ func (a *App) GetFeaturedProducts(limit, offset int) ([]*model.Product, *model.A
 	return a.Srv().Store.Product().GetFeatured(limit, offset)
 }
 
+// GetProductLatestPricing creates the discount
+func (a *App) GetProductLatestPricing(pid int64) (*model.ProductPricing, *model.AppErr) {
+	return a.Srv().Store.Product().GetLatestPricing(pid)
+}
+
+// CreateProductPricing creates the discount
+func (a *App) CreateProductPricing(pricing *model.ProductPricing) (*model.ProductPricing, *model.AppErr) {
+	if err := pricing.Validate(); err != nil {
+		return nil, err
+	}
+	return a.Srv().Store.Product().InsertPricing(pricing)
+}
+
+// UpdateProductPricing updates the discount
+func (a *App) UpdateProductPricing(pricing *model.ProductPricing) (*model.ProductPricing, *model.AppErr) {
+	return a.Srv().Store.Product().UpdatePricing(pricing)
+}
+
 // CreateProductTag gets all tags for the product
 func (a *App) CreateProductTag(pid int64, pt *model.ProductTag) (*model.ProductTag, *model.AppErr) {
 	return a.Srv().Store.ProductTag().Save(pid, pt)
@@ -180,6 +202,11 @@ func (a *App) CreateProductTag(pid int64, pt *model.ProductTag) (*model.ProductT
 // GetProductTags gets all tags for the product
 func (a *App) GetProductTags(pid int64) ([]*model.ProductTag, *model.AppErr) {
 	return a.Srv().Store.ProductTag().GetAll(pid)
+}
+
+// ReplaceProductTags patches the product tag
+func (a *App) ReplaceProductTags(pid int64, tagIDs []int) ([]*model.ProductTag, *model.AppErr) {
+	return a.Srv().Store.ProductTag().Replace(pid, tagIDs)
 }
 
 // PatchProductTag patches the product tag
@@ -203,6 +230,56 @@ func (a *App) DeleteProductTag(pid, tid int64) *model.AppErr {
 	return a.Srv().Store.ProductTag().Delete(pid, tid)
 }
 
+// CreateProductImages bulk inserts product images
+func (a *App) CreateProductImages(pid int64, imagesFHs []*multipart.FileHeader) *model.AppErr {
+	if len(imagesFHs) == 0 {
+		return model.NewAppErr("CreateProductImages", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductImagesErr, http.StatusInternalServerError, nil)
+	}
+
+	images := make([]*model.ProductImage, 0)
+
+	tmp := &model.ProductImage{}
+	for _, fh := range imagesFHs {
+		if err := tmp.Validate(fh); err != nil {
+			return err
+		}
+	}
+
+	for _, fh := range imagesFHs {
+		f, err := fh.Open()
+		if err != nil {
+			return model.NewAppErr("CreateProductImages", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductImageFileErr, http.StatusInternalServerError, nil)
+		}
+		defer f.Close()
+		b, err := ioutil.ReadAll(f)
+		if err != nil {
+			return model.NewAppErr("CreateProductImages", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductImageFileErr, http.StatusInternalServerError, nil)
+		}
+		// TODO: upload in parallel...
+		details, uErr := a.UploadImage(bytes.NewBuffer(b), fh.Filename)
+		if uErr != nil {
+			return uErr
+		}
+
+		images = append(images, &model.ProductImage{
+			ProductID: model.NewInt64(pid),
+			URL:       model.NewString(details.SecureURL),
+			PublicID:  model.NewString(details.PublicID),
+		})
+	}
+
+	for _, img := range images {
+		img.PreSave()
+	}
+
+	if err := a.Srv().Store.ProductImage().BulkInsert(images); err != nil {
+		a.Log().Error(err.Error(), zlog.Err(err))
+		return err
+	}
+
+	return nil
+}
+
 // CreateProductImage creates the image for product
 func (a *App) CreateProductImage(pid int64, img *model.ProductImage, fh *multipart.FileHeader) (*model.ProductImage, *model.AppErr) {
 	if err := img.Validate(fh); err != nil {
@@ -211,11 +288,11 @@ func (a *App) CreateProductImage(pid int64, img *model.ProductImage, fh *multipa
 
 	thumbnail, err := fh.Open()
 	if err != nil {
-		return nil, model.NewAppErr("CreateProductImage", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductFileErr, http.StatusInternalServerError, nil)
+		return nil, model.NewAppErr("CreateProductImage", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductImageFileErr, http.StatusInternalServerError, nil)
 	}
 	b, err := ioutil.ReadAll(thumbnail)
 	if err != nil {
-		return nil, model.NewAppErr("CreateProductImage", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductFileErr, http.StatusInternalServerError, nil)
+		return nil, model.NewAppErr("CreateProductImage", model.ErrInternal, locale.GetUserLocalizer("en"), msgProductImageFileErr, http.StatusInternalServerError, nil)
 	}
 
 	img.PreSave()
@@ -234,9 +311,50 @@ func (a *App) GetProductImages(pid int64) ([]*model.ProductImage, *model.AppErr)
 	return a.Srv().Store.ProductImage().GetAll(pid)
 }
 
+// CreateProductReview creates new review for the product
+func (a *App) CreateProductReview(pid int64, rev *model.ProductReview) (*model.ProductReview, *model.AppErr) {
+	rev.PreSave()
+	if err := rev.Validate(); err != nil {
+		return nil, err
+	}
+
+	return a.Srv().Store.ProductReview().Save(pid, rev)
+}
+
 // GetProductReviews gets all reviews for the product
-func (a *App) GetProductReviews(pid int64) ([]*model.Review, *model.AppErr) {
-	return a.Srv().Store.Product().GetReviews(pid)
+func (a *App) GetProductReviews(pid int64) ([]*model.ProductReview, *model.AppErr) {
+	return a.Srv().Store.ProductReview().GetAll(pid)
+}
+
+// GetProductReview gets all reviews for the product
+func (a *App) GetProductReview(pid, rid int64) (*model.ProductReview, *model.AppErr) {
+	return a.Srv().Store.ProductReview().Get(pid, rid)
+}
+
+// PatchProductReview patches the product review
+func (a *App) PatchProductReview(pid, rid int64, patch *model.ProductReviewPatch) (*model.ProductReview, *model.AppErr) {
+	if err := patch.Validate(); err != nil {
+		return nil, err
+	}
+
+	old, err := a.Srv().Store.ProductReview().Get(pid, rid)
+	if err != nil {
+		return nil, err
+	}
+
+	old.Patch(patch)
+	old.PreUpdate()
+	urev, err := a.Srv().Store.ProductReview().Update(pid, rid, old)
+	if err != nil {
+		return nil, err
+	}
+
+	return urev, nil
+}
+
+// DeleteProductReview deletes the product review
+func (a *App) DeleteProductReview(pid, rid int64) *model.AppErr {
+	return a.Srv().Store.ProductReview().Delete(pid, rid)
 }
 
 // PatchProductImage patches the product image
@@ -279,8 +397,10 @@ func (a *App) PatchProductImage(pid, imgID int64, patch *model.ProductImagePatch
 	}
 
 	defer func() {
-		if err := a.DeleteImage(*oldPublicID); err != nil {
-			a.Log().Error(err.Error(), zlog.Err(err))
+		if *oldPublicID != "" {
+			if err := a.DeleteImage(*oldPublicID); err != nil {
+				a.Log().Error(err.Error(), zlog.Err(err))
+			}
 		}
 	}()
 
@@ -305,8 +425,10 @@ func (a *App) DeleteProductImage(pid, imgID int64) *model.AppErr {
 	}
 
 	defer func() {
-		if err := a.DeleteImage(*old.PublicID); err != nil {
-			a.Log().Error(err.Error(), zlog.Err(err))
+		if *old.PublicID != "" {
+			if err := a.DeleteImage(*old.PublicID); err != nil {
+				a.Log().Error(err.Error(), zlog.Err(err))
+			}
 		}
 	}()
 
