@@ -6,6 +6,7 @@ import (
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/store"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/jmoiron/sqlx"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -27,6 +28,7 @@ var (
 	msgGetTag              = &i18n.Message{ID: "store.postgres.tag.get.app_error", Other: "could not get the tag"}
 	msgGetTags             = &i18n.Message{ID: "store.postgres.tag.get.app_error", Other: "could not get the tag"}
 	msgDeleteTag           = &i18n.Message{ID: "store.postgres.tag.delete.app_error", Other: "could not delete tag"}
+	msgBulkDeleteTags      = &i18n.Message{ID: "store.postgres.tag.bulk_delete.app_error", Other: "could not bulk delete tags"}
 )
 
 // BulkInsert inserts multiple tags in the db
@@ -96,5 +98,19 @@ func (s PgTagStore) Delete(id int64) *model.AppErr {
 	if _, err := s.db.NamedExec("DELETE from public.tag WHERE id = :id", map[string]interface{}{"id": id}); err != nil {
 		return model.NewAppErr("PgTagStore.Delete", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteTag, http.StatusInternalServerError, nil)
 	}
+	return nil
+}
+
+// BulkDelete deletes tags with given ids
+func (s PgTagStore) BulkDelete(ids []int) *model.AppErr {
+	q, args, err := sqlx.In(`DELETE FROM public.tag WHERE id IN (?)`, ids)
+	if err != nil {
+		return model.NewAppErr("PgTagStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeleteTags, http.StatusInternalServerError, nil)
+	}
+
+	if _, err := s.db.Exec(s.db.Rebind(q), args...); err != nil {
+		return model.NewAppErr("PgTagStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeleteTags, http.StatusInternalServerError, nil)
+	}
+
 	return nil
 }

@@ -34,6 +34,7 @@ var (
 	msgGetPricing         = &i18n.Message{ID: "store.postgres.product.get_pricing.app_error", Other: "could not get latest pricing"}
 	msgSavePricing        = &i18n.Message{ID: "store.postgres.product.insert_pricing.app_error", Other: "could not insert pricing data"}
 	msgUpdatePricing      = &i18n.Message{ID: "store.postgres.product.update_pricing.app_error", Other: "could not update pricing data"}
+	msgBulkDeleteProducts = &i18n.Message{ID: "store.postgres.product.bulk_delete.app_error", Other: "could not bulk delete products"}
 )
 
 // BulkInsert inserts multiple products into db
@@ -350,6 +351,20 @@ func (s PgProductStore) GetLatestPricing(pid int64) (*model.ProductPricing, *mod
 	}
 
 	return &pricing, nil
+}
+
+// BulkDelete deletes products with given ids
+func (s PgProductStore) BulkDelete(ids []int) *model.AppErr {
+	q, args, err := sqlx.In(`DELETE FROM product WHERE id IN (?)`, ids)
+	if err != nil {
+		return model.NewAppErr("PgProductStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeleteProducts, http.StatusInternalServerError, nil)
+	}
+
+	if _, err := s.db.Exec(s.db.Rebind(q), args...); err != nil {
+		return model.NewAppErr("PgProductStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeleteProducts, http.StatusInternalServerError, nil)
+	}
+
+	return nil
 }
 
 // InsertPricing inserts the price info into product_pricing

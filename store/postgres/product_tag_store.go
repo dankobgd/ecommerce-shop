@@ -132,3 +132,17 @@ func (s PgProductTagStore) Delete(pid, tid int64) *model.AppErr {
 	}
 	return nil
 }
+
+// BulkDelete deletes tags with given ids
+func (s PgProductTagStore) BulkDelete(pid int64, ids []int) *model.AppErr {
+	q, args, err := sqlx.In(`DELETE FROM public.product_tag WHERE product_id = ? AND tag_id IN (?)`, pid, ids)
+	if err != nil {
+		return model.NewAppErr("PgProductTagStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeleteTags, http.StatusInternalServerError, nil)
+	}
+
+	if _, err := s.db.Exec(s.db.Rebind(q), args...); err != nil {
+		return model.NewAppErr("PgProductTagStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeleteTags, http.StatusInternalServerError, nil)
+	}
+
+	return nil
+}

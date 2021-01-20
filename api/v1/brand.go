@@ -27,6 +27,7 @@ var (
 func InitBrands(a *API) {
 	a.Routes.Brands.Post("/", a.AdminSessionRequired(a.createBrand))
 	a.Routes.Brands.Get("/", a.getBrands)
+	a.Routes.Brands.Delete("/bulk", a.deleteBrands)
 	a.Routes.Brand.Get("/", a.getBrand)
 	a.Routes.Brand.Patch("/", a.AdminSessionRequired(a.patchBrand))
 	a.Routes.Brand.Delete("/", a.AdminSessionRequired(a.deleteBrand))
@@ -133,6 +134,17 @@ func (a *API) deleteBrand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := a.app.DeleteBrand(bid); err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondOK(w)
+}
+
+func (a *API) deleteBrands(w http.ResponseWriter, r *http.Request) {
+	ids := model.IntSliceFromJSON(r.Body)
+
+	if err := a.app.DeleteBrands(ids); err != nil {
 		respondError(w, err)
 		return
 	}

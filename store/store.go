@@ -68,6 +68,7 @@ type ProductStore interface {
 	GetFeatured(limit, offset int) ([]*model.Product, *model.AppErr)
 	Update(id int64, u *model.Product) (*model.Product, *model.AppErr)
 	Delete(id int64) *model.AppErr
+	BulkDelete(ids []int) *model.AppErr
 	GetReviews(id int64) ([]*model.ProductReview, *model.AppErr)
 	Search(query string) ([]*model.Product, *model.AppErr)
 	GetLatestPricing(pid int64) (*model.ProductPricing, *model.AppErr)
@@ -84,6 +85,7 @@ type ProductTagStore interface {
 	Update(pid, tid int64, tag *model.ProductTag) (*model.ProductTag, *model.AppErr)
 	Replace(pid int64, tagIDs []int) ([]*model.ProductTag, *model.AppErr)
 	Delete(pid, id int64) *model.AppErr
+	BulkDelete(pid int64, ids []int) *model.AppErr
 }
 
 // ProductImageStore is the product image store
@@ -94,6 +96,7 @@ type ProductImageStore interface {
 	GetAll(pid int64) ([]*model.ProductImage, *model.AppErr)
 	Update(pid, id int64, img *model.ProductImage) (*model.ProductImage, *model.AppErr)
 	Delete(pid, id int64) *model.AppErr
+	BulkDelete(pid int64, ids []int) *model.AppErr
 }
 
 // ProductReviewStore is the review store
@@ -104,6 +107,7 @@ type ProductReviewStore interface {
 	GetAll(pid int64) ([]*model.ProductReview, *model.AppErr)
 	Update(pid, rid int64, rev *model.ProductReview) (*model.ProductReview, *model.AppErr)
 	Delete(pid, rid int64) *model.AppErr
+	BulkDelete(pid int64, ids []int) *model.AppErr
 }
 
 // OrderStore is the order store
@@ -141,6 +145,7 @@ type CategoryStore interface {
 	GetFeatured(limit, offset int) ([]*model.Category, *model.AppErr)
 	Update(id int64, addr *model.Category) (*model.Category, *model.AppErr)
 	Delete(id int64) *model.AppErr
+	BulkDelete(ids []int) *model.AppErr
 }
 
 // BrandStore is the brand store
@@ -151,6 +156,7 @@ type BrandStore interface {
 	GetAll(limit, offset int) ([]*model.Brand, *model.AppErr)
 	Update(id int64, addr *model.Brand) (*model.Brand, *model.AppErr)
 	Delete(id int64) *model.AppErr
+	BulkDelete(ids []int) *model.AppErr
 }
 
 // TagStore is the tag store
@@ -161,6 +167,7 @@ type TagStore interface {
 	GetAll(limit, offset int) ([]*model.Tag, *model.AppErr)
 	Update(id int64, addr *model.Tag) (*model.Tag, *model.AppErr)
 	Delete(id int64) *model.AppErr
+	BulkDelete(ids []int) *model.AppErr
 }
 
 // PromotionStore is the promotion store
@@ -171,6 +178,7 @@ type PromotionStore interface {
 	GetAll(limit, offset int) ([]*model.Promotion, *model.AppErr)
 	Update(code string, p *model.Promotion) (*model.Promotion, *model.AppErr)
 	Delete(code string) *model.AppErr
+	BulkDelete(codes []string) *model.AppErr
 	Status(code string, userID int64) *model.AppErr
 	InsertDetail(pd *model.PromotionDetail) (*model.PromotionDetail, *model.AppErr)
 }

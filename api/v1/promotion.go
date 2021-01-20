@@ -24,6 +24,7 @@ var (
 func InitPromotions(a *API) {
 	a.Routes.Promotions.Post("/", a.AdminSessionRequired(a.createPromotion))
 	a.Routes.Promotions.Get("/", a.AdminSessionRequired(a.getPromotions))
+	a.Routes.Promotions.Delete("/bulk", a.AdminSessionRequired(a.deletePromotions))
 	a.Routes.Promotion.Get("/", a.AdminSessionRequired(a.getPromotion))
 	a.Routes.Promotion.Patch("/", a.AdminSessionRequired(a.patchPromotion))
 	a.Routes.Promotion.Delete("/", a.AdminSessionRequired(a.deletePromotion))
@@ -104,6 +105,17 @@ func (a *API) getPromotionStatus(w http.ResponseWriter, r *http.Request) {
 	code := chi.URLParam(r, "promo_code")
 
 	if err := a.app.GetPromotionStatus(code, uid); err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondOK(w)
+}
+
+func (a *API) deletePromotions(w http.ResponseWriter, r *http.Request) {
+	codes := model.StrSliceFromJSON(r.Body)
+
+	if err := a.app.DeletePromotions(codes); err != nil {
 		respondError(w, err)
 		return
 	}

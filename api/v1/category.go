@@ -28,6 +28,7 @@ func InitCategories(a *API) {
 	a.Routes.Categories.Post("/", a.AdminSessionRequired(a.createCategory))
 	a.Routes.Categories.Get("/", a.getCategories)
 	a.Routes.Categories.Get("/featured", a.getFeaturedCategories)
+	a.Routes.Categories.Delete("/bulk", a.deleteCategories)
 	a.Routes.Category.Get("/", a.getCategory)
 	a.Routes.Category.Patch("/", a.AdminSessionRequired(a.patchCategory))
 	a.Routes.Category.Delete("/", a.AdminSessionRequired(a.deleteCategory))
@@ -157,4 +158,15 @@ func (a *API) getFeaturedCategories(w http.ResponseWriter, r *http.Request) {
 	pages.SetData(featured, totalCount)
 
 	respondJSON(w, http.StatusOK, pages)
+}
+
+func (a *API) deleteCategories(w http.ResponseWriter, r *http.Request) {
+	ids := model.IntSliceFromJSON(r.Body)
+
+	if err := a.app.DeleteCategories(ids); err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondOK(w)
 }

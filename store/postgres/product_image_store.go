@@ -6,6 +6,7 @@ import (
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/store"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/jmoiron/sqlx"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -20,11 +21,12 @@ func NewPgProductImageStore(pgst *PgStore) store.ProductImageStore {
 }
 
 var (
-	msgBulkInsertImages   = &i18n.Message{ID: "store.postgres.product_image.bulk_insert.app_error", Other: "could not bulk insert product images"}
-	msgGetProductImage    = &i18n.Message{ID: "store.postgres.product_image.get.app_error", Other: "could not get product image"}
-	msgGetProductImages   = &i18n.Message{ID: "store.postgres.product_image.get_all.app_error", Other: "could not get product images"}
-	msgUpdateProductImage = &i18n.Message{ID: "store.postgres.product_image.update.app_error", Other: "could not update product image"}
-	msgDeleteProductImage = &i18n.Message{ID: "store.postgres.product_image.delete.app_error", Other: "could not delete product image"}
+	msgBulkInsertImages        = &i18n.Message{ID: "store.postgres.product_image.bulk_insert.app_error", Other: "could not bulk insert product images"}
+	msgGetProductImage         = &i18n.Message{ID: "store.postgres.product_image.get.app_error", Other: "could not get product image"}
+	msgGetProductImages        = &i18n.Message{ID: "store.postgres.product_image.get_all.app_error", Other: "could not get product images"}
+	msgUpdateProductImage      = &i18n.Message{ID: "store.postgres.product_image.update.app_error", Other: "could not update product image"}
+	msgDeleteProductImage      = &i18n.Message{ID: "store.postgres.product_image.delete.app_error", Other: "could not delete product image"}
+	msgBulkDeleteProductImages = &i18n.Message{ID: "store.postgres.product_image.bulk_delete.app_error", Other: "could not bulk delete product images"}
 )
 
 // BulkInsert inserts multiple images in the db
@@ -95,5 +97,19 @@ func (s PgProductImageStore) Delete(pid, id int64) *model.AppErr {
 	if _, err := s.db.NamedExec(`DELETE FROM public.product_image WHERE product_id=:product_id AND id=:id`, map[string]interface{}{"product_id": pid, "id": id}); err != nil {
 		return model.NewAppErr("PgProductImageStore.Delete", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteProductImage, http.StatusInternalServerError, nil)
 	}
+	return nil
+}
+
+// BulkDelete deletes images with given ids
+func (s PgProductImageStore) BulkDelete(pid int64, ids []int) *model.AppErr {
+	q, args, err := sqlx.In(`DELETE FROM public.product_image WHERE product_id = ? AND id IN (?)`, pid, ids)
+	if err != nil {
+		return model.NewAppErr("PgProductImageStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeleteProductImages, http.StatusInternalServerError, nil)
+	}
+
+	if _, err := s.db.Exec(s.db.Rebind(q), args...); err != nil {
+		return model.NewAppErr("PgProductImageStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeleteProductImages, http.StatusInternalServerError, nil)
+	}
+
 	return nil
 }

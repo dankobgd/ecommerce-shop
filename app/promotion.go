@@ -77,3 +77,8 @@ func (a *App) CreatePromotionDetail(pd *model.PromotionDetail) (*model.Promotion
 
 	return pdetail, nil
 }
+
+// DeletePromotions bulk deletes promotions
+func (a *App) DeletePromotions(codes []string) *model.AppErr {
+	return a.Srv().Store.Promotion().BulkDelete(codes)
+}

@@ -181,6 +181,11 @@ func (a *App) GetProductLatestPricing(pid int64) (*model.ProductPricing, *model.
 	return a.Srv().Store.Product().GetLatestPricing(pid)
 }
 
+// DeleteProducts creates the discount
+func (a *App) DeleteProducts(ids []int) *model.AppErr {
+	return a.Srv().Store.Product().BulkDelete(ids)
+}
+
 // CreateProductPricing creates the discount
 func (a *App) CreateProductPricing(pricing *model.ProductPricing) (*model.ProductPricing, *model.AppErr) {
 	if err := pricing.Validate(); err != nil {
@@ -228,6 +233,11 @@ func (a *App) PatchProductTag(pid, tid int64, patch *model.ProductTagPatch) (*mo
 // DeleteProductTag gets all tags for the product
 func (a *App) DeleteProductTag(pid, tid int64) *model.AppErr {
 	return a.Srv().Store.ProductTag().Delete(pid, tid)
+}
+
+// DeleteProductTags bulk deletes tags
+func (a *App) DeleteProductTags(pid int64, ids []int) *model.AppErr {
+	return a.Srv().Store.ProductTag().BulkDelete(pid, ids)
 }
 
 // CreateProductImages bulk inserts product images
@@ -357,6 +367,11 @@ func (a *App) DeleteProductReview(pid, rid int64) *model.AppErr {
 	return a.Srv().Store.ProductReview().Delete(pid, rid)
 }
 
+// DeleteProductReviews bulk deletes reviews
+func (a *App) DeleteProductReviews(pid int64, ids []int) *model.AppErr {
+	return a.Srv().Store.ProductReview().BulkDelete(pid, ids)
+}
+
 // PatchProductImage patches the product image
 func (a *App) PatchProductImage(pid, imgID int64, patch *model.ProductImagePatch, fh *multipart.FileHeader) (*model.ProductImage, *model.AppErr) {
 	if err := patch.Validate(fh); err != nil {
@@ -433,6 +448,11 @@ func (a *App) DeleteProductImage(pid, imgID int64) *model.AppErr {
 	}()
 
 	return nil
+}
+
+// DeleteProductImages bulk deletes images
+func (a *App) DeleteProductImages(pid int64, ids []int) *model.AppErr {
+	return a.Srv().Store.ProductImage().BulkDelete(pid, ids)
 }
 
 // SearchProducts performs the full text search on products

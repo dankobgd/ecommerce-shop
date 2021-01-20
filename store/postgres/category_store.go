@@ -6,6 +6,7 @@ import (
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/store"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/jmoiron/sqlx"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -26,7 +27,8 @@ var (
 	msgBulkInsertCategories     = &i18n.Message{ID: "store.postgres.category.bulk.insert.app_error", Other: "could not bulk insert categories"}
 	msgGetCategory              = &i18n.Message{ID: "store.postgres.category.get.app_error", Other: "could not get the category"}
 	msgGetCategories            = &i18n.Message{ID: "store.postgres.category.get.app_error", Other: "could not get categories"}
-	msgDeleteCategory           = &i18n.Message{ID: "store.postgres.category.verify_email.delete_token.app_error", Other: "could not delete category"}
+	msgDeleteCategory           = &i18n.Message{ID: "store.postgres.category.delete.app_error", Other: "could not delete category"}
+	msgBulkDeleteCategories     = &i18n.Message{ID: "store.postgres.category.delete.app_error", Other: "could not bulk delete categories"}
 )
 
 // BulkInsert inserts multiple categories in the db
@@ -106,5 +108,19 @@ func (s PgCategoryStore) Delete(id int64) *model.AppErr {
 	if _, err := s.db.NamedExec("DELETE from public.category WHERE id = :id", map[string]interface{}{"id": id}); err != nil {
 		return model.NewAppErr("PgCategoryStore.Delete", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteUserAvatar, http.StatusInternalServerError, nil)
 	}
+	return nil
+}
+
+// BulkDelete deletes categories with given ids
+func (s PgCategoryStore) BulkDelete(ids []int) *model.AppErr {
+	q, args, err := sqlx.In(`DELETE FROM public.category WHERE id IN (?)`, ids)
+	if err != nil {
+		return model.NewAppErr("PgCategoryStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeleteCategories, http.StatusInternalServerError, nil)
+	}
+
+	if _, err := s.db.Exec(s.db.Rebind(q), args...); err != nil {
+		return model.NewAppErr("PgCategoryStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeleteCategories, http.StatusInternalServerError, nil)
+	}
+
 	return nil
 }

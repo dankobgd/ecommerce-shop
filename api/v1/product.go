@@ -32,6 +32,7 @@ func InitProducts(a *API) {
 	a.Routes.Products.Get("/", a.getProducts)
 	a.Routes.Products.Get("/featured", a.getFeaturedProducts)
 	a.Routes.Products.Get("/search", a.searchProducts)
+	a.Routes.Products.Delete("/bulk", a.deleteProducts)
 
 	a.Routes.Product.Get("/", a.getProduct)
 	a.Routes.Product.Patch("/", a.AdminSessionRequired(a.patchProduct))
@@ -47,6 +48,7 @@ func InitProducts(a *API) {
 	a.Routes.Product.Put("/tags/replace", a.AdminSessionRequired(a.replaceProductTags))
 	a.Routes.Product.Patch("/tags/{tag_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.patchProductTag))
 	a.Routes.Product.Delete("/tags/{tag_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.deleteProductTag))
+	a.Routes.Product.Delete("/tags/bulk", a.AdminSessionRequired(a.deleteProductTags))
 
 	// product images
 	a.Routes.Product.Post("/images/bulk", a.AdminSessionRequired(a.createProductImages))
@@ -54,6 +56,7 @@ func InitProducts(a *API) {
 	a.Routes.Product.Get("/images", a.getProductImages)
 	a.Routes.Product.Patch("/images/{image_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.patchProductImage))
 	a.Routes.Product.Delete("/images/{image_id:[A-Za-z0-9]+}", a.AdminSessionRequired(a.deleteProductImage))
+	a.Routes.Product.Delete("/images/bulk", a.AdminSessionRequired(a.deleteProductImages))
 
 	// product reviews
 	a.Routes.Product.Post("/reviews", a.SessionRequired(a.createProductReview))
@@ -61,7 +64,7 @@ func InitProducts(a *API) {
 	a.Routes.Product.Get("/reviews/{review_id:[A-Za-z0-9]+}", a.getProductReview)
 	a.Routes.Product.Patch("/reviews/{review_id:[A-Za-z0-9]+}", a.SessionRequired(a.patchProductReview))
 	a.Routes.Product.Delete("/reviews/{review_id:[A-Za-z0-9]+}", a.SessionRequired(a.deleteProductReview))
-
+	a.Routes.Product.Delete("/reviews/bulk", a.AdminSessionRequired(a.deleteProductReviews))
 }
 
 func (a *API) createProduct(w http.ResponseWriter, r *http.Request) {
@@ -353,6 +356,23 @@ func (a *API) deleteProductTag(w http.ResponseWriter, r *http.Request) {
 	respondOK(w)
 }
 
+func (a *API) deleteProductTags(w http.ResponseWriter, r *http.Request) {
+	pid, e := strconv.ParseInt(chi.URLParam(r, "product_id"), 10, 64)
+	if e != nil {
+		respondError(w, model.NewAppErr("deleteProductReview", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
+		return
+	}
+
+	ids := model.IntSliceFromJSON(r.Body)
+
+	if err := a.app.DeleteProductTags(pid, ids); err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondOK(w)
+}
+
 func (a *API) createProductImages(w http.ResponseWriter, r *http.Request) {
 	pid, e := strconv.ParseInt(chi.URLParam(r, "product_id"), 10, 64)
 	if e != nil {
@@ -534,6 +554,23 @@ func (a *API) deleteProductReview(w http.ResponseWriter, r *http.Request) {
 	respondOK(w)
 }
 
+func (a *API) deleteProductReviews(w http.ResponseWriter, r *http.Request) {
+	pid, e := strconv.ParseInt(chi.URLParam(r, "product_id"), 10, 64)
+	if e != nil {
+		respondError(w, model.NewAppErr("deleteProductReview", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
+		return
+	}
+
+	ids := model.IntSliceFromJSON(r.Body)
+
+	if err := a.app.DeleteProductReviews(pid, ids); err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondOK(w)
+}
+
 func (a *API) patchProductImage(w http.ResponseWriter, r *http.Request) {
 	pid, e := strconv.ParseInt(chi.URLParam(r, "product_id"), 10, 64)
 	if e != nil {
@@ -589,6 +626,23 @@ func (a *API) deleteProductImage(w http.ResponseWriter, r *http.Request) {
 	respondOK(w)
 }
 
+func (a *API) deleteProductImages(w http.ResponseWriter, r *http.Request) {
+	pid, e := strconv.ParseInt(chi.URLParam(r, "product_id"), 10, 64)
+	if e != nil {
+		respondError(w, model.NewAppErr("deleteProductReview", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
+		return
+	}
+
+	ids := model.IntSliceFromJSON(r.Body)
+
+	if err := a.app.DeleteProductImages(pid, ids); err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondOK(w)
+}
+
 func (a *API) getFeaturedProducts(w http.ResponseWriter, r *http.Request) {
 	pages := pagination.NewFromRequest(r)
 	featured, err := a.app.GetFeaturedProducts(pages.Limit(), pages.Offset())
@@ -616,4 +670,15 @@ func (a *API) searchProducts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondJSON(w, http.StatusOK, searchResults)
+}
+
+func (a *API) deleteProducts(w http.ResponseWriter, r *http.Request) {
+	ids := model.IntSliceFromJSON(r.Body)
+
+	if err := a.app.DeleteProducts(ids); err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondOK(w)
 }

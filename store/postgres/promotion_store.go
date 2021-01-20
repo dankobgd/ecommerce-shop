@@ -6,6 +6,7 @@ import (
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/store"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/jmoiron/sqlx"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -27,6 +28,7 @@ var (
 	msgGetPromotion                    = &i18n.Message{ID: "store.postgres.promotion.get.app_error", Other: "could not get the promotion"}
 	msgGetPromotions                   = &i18n.Message{ID: "store.postgres.promotion.get.app_error", Other: "could not get the promotion"}
 	msgDeletePromotion                 = &i18n.Message{ID: "store.postgres.promotion.delete.app_error", Other: "could not delete promotion"}
+	msgBulkDeletePromotions            = &i18n.Message{ID: "store.postgres.promotion.bulk_delete.app_error", Other: "could not bulk delete promotions"}
 	msgPromoStatus                     = &i18n.Message{ID: "store.postgres.promotion.status.app_error", Other: "could not get promo_code status for user"}
 	msgPromoCodeUsed                   = &i18n.Message{ID: "store.postgres.promotion.status.app_error", Other: "you have already used this promo code"}
 	msgInsertPromotionDetail           = &i18n.Message{ID: "store.postgres.promotion.insert_detail.app_error", Other: "could not save promotion detail"}
@@ -128,4 +130,18 @@ func (s PgPromotionStore) InsertDetail(pdetail *model.PromotionDetail) (*model.P
 		return nil, model.NewAppErr("PgPromotionStore.InsertDetail", model.ErrInternal, locale.GetUserLocalizer("en"), msgInsertPromotionDetail, http.StatusInternalServerError, nil)
 	}
 	return pdetail, nil
+}
+
+// BulkDelete deletes tags with given ids
+func (s PgPromotionStore) BulkDelete(codes []string) *model.AppErr {
+	q, args, err := sqlx.In(`DELETE FROM public.promotion WHERE promo_code IN (?)`, codes)
+	if err != nil {
+		return model.NewAppErr("PgPromotionStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeletePromotions, http.StatusInternalServerError, nil)
+	}
+
+	if _, err := s.db.Exec(s.db.Rebind(q), args...); err != nil {
+		return model.NewAppErr("PgPromotionStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeletePromotions, http.StatusInternalServerError, nil)
+	}
+
+	return nil
 }

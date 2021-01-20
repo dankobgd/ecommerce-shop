@@ -6,6 +6,7 @@ import (
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/store"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/jmoiron/sqlx"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -27,6 +28,7 @@ var (
 	msgGetBrand              = &i18n.Message{ID: "store.postgres.brand.get.app_error", Other: "could not get the brand"}
 	msgGetBrands             = &i18n.Message{ID: "store.postgres.brand.get.app_error", Other: "could not get the brand"}
 	msgDeleteBrand           = &i18n.Message{ID: "store.postgres.brand.delete.app_error", Other: "could not delete brand"}
+	msgBulkDeleteBrands      = &i18n.Message{ID: "store.postgres.brand.bulk_delete.app_error", Other: "could not bulk delete brands"}
 )
 
 // BulkInsert inserts multiple brands in the db
@@ -96,5 +98,19 @@ func (s PgBrandStore) Delete(id int64) *model.AppErr {
 	if _, err := s.db.NamedExec("DELETE from public.brand WHERE id = :id", map[string]interface{}{"id": id}); err != nil {
 		return model.NewAppErr("PgBrandStore.Delete", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteBrand, http.StatusInternalServerError, nil)
 	}
+	return nil
+}
+
+// BulkDelete deletes brands with given ids
+func (s PgBrandStore) BulkDelete(ids []int) *model.AppErr {
+	q, args, err := sqlx.In(`DELETE FROM public.brand WHERE id IN (?)`, ids)
+	if err != nil {
+		return model.NewAppErr("PgBrandStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeleteBrands, http.StatusInternalServerError, nil)
+	}
+
+	if _, err := s.db.Exec(s.db.Rebind(q), args...); err != nil {
+		return model.NewAppErr("PgBrandStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeleteBrands, http.StatusInternalServerError, nil)
+	}
+
 	return nil
 }

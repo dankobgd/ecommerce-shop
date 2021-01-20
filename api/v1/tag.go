@@ -26,6 +26,7 @@ var (
 // InitTags inits the tag routes
 func InitTags(a *API) {
 	a.Routes.Tags.Post("/", a.AdminSessionRequired(a.createTag))
+	a.Routes.Tags.Delete("/bulk", a.AdminSessionRequired(a.deleteTags))
 	a.Routes.Tags.Get("/", a.getTags)
 	a.Routes.Tag.Get("/", a.getTag)
 	a.Routes.Tag.Patch("/", a.AdminSessionRequired(a.patchTag))
@@ -107,6 +108,17 @@ func (a *API) deleteTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := a.app.DeleteTag(tid); err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondOK(w)
+}
+
+func (a *API) deleteTags(w http.ResponseWriter, r *http.Request) {
+	ids := model.IntSliceFromJSON(r.Body)
+
+	if err := a.app.DeleteTags(ids); err != nil {
 		respondError(w, err)
 		return
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/store"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/jmoiron/sqlx"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -20,13 +21,14 @@ func NewPgReviewStore(pgst *PgStore) store.ProductReviewStore {
 }
 
 var (
-	msgUniqueConstraintReview = &i18n.Message{ID: "store.postgres.review.save.unique_constraint.app_error", Other: "review already exists"}
-	msgSaveReview             = &i18n.Message{ID: "store.postgres.review.save.app_error", Other: "could not save review"}
-	msgUpdateReview           = &i18n.Message{ID: "store.postgres.review.update.app_error", Other: "could not update review"}
-	msgBulkInsertReviews      = &i18n.Message{ID: "store.postgres.review.bulk.insert.app_error", Other: "could not bulk insert reviews"}
-	msgGetReview              = &i18n.Message{ID: "store.postgres.review.get.app_error", Other: "could not get the review"}
-	msgGetReviews             = &i18n.Message{ID: "store.postgres.review.get.app_error", Other: "could not get the reviews"}
-	msgDeleteReview           = &i18n.Message{ID: "store.postgres.review.delete.app_error", Other: "could not delete review"}
+	msgUniqueConstraintReview   = &i18n.Message{ID: "store.postgres.review.save.unique_constraint.app_error", Other: "review already exists"}
+	msgSaveReview               = &i18n.Message{ID: "store.postgres.review.save.app_error", Other: "could not save review"}
+	msgUpdateReview             = &i18n.Message{ID: "store.postgres.review.update.app_error", Other: "could not update review"}
+	msgBulkInsertReviews        = &i18n.Message{ID: "store.postgres.review.bulk.insert.app_error", Other: "could not bulk insert reviews"}
+	msgGetReview                = &i18n.Message{ID: "store.postgres.review.get.app_error", Other: "could not get the review"}
+	msgGetReviews               = &i18n.Message{ID: "store.postgres.review.get.app_error", Other: "could not get the reviews"}
+	msgDeleteReview             = &i18n.Message{ID: "store.postgres.review.delete.app_error", Other: "could not delete review"}
+	msgBulkDeleteProductReviews = &i18n.Message{ID: "store.postgres.review.bulk_delete.app_error", Other: "could not bulk delete reviews"}
 )
 
 // BulkInsert inserts multiple reviews in the db
@@ -124,5 +126,19 @@ func (s PgReviewStore) Delete(pid, rid int64) *model.AppErr {
 	if _, err := s.db.NamedExec("DELETE from product_review WHERE product_id=:product_id AND id=:review_id", map[string]interface{}{"product_id": pid, "review_id": rid}); err != nil {
 		return model.NewAppErr("PgReviewStore.Delete", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteReview, http.StatusInternalServerError, nil)
 	}
+	return nil
+}
+
+// BulkDelete deletes tags with given ids
+func (s PgReviewStore) BulkDelete(pid int64, ids []int) *model.AppErr {
+	q, args, err := sqlx.In(`DELETE FROM public.product_review WHERE product_id = ? AND id IN (?)`, pid, ids)
+	if err != nil {
+		return model.NewAppErr("PgReviewStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeleteProductReviews, http.StatusInternalServerError, nil)
+	}
+
+	if _, err := s.db.Exec(s.db.Rebind(q), args...); err != nil {
+		return model.NewAppErr("PgReviewStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeleteProductReviews, http.StatusInternalServerError, nil)
+	}
+
 	return nil
 }

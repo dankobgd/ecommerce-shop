@@ -130,3 +130,8 @@ func (a *App) DeleteBrand(bid int64) *model.AppErr {
 
 	return nil
 }
+
+// DeleteBrands bulk deletes tags
+func (a *App) DeleteBrands(ids []int) *model.AppErr {
+	return a.Srv().Store.Brand().BulkDelete(ids)
+}

@@ -56,3 +56,8 @@ func (a *App) GetTags(limit, offset int) ([]*model.Tag, *model.AppErr) {
 func (a *App) DeleteTag(tid int64) *model.AppErr {
 	return a.Srv().Store.Tag().Delete(tid)
 }
+
+// DeleteTags bulk deletes tags
+func (a *App) DeleteTags(ids []int) *model.AppErr {
+	return a.Srv().Store.Tag().BulkDelete(ids)
+}

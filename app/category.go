@@ -135,3 +135,8 @@ func (a *App) DeleteCategory(cid int64) *model.AppErr {
 func (a *App) GetFeaturedCategories(limit, offset int) ([]*model.Category, *model.AppErr) {
 	return a.Srv().Store.Category().GetFeatured(limit, offset)
 }
+
+// DeleteCategories bulk deletes tags
+func (a *App) DeleteCategories(ids []int) *model.AppErr {
+	return a.Srv().Store.Category().BulkDelete(ids)
+}
