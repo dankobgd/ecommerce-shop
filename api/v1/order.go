@@ -30,42 +30,8 @@ func (a *API) createOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ids := make([]int64, 0)
-	for _, x := range orderData.Items {
-		ids = append(ids, x.ProductID)
-	}
-	products, err := a.app.GetProductsbyIDS(ids)
+	order, err := a.app.CreateOrder(uid, orderData)
 	if err != nil {
-		respondError(w, err)
-		return
-	}
-
-	subtotal := 0
-	for i, p := range products {
-		subtotal += p.Price * orderData.Items[i].Quantity
-	}
-
-	order, err := a.app.CreateOrder(uid, orderData, subtotal)
-	if err != nil {
-		respondError(w, err)
-		return
-	}
-
-	orderDetails := make([]*model.OrderDetail, 0)
-
-	for i, p := range products {
-		detail := &model.OrderDetail{
-			OrderID:       order.ID,
-			ProductID:     p.ID,
-			Quantity:      orderData.Items[i].Quantity,
-			OriginalPrice: p.Price,
-			OriginalSKU:   p.SKU,
-		}
-
-		orderDetails = append(orderDetails, detail)
-	}
-
-	if err := a.app.CreateOrderDetail(orderDetails); err != nil {
 		respondError(w, err)
 		return
 	}

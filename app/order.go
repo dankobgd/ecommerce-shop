@@ -10,6 +10,7 @@ import (
 
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/dankobgd/ecommerce-shop/zlog"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -18,12 +19,36 @@ var (
 )
 
 // CreateOrder creates the new order
-func (a *App) CreateOrder(userID int64, data *model.OrderRequestData, subtotal int) (*model.Order, *model.AppErr) {
+func (a *App) CreateOrder(userID int64, data *model.OrderRequestData) (*model.Order, *model.AppErr) {
+	// validate order request data
+	if err := data.Validate(); err != nil {
+		return nil, err
+	}
+
+	ids := make([]int64, 0)
+	for _, x := range data.Items {
+		ids = append(ids, x.ProductID)
+	}
+
+	// get products from given data product ids
+	products, err := a.GetProductsbyIDS(ids)
+	if err != nil {
+		return nil, err
+	}
+
+	// get authed user
 	user, err := a.GetUserByID(userID)
 	if err != nil {
 		return nil, err
 	}
 
+	// calc subtotal price (price before discount, possible taxes etc...)
+	subtotal := 0
+	for i, p := range products {
+		subtotal += p.Price * data.Items[i].Quantity
+	}
+
+	// calc total price (after possible discount)
 	total := 0
 	if data.PromoCode == nil {
 		total = subtotal
@@ -31,6 +56,7 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData, subtotal i
 		if err := a.GetPromotionStatus(*data.PromoCode, userID); err != nil {
 			return nil, err
 		}
+
 		promo, err := a.GetPromotion(*data.PromoCode)
 		if err != nil {
 			return nil, err
@@ -40,6 +66,7 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData, subtotal i
 			t := float64(subtotal) - float64(promo.Amount)/100*float64(subtotal)
 			total = int(math.Round(t*100) / 100)
 		}
+
 		if promo.Type == "fixed" {
 			t := (subtotal - promo.Amount)
 			if t < 0 {
@@ -47,32 +74,28 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData, subtotal i
 			}
 			total = t
 		}
-
-	}
-
-	if data.UseExistingBillingAddress == nil && data.SaveAddress != nil {
-		if _, err := a.CreateUserAddress(data.BillingAddress, userID); *data.SaveAddress == true && err != nil {
-			return nil, err
-		}
 	}
 
 	billAddrInfo := &model.Address{}
 
-	if data.UseExistingBillingAddress != nil {
-		ua, err := a.GetUserAddress(userID, *data.BillingAddressID)
-		if err != nil {
-			return nil, err
+	if data.UseExistingBillingAddress != nil && *data.UseExistingBillingAddress == true {
+		if data.BillingAddressID != nil {
+			ua, err := a.GetUserAddress(userID, *data.BillingAddressID)
+			if err != nil {
+				return nil, err
+			}
+			billAddrInfo = ua
 		}
-		billAddrInfo = ua
 	} else {
 		billAddrInfo = data.BillingAddress
 	}
 
 	o := &model.Order{
-		UserID:   userID,
-		Subtotal: subtotal,
-		Total:    total,
-		Status:   model.OrderStatusSuccess.String(),
+		UserID:    userID,
+		Subtotal:  subtotal,
+		Total:     total,
+		Status:    model.OrderStatusSuccess.String(),
+		PromoCode: data.PromoCode,
 	}
 
 	o.BillingAddressLine1 = billAddrInfo.Line1
@@ -86,7 +109,7 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData, subtotal i
 
 	o.PreSave()
 
-	if data.SameShippingAsBilling {
+	if data.SameShippingAsBilling != nil && *data.SameShippingAsBilling == true {
 		o.ShippingAddressLine1 = billAddrInfo.Line1
 		o.ShippingAddressLine2 = billAddrInfo.Line2
 		o.ShippingAddressCity = billAddrInfo.City
@@ -113,7 +136,7 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData, subtotal i
 		}
 
 		var sGeocode *model.GeocodingResult
-		if data.SameShippingAsBilling {
+		if data.SameShippingAsBilling != nil && *data.SameShippingAsBilling == true {
 			sGeocode = bGeocode
 		} else {
 			sGeocode, err = a.GetAddressGeocodeResult(data.ShippingAddress)
@@ -138,17 +161,43 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData, subtotal i
 		return nil, model.NewAppErr("CreateOrder", model.ErrInternal, locale.GetUserLocalizer("en"), &i18n.Message{ID: "app.order.create_order.app_error", Other: "could not charge card: " + cErr.Error()}, http.StatusInternalServerError, nil)
 	}
 
+	// save actual order
 	order, err := a.Srv().Store.Order().Save(o)
 	if err != nil {
 		return nil, err
 	}
 
+	// insert promo detail to mark the promo_code as used for the given user
 	if data.PromoCode != nil {
 		pd := &model.PromotionDetail{UserID: userID, PromoCode: *data.PromoCode}
 		if _, err := a.CreatePromotionDetail(pd); err != nil {
 			return nil, err
 		}
 	}
+
+	orderDetails := make([]*model.OrderDetail, 0)
+	for i, p := range products {
+		detail := &model.OrderDetail{
+			OrderID:       order.ID,
+			ProductID:     p.ID,
+			Quantity:      data.Items[i].Quantity,
+			OriginalPrice: p.Price,
+			OriginalSKU:   p.SKU,
+		}
+		orderDetails = append(orderDetails, detail)
+	}
+
+	if err := a.CreateOrderDetail(orderDetails); err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if (data.UseExistingBillingAddress == nil || data.UseExistingBillingAddress != nil && *data.UseExistingBillingAddress == false) && (data.SaveAddress != nil && *data.SaveAddress == true) {
+			if _, err := a.CreateUserAddress(data.BillingAddress, userID); err != nil {
+				a.Log().Error(err.Error(), zlog.Err(err))
+			}
+		}
+	}()
 
 	return order, nil
 }

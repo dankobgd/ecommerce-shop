@@ -4,7 +4,18 @@ import (
 	"encoding/json"
 	"io"
 	"time"
+
+	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
+
+var msgInvalidOrderData = &i18n.Message{ID: "model.order.validate.app_error", Other: "Invalid order data"}
+var msgValidatePaymentMethodID = &i18n.Message{ID: "model.order.validate.payment_method_id.app_error", Other: "Payment method id is required"}
+var msgValidateNoItems = &i18n.Message{ID: "model.order.validate.no_items.app_error", Other: "No order items provided"}
+var msgValidateBillingAddress = &i18n.Message{ID: "model.order.validate.billing_address.app_error", Other: "Invalid billing address"}
+var msgValidateBillingAddressID = &i18n.Message{ID: "model.order.validate.billing_address_id.app_error", Other: "Invalid billing address id"}
+var msgValidateShippingAddress = &i18n.Message{ID: "model.order.validate.shipping_address.app_error", Other: "Invalid shipping address"}
+var msgValidateShippingAddressNeedsBilling = &i18n.Message{ID: "model.order.validate.shipping_address.app_error", Other: "No billing address provided but same_shipping_as_billing is true"}
 
 type orderStatus int
 
@@ -80,7 +91,7 @@ type OrderRequestData struct {
 	SaveAddress               *bool       `json:"save_address"`
 	UseExistingBillingAddress *bool       `json:"use_existing_billing_address"`
 	BillingAddressID          *int64      `json:"billing_address_id"`
-	SameShippingAsBilling     bool        `json:"same_shipping_as_billing"`
+	SameShippingAsBilling     *bool       `json:"same_shipping_as_billing"`
 	PromoCode                 *string     `json:"promo_code"`
 }
 
@@ -89,4 +100,35 @@ func OrderRequestDataFromJSON(data io.Reader) (*OrderRequestData, error) {
 	var ord *OrderRequestData
 	err := json.NewDecoder(data).Decode(&ord)
 	return ord, err
+}
+
+// Validate validates the tag and returns an error if it doesn't pass criteria
+func (data *OrderRequestData) Validate() *AppErr {
+	var errs ValidationErrors
+	l := locale.GetUserLocalizer("en")
+
+	if data.PaymentMethodID == "" {
+		errs.Add(Invalid("payment_method_id", l, msgValidatePaymentMethodID))
+	}
+	if len(data.Items) == 0 {
+		errs.Add(Invalid("items", l, msgValidateNoItems))
+	}
+
+	if data.BillingAddress == nil && (data.UseExistingBillingAddress == nil || (data.UseExistingBillingAddress != nil && *data.UseExistingBillingAddress == false)) {
+		errs.Add(Invalid("billing_address", l, msgValidateBillingAddress))
+	}
+	if data.BillingAddressID == nil && data.UseExistingBillingAddress != nil && *data.UseExistingBillingAddress == true {
+		errs.Add(Invalid("billing_address_id", l, msgValidateBillingAddressID))
+	}
+	if (data.ShippingAddress == nil && (data.UseExistingBillingAddress == nil || (data.UseExistingBillingAddress != nil && *data.UseExistingBillingAddress == false))) && (data.SameShippingAsBilling == nil || (data.SameShippingAsBilling != nil && *data.SameShippingAsBilling == false)) {
+		errs.Add(Invalid("shipping_address", l, msgValidateShippingAddress))
+	}
+	if (data.BillingAddress != nil && data.BillingAddressID != nil) && data.SameShippingAsBilling != nil && *data.SameShippingAsBilling == true {
+		errs.Add(Invalid("shipping_address", l, msgValidateShippingAddressNeedsBilling))
+	}
+
+	if !errs.IsZero() {
+		return NewValidationError("OrderRequestData", msgInvalidOrderData, "", errs)
+	}
+	return nil
 }

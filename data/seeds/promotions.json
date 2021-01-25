@@ -10,7 +10,7 @@
   {
     "promo_code": "2021",
     "type": "fixed",
-    "amount": 100,
+    "amount": 10000,
     "description": "New year's bonus",
     "starts_at": "2020-12-25T00:00:00.000Z",
     "ends_at": "2021-01-15T00:00:00.0004Z"
@@ -34,7 +34,7 @@
   {
     "promo_code": "SPECIAL_50",
     "type": "fixed",
-    "amount": 50,
+    "amount": 5000,
     "description": "Special 50$ bonus",
     "starts_at": "2020-11-05T00:00:00.000Z",
     "ends_at": "2021-02-15T00:00:00.0004Z"
