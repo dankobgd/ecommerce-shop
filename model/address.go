@@ -4,6 +4,17 @@ import (
 	"encoding/json"
 	"io"
 	"time"
+
+	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+)
+
+var (
+	msgInvalidAddress    = &i18n.Message{ID: "model.address.validate.app_error", Other: "Invalid address data"}
+	msgValidateAddressID = &i18n.Message{ID: "model.address.validate.address_id.app_error", Other: "Invalid address id"}
+	msgValidateLine1     = &i18n.Message{ID: "model.address.validate.line_1.app_error", Other: "Invalid address line 1"}
+	msgValidateCity      = &i18n.Message{ID: "model.address.validate.city.app_error", Other: "Invalid address city"}
+	msgValidateCountry   = &i18n.Message{ID: "model.address.validate.country.app_error", Other: "Invalid address country"}
 )
 
 // Address holds the contact info
@@ -50,6 +61,30 @@ func (addr *Address) PreSave() {
 // PreUpdate sets the update timestamp
 func (addr *Address) PreUpdate() {
 	addr.UpdatedAt = time.Now()
+}
+
+// Validate validates the address and returns an error if it doesn't pass criteria
+func (addr *Address) Validate() *AppErr {
+	var errs ValidationErrors
+	l := locale.GetUserLocalizer("en")
+
+	if addr.ID != 0 {
+		errs.Add(Invalid("address_id", l, msgValidateAddressID))
+	}
+	if addr.Line1 == "" {
+		errs.Add(Invalid("line_1", l, msgValidateLine1))
+	}
+	if addr.City == "" {
+		errs.Add(Invalid("city", l, msgValidateCity))
+	}
+	if addr.Country == "" {
+		errs.Add(Invalid("country", l, msgValidateCountry))
+	}
+
+	if !errs.IsZero() {
+		return NewValidationError("Address", msgInvalidAddress, "", errs)
+	}
+	return nil
 }
 
 // AddressPatch is the patch

@@ -29,8 +29,9 @@ var (
 	msgGetPromotions                   = &i18n.Message{ID: "store.postgres.promotion.get.app_error", Other: "could not get the promotion"}
 	msgDeletePromotion                 = &i18n.Message{ID: "store.postgres.promotion.delete.app_error", Other: "could not delete promotion"}
 	msgBulkDeletePromotions            = &i18n.Message{ID: "store.postgres.promotion.bulk_delete.app_error", Other: "could not bulk delete promotions"}
-	msgPromoStatus                     = &i18n.Message{ID: "store.postgres.promotion.status.app_error", Other: "could not get promo_code status for user"}
-	msgPromoCodeUsed                   = &i18n.Message{ID: "store.postgres.promotion.status.app_error", Other: "you have already used this promo code"}
+	msgPromoStatus                     = &i18n.Message{ID: "store.postgres.promotion.status.app_error", Other: "could not get promo_code status"}
+	msgPromoCodeUsed                   = &i18n.Message{ID: "store.postgres.promotion.is_used.app_error", Other: "you have already used this promo code"}
+	msgPromoCodeInvalid                = &i18n.Message{ID: "store.postgres.promotion.is_valid.app_error", Other: "promo code is invalid or is no longer active"}
 	msgInsertPromotionDetail           = &i18n.Message{ID: "store.postgres.promotion.insert_detail.app_error", Other: "could not save promotion detail"}
 	msgUniqueConstraintPromotionDetail = &i18n.Message{ID: "store.postgres.promotion.insert_detail.unique_constraint.app_error", Other: "promotion already used by the same user"}
 )
@@ -106,19 +107,6 @@ func (s PgPromotionStore) Delete(code string) *model.AppErr {
 	return nil
 }
 
-// Status gets the promo code status for the specific user
-func (s PgPromotionStore) Status(code string, userID int64) *model.AppErr {
-	var exists bool
-	q := `SELECT EXISTS (SELECT 1 FROM promotion p LEFT JOIN promotion_detail pd ON p.promo_code = pd.promo_code WHERE p.promo_code = $1 AND pd.user_id = $2 AND CURRENT_TIMESTAMP BETWEEN p.starts_at AND p.ends_at)`
-	if err := s.db.Get(&exists, q, code, userID); err != nil {
-		return model.NewAppErr("PgPromotionStore.Status", model.ErrInternal, locale.GetUserLocalizer("en"), msgPromoStatus, http.StatusInternalServerError, nil)
-	}
-	if exists {
-		return model.NewAppErr("PgPromotionStore.Status", model.ErrInternal, locale.GetUserLocalizer("en"), msgPromoCodeUsed, http.StatusInternalServerError, nil)
-	}
-	return nil
-}
-
 // InsertDetail inserts the new promotion in the db
 func (s PgPromotionStore) InsertDetail(pdetail *model.PromotionDetail) (*model.PromotionDetail, *model.AppErr) {
 	q := `INSERT INTO public.promotion_detail(user_id, promo_code) VALUES(:user_id, :promo_code) RETURNING *`
@@ -143,5 +131,31 @@ func (s PgPromotionStore) BulkDelete(codes []string) *model.AppErr {
 		return model.NewAppErr("PgPromotionStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeletePromotions, http.StatusInternalServerError, nil)
 	}
 
+	return nil
+}
+
+// IsValid checks if the promo code exists and it is active and valid
+func (s PgPromotionStore) IsValid(code string) *model.AppErr {
+	var valid bool
+	q := `SELECT EXISTS (SELECT 1 FROM promotion p LEFT JOIN promotion_detail pd ON p.promo_code = pd.promo_code WHERE p.promo_code = $1 AND CURRENT_TIMESTAMP BETWEEN p.starts_at AND p.ends_at)`
+	if err := s.db.Get(&valid, q, code); err != nil {
+		return model.NewAppErr("PgPromotionStore.IsValid", model.ErrInternal, locale.GetUserLocalizer("en"), msgPromoStatus, http.StatusInternalServerError, nil)
+	}
+	if valid == false {
+		return model.NewAppErr("PgPromotionStore.IsValid", model.ErrInternal, locale.GetUserLocalizer("en"), msgPromoCodeInvalid, http.StatusInternalServerError, nil)
+	}
+	return nil
+}
+
+// IsUsed checks if promo code has been used by the user already
+func (s PgPromotionStore) IsUsed(code string, userID int64) *model.AppErr {
+	var used bool
+	q := `SELECT EXISTS (SELECT 1 FROM promotion_detail pd WHERE pd.promo_code = $1 AND pd.user_id = $2)`
+	if err := s.db.Get(&used, q, code, userID); err != nil {
+		return model.NewAppErr("PgPromotionStore.IsUsed", model.ErrInternal, locale.GetUserLocalizer("en"), msgPromoStatus, http.StatusInternalServerError, nil)
+	}
+	if used == true {
+		return model.NewAppErr("PgPromotionStore.IsUsed", model.ErrInternal, locale.GetUserLocalizer("en"), msgPromoCodeUsed, http.StatusInternalServerError, nil)
+	}
 	return nil
 }

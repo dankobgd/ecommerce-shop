@@ -52,7 +52,9 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData) (*model.Or
 	total := 0
 	if data.PromoCode == nil {
 		total = subtotal
-	} else {
+	}
+
+	if data.PromoCode != nil && *data.PromoCode != "" {
 		if err := a.GetPromotionStatus(*data.PromoCode, userID); err != nil {
 			return nil, err
 		}
@@ -73,6 +75,12 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData) (*model.Or
 				t = 0
 			}
 			total = t
+		}
+
+		// insert promo detail to mark the promo_code as used by the specific user
+		pd := &model.PromotionDetail{UserID: userID, PromoCode: promo.PromoCode}
+		if _, err := a.CreatePromotionDetail(pd); err != nil {
+			return nil, err
 		}
 	}
 
@@ -165,14 +173,6 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData) (*model.Or
 	order, err := a.Srv().Store.Order().Save(o)
 	if err != nil {
 		return nil, err
-	}
-
-	// insert promo detail to mark the promo_code as used for the given user
-	if data.PromoCode != nil {
-		pd := &model.PromotionDetail{UserID: userID, PromoCode: *data.PromoCode}
-		if _, err := a.CreatePromotionDetail(pd); err != nil {
-			return nil, err
-		}
 	}
 
 	orderDetails := make([]*model.OrderDetail, 0)

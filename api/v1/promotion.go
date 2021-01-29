@@ -28,7 +28,9 @@ func InitPromotions(a *API) {
 	a.Routes.Promotion.Get("/", a.AdminSessionRequired(a.getPromotion))
 	a.Routes.Promotion.Patch("/", a.AdminSessionRequired(a.patchPromotion))
 	a.Routes.Promotion.Delete("/", a.AdminSessionRequired(a.deletePromotion))
-	a.Routes.Promotion.Get("/status", a.AdminSessionRequired(a.getPromotionStatus))
+	a.Routes.Promotion.Get("/valid", a.SessionRequired(a.getPromotionIsValid))
+	a.Routes.Promotion.Get("/used", a.SessionRequired(a.getPromotionIsUsed))
+	a.Routes.Promotion.Get("/status", a.SessionRequired(a.getPromotionStatus))
 }
 
 func (a *API) createPromotion(w http.ResponseWriter, r *http.Request) {
@@ -100,6 +102,27 @@ func (a *API) deletePromotion(w http.ResponseWriter, r *http.Request) {
 	respondOK(w)
 }
 
+func (a *API) getPromotionIsValid(w http.ResponseWriter, r *http.Request) {
+	code := chi.URLParam(r, "promo_code")
+
+	if err := a.app.IsValidPromotion(code); err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondOK(w)
+}
+func (a *API) getPromotionIsUsed(w http.ResponseWriter, r *http.Request) {
+	uid := a.app.GetUserIDFromContext(r.Context())
+	code := chi.URLParam(r, "promo_code")
+
+	if err := a.app.IsUsedPromotion(code, uid); err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondOK(w)
+}
 func (a *API) getPromotionStatus(w http.ResponseWriter, r *http.Request) {
 	uid := a.app.GetUserIDFromContext(r.Context())
 	code := chi.URLParam(r, "promo_code")

@@ -1,10 +1,7 @@
 package app
 
 import (
-	"net/http"
-
 	"github.com/dankobgd/ecommerce-shop/model"
-	"github.com/dankobgd/ecommerce-shop/utils/locale"
 	"github.com/dankobgd/ecommerce-shop/zlog"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
@@ -59,12 +56,25 @@ func (a *App) DeletePromotion(code string) *model.AppErr {
 	return a.Srv().Store.Promotion().Delete(code)
 }
 
+// IsValidPromotion checks if promo_code is valid
+func (a *App) IsValidPromotion(code string) *model.AppErr {
+	return a.Srv().Store.Promotion().IsValid(code)
+}
+
+// IsUsedPromotion checks if promo_code was used by user
+func (a *App) IsUsedPromotion(code string, uid int64) *model.AppErr {
+	return a.Srv().Store.Promotion().IsUsed(code, uid)
+}
+
 // GetPromotionStatus checks if the promotion is active and not already used by user
 func (a *App) GetPromotionStatus(code string, userID int64) *model.AppErr {
-	if _, err := a.GetPromotion(code); err != nil {
-		return model.NewAppErr("app.GetPromotionStatus", model.ErrInternal, locale.GetUserLocalizer("en"), msgPromoNotExists, http.StatusConflict, nil)
+	if err := a.IsValidPromotion(code); err != nil {
+		return err
 	}
-	return a.Srv().Store.Promotion().Status(code, userID)
+	if err := a.IsUsedPromotion(code, userID); err != nil {
+		return err
+	}
+	return nil
 }
 
 // CreatePromotionDetail creates the new promotion detail

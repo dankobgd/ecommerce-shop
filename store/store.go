@@ -179,6 +179,7 @@ type PromotionStore interface {
 	Update(code string, p *model.Promotion) (*model.Promotion, *model.AppErr)
 	Delete(code string) *model.AppErr
 	BulkDelete(codes []string) *model.AppErr
-	Status(code string, userID int64) *model.AppErr
 	InsertDetail(pd *model.PromotionDetail) (*model.PromotionDetail, *model.AppErr)
+	IsValid(code string) *model.AppErr
+	IsUsed(code string, userID int64) *model.AppErr
 }

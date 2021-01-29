@@ -285,17 +285,25 @@ func (a *App) DeleteUserAvatar(userID int64, publicID string) *model.AppErr {
 
 // CreateUserAddress creates the user addresss
 func (a *App) CreateUserAddress(addr *model.Address, userID int64) (*model.Address, *model.AppErr) {
-	geocode, err := a.GetAddressGeocodeResult(addr)
-	if err != nil {
+	if err := addr.Validate(); err != nil {
 		return nil, err
 	}
 
-	lat, _ := strconv.ParseFloat(geocode.Lat, 64)
-	lon, _ := strconv.ParseFloat(geocode.Lon, 64)
-	addr.Latitude = &lat
-	addr.Longitude = &lon
-	addr.PreSave()
+	var latitude, longitude float64
 
+	geocode, err := a.GetAddressGeocodeResult(addr)
+	if err != nil {
+		a.Log().Warn(err.Message, zlog.Err(err), zlog.Any("geocode_result", geocode))
+		addr.Latitude = model.NewFloat64(latitude)
+		addr.Longitude = model.NewFloat64(longitude)
+	} else {
+		lat, _ := strconv.ParseFloat(geocode.Lat, 64)
+		lon, _ := strconv.ParseFloat(geocode.Lon, 64)
+		addr.Latitude = &lat
+		addr.Longitude = &lon
+	}
+
+	addr.PreSave()
 	return a.Srv().Store.Address().Save(addr, userID)
 }
 

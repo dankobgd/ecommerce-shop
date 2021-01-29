@@ -38,7 +38,7 @@ const (
 
 var reservedNames = []string{"app", "api", "admin", "signup", "login", "oauth", "error", "help"}
 var restrictedUsernames = []string{"app", "api", "admin", "system"}
-var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
+var validUsernameChars = regexp.MustCompile(`^[a-zA-Z0-9\.\-_]+$`)
 
 // messages for localization
 var (
@@ -366,7 +366,6 @@ func (u *User) Sanitize(options map[string]bool) {
 // PreSave will set missing defaults and fill CreatedAt and UpdatedAt times
 // It will also hash the password and it should be called before saving the user to the db
 func (u *User) PreSave(isSeed ...bool) {
-	u.Username = NormalizeUsername(u.Username)
 	u.Email = NormalizeEmail(u.Email)
 	u.CreatedAt = time.Now()
 	u.UpdatedAt = u.CreatedAt
@@ -390,14 +389,8 @@ func (u *User) PreSave(isSeed ...bool) {
 
 // PreUpdate should be called before updating the user in the db
 func (u *User) PreUpdate() {
-	u.Username = NormalizeUsername(u.Username)
 	u.Email = NormalizeEmail(u.Email)
 	u.UpdatedAt = time.Now()
-}
-
-// NormalizeUsername trims space and returns lowercase username
-func NormalizeUsername(username string) string {
-	return strings.ToLower(strings.TrimSpace(username))
 }
 
 // NormalizeEmail trims space and returns lowercase email
