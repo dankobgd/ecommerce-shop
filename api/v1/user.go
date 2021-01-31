@@ -1,6 +1,7 @@
 package apiv1
 
 import (
+	"mime/multipart"
 	"net/http"
 	"strconv"
 
@@ -16,11 +17,12 @@ var (
 	msgUserFromJSON         = &i18n.Message{ID: "api.user.create_user.json.app_error", Other: "could not decode user json data"}
 	msgRefreshTokenFromJSON = &i18n.Message{ID: "api.user.create_user.json.app_error", Other: "could not decode token json data"}
 	msgInvalidEmail         = &i18n.Message{ID: "api.user.sendUserVerificationEmail.email.app_error", Other: "invalid email provided"}
-	msgInvalidPassword      = &i18n.Message{ID: "api.user.resetUserPassword.password.app_error", Other: "invalid password provided"}
-	msgUserURLParams        = &i18n.Message{ID: "api.user.deleteUser.app_error", Other: "invalid user_id url param"}
-	msgAddressFromJSON      = &i18n.Message{ID: "api.user.deleteUser.app_error", Other: "could not parse address json data"}
-	msgAddressPatchFromJSON = &i18n.Message{ID: "api.user.deleteUser.app_error", Other: "could not parse address patch data"}
-	msgDeleteUserAddress    = &i18n.Message{ID: "api.user.deleteUser.app_error", Other: "could not delete address"}
+	msgInvalidPassword      = &i18n.Message{ID: "api.user.reset_user_password.password.app_error", Other: "invalid password provided"}
+	msgUserURLParams        = &i18n.Message{ID: "api.user.delete_user.app_error", Other: "invalid user_id url param"}
+	msgUserMultiPartErr     = &i18n.Message{ID: "api.user.create_user.app_error", Other: "invalid user form data"}
+	msgAddressFromJSON      = &i18n.Message{ID: "api.user.delete_user.app_error", Other: "could not parse address json data"}
+	msgAddressPatchFromJSON = &i18n.Message{ID: "api.user.delete_user.app_error", Other: "could not parse address patch data"}
+	msgDeleteUserAddress    = &i18n.Message{ID: "api.user.delete_user.app_error", Other: "could not delete address"}
 	msgUserAvatarMultipart  = &i18n.Message{ID: "api.user.upload_user_avatar.app_error", Other: "could not parse avatar multipart file"}
 	msgUpdateProfile        = &i18n.Message{ID: "api.user.update_profile.app_error", Other: "could not update user profile"}
 	msgGetUserOrders        = &i18n.Message{ID: "api.user.get_user_orders.app_error", Other: "could not get user orders"}
@@ -29,16 +31,19 @@ var (
 
 // InitUser inits the user routes
 func InitUser(a *API) {
+	a.Routes.Users.Get("/", a.AdminSessionRequired(a.getUsers))
 	a.Routes.Users.Get("/me", a.SessionRequired(a.currentUser))
-	a.Routes.Users.Post("/", a.createUser)
+	a.Routes.Users.Post("/new", a.createUser)
+	a.Routes.Users.Post("/", a.signup)
 	a.Routes.Users.Post("/login", a.login)
 	a.Routes.Users.Post("/logout", a.SessionRequired(a.logout))
+	a.Routes.Users.Delete("/bulk", a.AdminSessionRequired(a.deleteUsers))
 	a.Routes.Users.Post("/token/refresh", a.refresh)
 	a.Routes.Users.Post("/email/verify", a.verifyUserEmail)
 	a.Routes.Users.Post("/email/verify/send", a.sendVerificationEmail)
 	a.Routes.Users.Post("/password/reset", a.resetUserPassword)
 	a.Routes.Users.Post("/password/reset/send", a.sendPasswordResetEmail)
-	a.Routes.Users.Patch("/", a.SessionRequired(a.updateProfile))
+	a.Routes.Users.Patch("/profile", a.SessionRequired(a.updateProfile))
 	a.Routes.Users.Put("/password", a.SessionRequired(a.changeUserPassword))
 	a.Routes.Users.Post("/avatar", a.SessionRequired(a.uploadUserAvatar))
 	a.Routes.Users.Patch("/avatar", a.SessionRequired(a.deleteUserAvatar))
@@ -52,8 +57,9 @@ func InitUser(a *API) {
 	a.Routes.Users.Delete("/wishlist/{product_id:[A-Za-z0-9]+}", a.SessionRequired(a.deleteWishlist))
 	a.Routes.Users.Delete("/wishlist/clear", a.SessionRequired(a.clearWishlist))
 
-	a.Routes.User.Get("/", a.getUser)
-	a.Routes.User.Delete("/", a.deleteUser)
+	a.Routes.User.Get("/", a.SessionRequired(a.getUser))
+	a.Routes.User.Patch("/", a.AdminSessionRequired(a.update))
+	a.Routes.User.Delete("/", a.SessionRequired(a.deleteUser))
 	a.Routes.User.Get("/orders", a.SessionRequired(a.getUserOrders))
 }
 
@@ -68,13 +74,41 @@ func (a *API) currentUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) createUser(w http.ResponseWriter, r *http.Request) {
-	u, e := model.UserFromJSON(r.Body)
-	if e != nil {
-		respondError(w, model.NewAppErr("createUser", model.ErrInternal, locale.GetUserLocalizer("en"), msgUserFromJSON, http.StatusInternalServerError, nil))
+	if err := r.ParseMultipartForm(model.FileUploadSizeLimit); err != nil {
+		respondError(w, model.NewAppErr("createUser", model.ErrInternal, locale.GetUserLocalizer("en"), msgUserMultiPartErr, http.StatusInternalServerError, nil))
 		return
 	}
 
-	user, err := a.app.CreateUser(u)
+	mpf := r.MultipartForm
+	model.SchemaDecoder.IgnoreUnknownKeys(true)
+
+	u := &model.User{}
+	if err := model.SchemaDecoder.Decode(u, mpf.Value); err != nil {
+		respondError(w, model.NewAppErr("createUser", model.ErrInternal, locale.GetUserLocalizer("en"), msgUserMultiPartErr, http.StatusInternalServerError, nil))
+		return
+	}
+
+	var fh *multipart.FileHeader
+	if len(mpf.File["avatar_url"]) > 0 {
+		fh = mpf.File["avatar_url"][0]
+	}
+
+	user, uErr := a.app.CreateUser(u, fh)
+	if uErr != nil {
+		respondError(w, uErr)
+		return
+	}
+	respondJSON(w, http.StatusCreated, user)
+}
+
+func (a *API) signup(w http.ResponseWriter, r *http.Request) {
+	u, e := model.UserFromJSON(r.Body)
+	if e != nil {
+		respondError(w, model.NewAppErr("signup", model.ErrInternal, locale.GetUserLocalizer("en"), msgUserFromJSON, http.StatusInternalServerError, nil))
+		return
+	}
+
+	user, err := a.app.Signup(u)
 	if err != nil {
 		respondError(w, err)
 		return
@@ -219,6 +253,41 @@ func (a *API) resetUserPassword(w http.ResponseWriter, r *http.Request) {
 	respondOK(w)
 }
 
+func (a *API) update(w http.ResponseWriter, r *http.Request) {
+	uid, e := strconv.ParseInt(chi.URLParam(r, "user_id"), 10, 64)
+	if e != nil {
+		respondError(w, model.NewAppErr("update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUserMultiPartErr, http.StatusInternalServerError, nil))
+		return
+	}
+
+	if err := r.ParseMultipartForm(model.FileUploadSizeLimit); err != nil {
+		respondError(w, model.NewAppErr("update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUserAvatarMultipart, http.StatusInternalServerError, nil))
+		return
+	}
+
+	mpf := r.MultipartForm
+	model.SchemaDecoder.IgnoreUnknownKeys(true)
+
+	patch := &model.UserPatch{}
+	if err := model.SchemaDecoder.Decode(patch, mpf.Value); err != nil {
+		respondError(w, model.NewAppErr("update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUserMultiPartErr, http.StatusInternalServerError, nil))
+		return
+	}
+
+	var avatar *multipart.FileHeader
+	if len(mpf.File["avatar_url"]) > 0 {
+		avatar = mpf.File["avatar_url"][0]
+	}
+
+	uuser, pErr := a.app.PatchUser(uid, patch, avatar)
+	if e != nil {
+		respondError(w, pErr)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, uuser)
+}
+
 func (a *API) updateProfile(w http.ResponseWriter, r *http.Request) {
 	uid := a.app.GetUserIDFromContext(r.Context())
 	patch, err := model.UserPatchFromJSON(r.Body)
@@ -269,6 +338,23 @@ func (a *API) getUser(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, user)
 }
 
+func (a *API) getUsers(w http.ResponseWriter, r *http.Request) {
+	pages := pagination.NewFromRequest(r)
+	users, err := a.app.GetUsers(pages.Limit(), pages.Offset())
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	totalCount := -1
+	if len(users) > 0 {
+		totalCount = users[0].TotalCount
+	}
+	pages.SetData(users, totalCount)
+
+	respondJSON(w, http.StatusOK, pages)
+}
+
 func (a *API) deleteUser(w http.ResponseWriter, r *http.Request) {
 	uid, e := strconv.ParseInt(chi.URLParam(r, "user_id"), 10, 64)
 	if e != nil {
@@ -282,6 +368,18 @@ func (a *API) deleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 	respondOK(w)
 }
+
+func (a *API) deleteUsers(w http.ResponseWriter, r *http.Request) {
+	ids := model.IntSliceFromJSON(r.Body)
+
+	if err := a.app.DeleteUsers(ids); err != nil {
+		respondError(w, err)
+		return
+	}
+
+	respondOK(w)
+}
+
 func (a *API) uploadUserAvatar(w http.ResponseWriter, r *http.Request) {
 	uid := a.app.GetUserIDFromContext(r.Context())
 	if e := r.ParseMultipartForm(model.FileUploadSizeLimit); e != nil {

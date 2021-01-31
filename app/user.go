@@ -15,12 +15,51 @@ import (
 )
 
 var (
-	msgTokenExpired     = &i18n.Message{ID: "model.token.expired.app_error", Other: "token has expired"}
-	msgUploadUserAvatar = &i18n.Message{ID: "app.upload_user_avatar.app_error", Other: "could not upload user avatar"}
+	msgTokenExpired               = &i18n.Message{ID: "model.token.expired.app_error", Other: "token has expired"}
+	msgUploadUserAvatar           = &i18n.Message{ID: "app.upload_user_avatar.app_error", Other: "could not upload user avatar"}
+	msgUserAvatarFileSizeExceeded = &i18n.Message{ID: "app.upload_user_avatar.app_error", Other: "File size limit exceeded"}
 )
 
-// CreateUser creates the new user in the system
-func (a *App) CreateUser(u *model.User) (*model.User, *model.AppErr) {
+// CreateUser creates the new user and in the system
+func (a *App) CreateUser(u *model.User, fh *multipart.FileHeader) (*model.User, *model.AppErr) {
+	rawpw := u.Password
+	u.PreSave()
+	if err := u.Validate(); err != nil {
+		return nil, err
+	}
+	if err := a.IsValidPassword(rawpw); err != nil {
+		return nil, err
+	}
+
+	if fh != nil {
+		avatar, err := fh.Open()
+		if err != nil {
+			return nil, model.NewAppErr("CreateUser", model.ErrInternal, locale.GetUserLocalizer("en"), msgUserAvatarFileSizeExceeded, http.StatusInternalServerError, nil)
+		}
+		bb, err := ioutil.ReadAll(avatar)
+		if err != nil {
+			return nil, model.NewAppErr("CreateUser", model.ErrInternal, locale.GetUserLocalizer("en"), msgUploadUserAvatar, http.StatusInternalServerError, nil)
+		}
+
+		details, uErr := a.UploadImage(bytes.NewBuffer(bb), fh.Filename)
+		if uErr != nil {
+			return nil, uErr
+		}
+		u.SetAvatarDetails(details)
+	}
+
+	user, sErr := a.Srv().Store.User().Save(u)
+	if sErr != nil {
+		a.Log().Error(sErr.Error(), zlog.Err(sErr))
+		return nil, sErr
+	}
+
+	user.Sanitize(map[string]bool{})
+	return user, nil
+}
+
+// Signup creates the new user and in the system
+func (a *App) Signup(u *model.User) (*model.User, *model.AppErr) {
 	rawpw := u.Password
 	u.PreSave()
 	if err := u.Validate(); err != nil {
@@ -91,6 +130,18 @@ func (a *App) GetUserByID(id int64) (*model.User, *model.AppErr) {
 	}
 	user.Sanitize(map[string]bool{})
 	return user, nil
+}
+
+// GetUsers gets all users
+func (a *App) GetUsers(limit, offset int) ([]*model.User, *model.AppErr) {
+	users, err := a.Srv().Store.User().GetAll(limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	for _, u := range users {
+		u.Sanitize(map[string]bool{})
+	}
+	return users, nil
 }
 
 // GetUserByEmail gets the user by his email
@@ -230,6 +281,57 @@ func (a *App) createTokenAndPersist(userID int64, tokenType model.TokenType, exp
 	return token, nil
 }
 
+// PatchUser patches the user
+func (a *App) PatchUser(uid int64, patch *model.UserPatch, fh *multipart.FileHeader) (*model.User, *model.AppErr) {
+	if err := patch.Validate(); err != nil {
+		return nil, err
+	}
+
+	old, err := a.Srv().Store.User().Get(uid)
+	if err != nil {
+		return nil, err
+	}
+
+	oldPublicID := old.AvatarPublicID
+
+	if fh != nil {
+		thumbnail, err := fh.Open()
+		if err != nil {
+			return nil, model.NewAppErr("PatchUser", model.ErrInternal, locale.GetUserLocalizer("en"), msgUserAvatarFileSizeExceeded, http.StatusInternalServerError, nil)
+		}
+		b, err := ioutil.ReadAll(thumbnail)
+		if err != nil {
+			return nil, model.NewAppErr("PatchUser", model.ErrInternal, locale.GetUserLocalizer("en"), msgUploadUserAvatar, http.StatusInternalServerError, nil)
+		}
+
+		details, uErr := a.UploadImage(bytes.NewBuffer(b), fh.Filename)
+		if uErr != nil {
+			return nil, uErr
+		}
+
+		old.SetAvatarDetails(details)
+	}
+
+	old.Patch(patch)
+	old.PreUpdate()
+	uuser, err := a.Srv().Store.User().Update(uid, old)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if oldPublicID != nil && *oldPublicID != "" {
+			if err := a.DeleteImage(*oldPublicID); err != nil {
+				a.Log().Error(err.Error(), zlog.Err(err))
+			}
+		}
+
+	}()
+
+	uuser.Sanitize(map[string]bool{})
+	return uuser, nil
+}
+
 // PatchUserProfile patches the user profile
 func (a *App) PatchUserProfile(id int64, patch *model.UserPatch) (*model.User, *model.AppErr) {
 	old, err := a.Srv().Store.User().Get(id)
@@ -254,6 +356,11 @@ func (a *App) PatchUserProfile(id int64, patch *model.UserPatch) (*model.User, *
 // DeleteUser soft deletes the user account
 func (a *App) DeleteUser(id int64) *model.AppErr {
 	return a.Srv().Store.User().Delete(id)
+}
+
+// DeleteUsers bulk deletes users
+func (a *App) DeleteUsers(ids []int) *model.AppErr {
+	return a.Srv().Store.User().BulkDelete(ids)
 }
 
 // UploadUserAvatar uploads the user profile image and returns the avatar url

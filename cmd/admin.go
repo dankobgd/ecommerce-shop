@@ -85,7 +85,7 @@ func createSuperAdminFn(command *cobra.Command, args []string) error {
 		Role:            model.AdminRole,
 		EmailVerified:   true,
 	}
-	if _, e := cmdApp.CreateUser(u); e != nil {
+	if _, e := cmdApp.CreateUser(u, nil); e != nil {
 		return errors.New(e.Message)
 	}
 

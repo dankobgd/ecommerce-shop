@@ -7,6 +7,7 @@ import (
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/store"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
+	"github.com/jmoiron/sqlx"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -26,10 +27,12 @@ var (
 	msgUpdateUserProfile    = &i18n.Message{ID: "store.postgres.user.update.app_error", Other: "could not update user"}
 	msgBulkInsertUsers      = &i18n.Message{ID: "store.postgres.user.bulk.insert.app_error", Other: "could not bulk insert users"}
 	msgGetUser              = &i18n.Message{ID: "store.postgres.user.get.app_error", Other: "could not get the user"}
+	msgGetUsers             = &i18n.Message{ID: "store.postgres.user.get_all.app_error", Other: "could not get users"}
 	msgVerifyEmail          = &i18n.Message{ID: "store.postgres.user.verify_email.app_error", Other: "could not verify email"}
 	msgDeleteToken          = &i18n.Message{ID: "store.postgres.user.verify_email.delete_token.app_error", Other: "could not delete verify token"}
 	msgUpdatePassword       = &i18n.Message{ID: "store.postgres.user.update_password.app_error", Other: "could not update password"}
 	msgDeleteUser           = &i18n.Message{ID: "store.postgres.user.delete.app_error", Other: "could not delete user"}
+	msgBulkDeleteUsers      = &i18n.Message{ID: "store.postgres.user.bulk_delete.app_error", Other: "could not bulk delete users"}
 	msgUpdateUserAvatar     = &i18n.Message{ID: "store.postgres.user.update_avatar.app_error", Other: "could not delete user avatar"}
 	msgDeleteUserAvatar     = &i18n.Message{ID: "store.postgres.user.delete_avatar.app_error", Other: "could not delete user avatar"}
 
@@ -41,8 +44,8 @@ var (
 
 // BulkInsert inserts multiple users in the db
 func (s PgUserStore) BulkInsert(users []*model.User) *model.AppErr {
-	q := `INSERT INTO public.user(first_name, last_name, username, email, password, role, gender, locale, avatar_url, active, email_verified, failed_attempts, last_login_at, created_at, updated_at, deleted_at) 
-	VALUES(:first_name, :last_name, :username, :email, :password, :role, :gender, :locale, :avatar_url, :active, :email_verified, :failed_attempts, :last_login_at, :created_at, :updated_at, :deleted_at) RETURNING id`
+	q := `INSERT INTO public.user (first_name, last_name, username, email, password, role, gender, locale, avatar_url, avatar_public_id, active, email_verified, failed_attempts, last_login_at, created_at, updated_at, deleted_at) 
+	VALUES (:first_name, :last_name, :username, :email, :password, :role, :gender, :locale, :avatar_url, :avatar_public_id, :active, :email_verified, :failed_attempts, :last_login_at, :created_at, :updated_at, :deleted_at) RETURNING id`
 
 	if _, err := s.db.NamedExec(q, users); err != nil {
 		return model.NewAppErr("PgUserStore.BulkInsert", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkInsertUsers, http.StatusInternalServerError, nil)
@@ -52,8 +55,8 @@ func (s PgUserStore) BulkInsert(users []*model.User) *model.AppErr {
 
 // Save inserts the new user in the db
 func (s PgUserStore) Save(user *model.User) (*model.User, *model.AppErr) {
-	q := `INSERT INTO public.user (first_name, last_name, username, email, password, role, gender, locale, avatar_url, active, email_verified, failed_attempts, last_login_at, created_at, updated_at, deleted_at) 
-	VALUES (:first_name, :last_name, :username, :email, :password, :role, :gender, :locale, :avatar_url, :active, :email_verified, :failed_attempts, :last_login_at, :created_at, :updated_at, :deleted_at) RETURNING id`
+	q := `INSERT INTO public.user (first_name, last_name, username, email, password, role, gender, locale, avatar_url, avatar_public_id, active, email_verified, failed_attempts, last_login_at, created_at, updated_at, deleted_at) 
+	VALUES (:first_name, :last_name, :username, :email, :password, :role, :gender, :locale, :avatar_url, :avatar_public_id, :active, :email_verified, :failed_attempts, :last_login_at, :created_at, :updated_at, :deleted_at) RETURNING id`
 
 	var id int64
 	rows, err := s.db.NamedQuery(q, user)
@@ -76,7 +79,7 @@ func (s PgUserStore) Save(user *model.User) (*model.User, *model.AppErr) {
 
 // Update updates the user profile
 func (s PgUserStore) Update(id int64, u *model.User) (*model.User, *model.AppErr) {
-	q := `UPDATE public.user SET first_name=:first_name, last_name=:last_name, username=:username, email=:email, gender=:gender, locale=:locale, updated_at=:updated_at WHERE id=:id`
+	q := `UPDATE public.user SET first_name=:first_name, last_name=:last_name, username=:username, email=:email, avatar_url=:avatar_url, avatar_public_id=:avatar_public_id, gender=:gender, locale=:locale, updated_at=:updated_at WHERE id=:id`
 	if _, err := s.db.NamedExec(q, u); err != nil {
 		return nil, model.NewAppErr("PgUserStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdateUserProfile, http.StatusInternalServerError, nil)
 	}
@@ -103,7 +106,13 @@ func (s PgUserStore) GetByEmail(email string) (*model.User, *model.AppErr) {
 
 // GetAll returns all users
 func (s PgUserStore) GetAll(limit, offset int) ([]*model.User, *model.AppErr) {
-	return []*model.User{}, nil
+	var users = make([]*model.User, 0)
+
+	if err := s.db.Select(&users, `SELECT COUNT(*) OVER() AS total_count, * FROM public.user WHERE deleted_at IS NULL ORDER BY id DESC LIMIT $1 OFFSET $2`, limit, offset); err != nil {
+		return nil, model.NewAppErr("PgUserStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetUsers, http.StatusInternalServerError, nil)
+	}
+
+	return users, nil
 }
 
 // VerifyEmail updates the email_verified field
@@ -130,6 +139,20 @@ func (s PgUserStore) Delete(id int64) *model.AppErr {
 	if _, err := s.db.NamedExec("UPDATE public.user SET deleted_at = :deleted_at WHERE id = :id", m); err != nil {
 		return model.NewAppErr("PgUserStore.Delete", model.ErrInternal, locale.GetUserLocalizer("en"), msgDeleteUser, http.StatusInternalServerError, nil)
 	}
+	return nil
+}
+
+// BulkDelete deletes users with given ids
+func (s PgUserStore) BulkDelete(ids []int) *model.AppErr {
+	q, args, err := sqlx.In(`DELETE FROM public.user WHERE id IN (?)`, ids)
+	if err != nil {
+		return model.NewAppErr("PgUserStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeleteUsers, http.StatusInternalServerError, nil)
+	}
+
+	if _, err := s.db.Exec(s.db.Rebind(q), args...); err != nil {
+		return model.NewAppErr("PgUserStore.BulkDelete", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkDeleteUsers, http.StatusInternalServerError, nil)
+	}
+
 	return nil
 }
 

@@ -12,6 +12,7 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/dankobgd/ecommerce-shop/config"
+	"github.com/dankobgd/ecommerce-shop/gocloudinary"
 	"github.com/dankobgd/ecommerce-shop/utils/is"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -64,25 +65,25 @@ var (
 // User represents the shop user model
 type User struct {
 	TotalRecordsCount
-	ID              int64      `json:"id" db:"id"`
-	FirstName       string     `json:"first_name" db:"first_name"`
-	LastName        string     `json:"last_name" db:"last_name"`
-	Username        string     `json:"username" db:"username"`
-	Email           string     `json:"email" db:"email"`
-	Password        string     `json:"password,omitempty" db:"password"`
-	ConfirmPassword string     `json:"confirm_password,omitempty"`
-	Gender          *string    `json:"gender" db:"gender"`
-	Role            string     `json:"role" db:"role"`
-	Locale          string     `json:"locale" db:"locale"`
-	AvatarURL       *string    `json:"avatar_url" db:"avatar_url"`
-	AvatarPublicID  *string    `json:"avatar_public_id" db:"avatar_public_id"`
-	Active          bool       `json:"active" db:"active"`
-	EmailVerified   bool       `json:"email_verified" db:"email_verified"`
-	FailedAttempts  int        `json:"failed_attempts,omitempty" db:"failed_attempts"`
-	LastLoginAt     time.Time  `json:"last_login_at" db:"last_login_at"`
-	CreatedAt       time.Time  `json:"created_at" db:"created_at"`
-	UpdatedAt       time.Time  `json:"updated_at" db:"updated_at"`
-	DeletedAt       *time.Time `json:"deleted_at,omitempty" db:"deleted_at"`
+	ID              int64      `json:"id" db:"id" schema:"-"`
+	FirstName       string     `json:"first_name" db:"first_name" schema:"first_name"`
+	LastName        string     `json:"last_name" db:"last_name" schema:"last_name"`
+	Username        string     `json:"username" db:"username" schema:"username"`
+	Email           string     `json:"email" db:"email" schema:"email"`
+	Password        string     `json:"password,omitempty" db:"password" schema:"password"`
+	ConfirmPassword string     `json:"confirm_password,omitempty" schema:"confirm_password"`
+	Gender          *string    `json:"gender" db:"gender" schema:"gender"`
+	Role            string     `json:"role" db:"role" schema:"role"`
+	Locale          string     `json:"locale" db:"locale" schema:"locale"`
+	AvatarURL       *string    `json:"avatar_url" db:"avatar_url" schema:"-"`
+	AvatarPublicID  *string    `json:"avatar_public_id" db:"avatar_public_id" schema:"-"`
+	Active          bool       `json:"active" db:"active" schema:"-"`
+	EmailVerified   bool       `json:"email_verified" db:"email_verified" schema:"-"`
+	FailedAttempts  int        `json:"failed_attempts,omitempty" db:"failed_attempts" schema:"-"`
+	LastLoginAt     time.Time  `json:"last_login_at" db:"last_login_at" schema:"-"`
+	CreatedAt       time.Time  `json:"created_at" db:"created_at" schema:"-"`
+	UpdatedAt       time.Time  `json:"updated_at" db:"updated_at" schema:"-"`
+	DeletedAt       *time.Time `json:"deleted_at,omitempty" db:"deleted_at" schema:"-"`
 	rawpw           string
 }
 
@@ -103,12 +104,12 @@ type UserAddress struct {
 
 // UserPatch is the user patch model
 type UserPatch struct {
-	FirstName string  `json:"first_name"`
-	LastName  string  `json:"last_name"`
-	Username  string  `json:"username"`
-	Email     string  `json:"email"`
-	Gender    *string `json:"gender"`
-	Locale    string  `json:"locale"`
+	FirstName string  `json:"first_name,omitempty" schema:"first_name"`
+	LastName  string  `json:"last_name,omitempty" schema:"last_name"`
+	Username  string  `json:"username,omitempty" schema:"username"`
+	Email     string  `json:"email,omitempty" schema:"email"`
+	Gender    *string `json:"gender,omitempty" schema:"gender"`
+	Locale    string  `json:"locale,omitempty" schema:"locale"`
 }
 
 // Patch patches the user fields that are provided
@@ -164,6 +165,12 @@ func UserLoginFromJSON(data io.Reader) (*UserLogin, error) {
 	var u *UserLogin
 	err := json.NewDecoder(data).Decode(&u)
 	return u, err
+}
+
+// SetAvatarDetails sets the avatar img and public_id
+func (u *User) SetAvatarDetails(details *gocloudinary.ResourceDetails) {
+	u.AvatarURL = NewString(details.SecureURL)
+	u.AvatarPublicID = NewString(details.PublicID)
 }
 
 // IsValidEmail checks if email is valid
