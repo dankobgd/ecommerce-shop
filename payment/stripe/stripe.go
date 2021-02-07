@@ -29,7 +29,7 @@ func (sp *stripePaymentProvider) Name() string {
 	return "Stripe"
 }
 
-func (sp *stripePaymentProvider) Charge(paymentID string, order *model.Order, user *model.User, amount uint64, currency string) (string, error) {
+func (sp *stripePaymentProvider) Charge(paymentID string, order *model.Order, user *model.User, amount uint64, currency string) (*stripe.PaymentIntent, error) {
 	return sp.chargePaymentIntent(paymentID, amount, currency, order, user)
 }
 
@@ -56,7 +56,7 @@ func (sp *stripePaymentProvider) Confirm(paymentID string) error {
 	return err
 }
 
-func (sp *stripePaymentProvider) chargePaymentIntent(paymentMethodID string, amount uint64, currency string, order *model.Order, user *model.User) (string, error) {
+func (sp *stripePaymentProvider) chargePaymentIntent(paymentMethodID string, amount uint64, currency string, order *model.Order, user *model.User) (*stripe.PaymentIntent, error) {
 	params := &stripe.PaymentIntentParams{
 		PaymentMethodTypes: []*string{
 			stripe.String("card"),
@@ -69,18 +69,18 @@ func (sp *stripePaymentProvider) chargePaymentIntent(paymentMethodID string, amo
 	}
 	intent, err := sp.client.PaymentIntents.New(params)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if intent.Status == stripe.PaymentIntentStatusRequiresAction {
-		return intent.ID, fmt.Errorf("PaymentIntent status %s", intent.ClientSecret)
+		return intent, fmt.Errorf("PaymentIntent status %s", intent.ClientSecret)
 	}
 
 	if intent.Status == stripe.PaymentIntentStatusSucceeded {
-		return intent.ID, nil
+		return intent, nil
 	}
 
-	return "", fmt.Errorf("Invalid PaymentIntent status: %s", intent.Status)
+	return nil, fmt.Errorf("Invalid PaymentIntent status: %s", intent.Status)
 }
 
 func prepareShippingAddress(order *model.Order, user *model.User) *stripe.ShippingDetailsParams {

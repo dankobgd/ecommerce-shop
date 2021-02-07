@@ -1,7 +1,9 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"math"
 	"net/http"
 	"net/url"
@@ -11,11 +13,13 @@ import (
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
 	"github.com/dankobgd/ecommerce-shop/zlog"
+	"github.com/jung-kurt/gofpdf"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 var (
 	msgGetAddressGeocodeResult = &i18n.Message{ID: "app.order.get_address_geocode_result.app_error", Other: "could not get geocoding result on given address"}
+	msgCreatePDF               = &i18n.Message{ID: "app.order.details_pdf.app_error", Other: "could not create order details pdf"}
 )
 
 // CreateOrder creates the new order
@@ -54,6 +58,10 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData) (*model.Or
 		total = subtotal
 	}
 
+	var promoCodeName *string
+	var promoCodeType *string
+	var promoCodeAmount *int
+
 	if data.PromoCode != nil && *data.PromoCode != "" {
 		if err := a.GetPromotionStatus(*data.PromoCode, userID); err != nil {
 			return nil, err
@@ -63,6 +71,10 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData) (*model.Or
 		if err != nil {
 			return nil, err
 		}
+
+		promoCodeName = &promo.PromoCode
+		promoCodeType = &promo.Type
+		promoCodeAmount = &promo.Amount
 
 		if promo.Type == "percentage" {
 			t := float64(subtotal) - float64(promo.Amount)/100*float64(subtotal)
@@ -99,11 +111,14 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData) (*model.Or
 	}
 
 	o := &model.Order{
-		UserID:    userID,
-		Subtotal:  subtotal,
-		Total:     total,
-		Status:    model.OrderStatusSuccess.String(),
-		PromoCode: data.PromoCode,
+		UserID:          userID,
+		Subtotal:        subtotal,
+		Total:           total,
+		Status:          model.OrderStatusSuccess.String(),
+		PaymentMethodID: data.PaymentMethodID,
+		PromoCode:       promoCodeName,
+		PromoCodeType:   promoCodeType,
+		PromoCodeAmount: promoCodeAmount,
 	}
 
 	o.BillingAddressLine1 = billAddrInfo.Line1
@@ -164,10 +179,13 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData) (*model.Or
 		o.ShippingAddressLongitude = &sLon
 	}
 
-	_, cErr := a.PaymentProvider().Charge(data.PaymentMethodID, o, user, uint64(o.Total), "usd")
+	pi, cErr := a.PaymentProvider().Charge(data.PaymentMethodID, o, user, uint64(o.Total), "usd")
 	if cErr != nil {
 		return nil, model.NewAppErr("CreateOrder", model.ErrInternal, locale.GetUserLocalizer("en"), &i18n.Message{ID: "app.order.create_order.app_error", Other: "could not charge card: " + cErr.Error()}, http.StatusInternalServerError, nil)
 	}
+
+	o.PaymentIntentID = pi.ID
+	o.ReceiptURL = pi.Charges.Data[0].ReceiptURL
 
 	// save actual order
 	order, err := a.Srv().Store.Order().Save(o)
@@ -178,16 +196,16 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData) (*model.Or
 	orderDetails := make([]*model.OrderDetail, 0)
 	for i, p := range products {
 		detail := &model.OrderDetail{
-			OrderID:       order.ID,
-			ProductID:     p.ID,
-			Quantity:      data.Items[i].Quantity,
-			OriginalPrice: p.Price,
-			OriginalSKU:   p.SKU,
+			OrderID:      order.ID,
+			ProductID:    p.ID,
+			Quantity:     data.Items[i].Quantity,
+			HistoryPrice: p.Price,
+			HistorySKU:   p.SKU,
 		}
 		orderDetails = append(orderDetails, detail)
 	}
 
-	if err := a.CreateOrderDetail(orderDetails); err != nil {
+	if err := a.InsertOrderDetails(orderDetails); err != nil {
 		return nil, err
 	}
 
@@ -217,14 +235,19 @@ func (a *App) UpdateOrder(id int64, o *model.Order) (*model.Order, *model.AppErr
 	return a.Srv().Store.Order().Update(id, o)
 }
 
-// CreateOrderDetail inserts new order details
-func (a *App) CreateOrderDetail(items []*model.OrderDetail) *model.AppErr {
+// InsertOrderDetails inserts new order details
+func (a *App) InsertOrderDetails(items []*model.OrderDetail) *model.AppErr {
 	return a.Srv().Store.OrderDetail().BulkInsert(items)
 }
 
-// GetOrderDetail gets the order detail by id
-func (a *App) GetOrderDetail(id int64) (*model.OrderDetail, *model.AppErr) {
-	return a.Srv().Store.OrderDetail().Get(id)
+// InsertOrderDetail inserts new order detail
+func (a *App) InsertOrderDetail(item *model.OrderDetail) (*model.OrderDetail, *model.AppErr) {
+	return a.Srv().Store.OrderDetail().Save(item)
+}
+
+// GetOrderDetails gets the order details for the order id
+func (a *App) GetOrderDetails(orderID int64) ([]*model.OrderInfo, *model.AppErr) {
+	return a.Srv().Store.OrderDetail().GetAll(orderID)
 }
 
 // GetAddressGeocodeResult gets the lat, lng etc...
@@ -252,4 +275,221 @@ func (a *App) GetAddressGeocodeResult(addr *model.Address) (*model.GeocodingResu
 
 	// maybe return the one with highest importance points...
 	return result[0], nil
+}
+
+const (
+	logoH   = 94.0
+	xIndent = 40.0
+)
+
+// GenerateOrderDetailsPDF creates the pdf
+func (a *App) GenerateOrderDetailsPDF(o *model.Order, details []*model.OrderInfo, user *model.User) (bytes.Buffer, *model.AppErr) {
+	pdf := gofpdf.New(gofpdf.OrientationPortrait, gofpdf.UnitPoint, gofpdf.PageSizeLetter, "")
+	w, h := pdf.GetPageSize()
+	pdf.AddPage()
+
+	// Top skewed header background
+	pdf.SetFillColor(103, 60, 79)
+	pdf.Polygon([]gofpdf.PointType{
+		{X: 0, Y: 0},
+		{X: w, Y: 0},
+		{X: w, Y: logoH},
+		{X: 0, Y: logoH * 0.9},
+	}, "F")
+	pdf.Polygon([]gofpdf.PointType{
+		{X: 0, Y: h},
+		{X: 0, Y: h - (logoH * 0.2)},
+		{X: w, Y: h - (logoH * 0.1)},
+		{X: w, Y: h},
+	}, "F")
+
+	// header invoice
+	pdf.SetFont("arial", "B", 40)
+	pdf.SetTextColor(255, 255, 255)
+	_, lineHt := pdf.GetFontSize()
+	pdf.Text(xIndent, logoH-(logoH/2.0)+lineHt/3.1, "INVOICE")
+
+	// logo
+	pdf.ImageOptions("./static/images/invoice.jpg", 272.0, 0+(logoH-(logoH/1.5))/2.0, 0, logoH/1.5, false, gofpdf.ImageOptions{
+		ReadDpi: true,
+	}, 0, "")
+
+	// user details
+	userDetails := make([]string, 0)
+	userDetails = append(userDetails, fmt.Sprintf("Name: %s", user.FirstName), fmt.Sprintf("Surname: %s", user.LastName), fmt.Sprintf("Email: %s", user.Email))
+	formattedUserDetails := ""
+	for _, x := range userDetails {
+		formattedUserDetails += fmt.Sprintf("%s\n", x)
+	}
+
+	pdf.SetFont("arial", "", 12)
+	pdf.SetTextColor(255, 255, 255)
+	_, lineHt = pdf.GetFontSize()
+	pdf.MoveTo(w-xIndent-2.0*124.0+60, (logoH-(lineHt*1.5*3.0))/2.0)
+	pdf.MultiCell(124.0, lineHt*1.5, formattedUserDetails, gofpdf.BorderNone, gofpdf.AlignRight, false)
+
+	// addr details
+	billAddrDetails := make([]string, 0)
+	billAddrDetails = append(billAddrDetails, o.BillingAddressLine1)
+	if o.BillingAddressLine2 != nil && *o.BillingAddressLine2 != "" {
+		billAddrDetails = append(billAddrDetails, *o.BillingAddressLine2)
+	}
+	billAddrDetails = append(billAddrDetails, o.BillingAddressCity, o.BillingAddressCountry)
+	if o.BillingAddressZIP != nil && *o.BillingAddressZIP != "" {
+		billAddrDetails = append(billAddrDetails, *o.BillingAddressZIP)
+	}
+
+	shipAddrDetails := make([]string, 0)
+	shipAddrDetails = append(shipAddrDetails, o.BillingAddressLine1)
+	if o.BillingAddressLine2 != nil && *o.BillingAddressLine2 != "" {
+		shipAddrDetails = append(shipAddrDetails, *o.BillingAddressLine2)
+	}
+	shipAddrDetails = append(shipAddrDetails, o.BillingAddressCity, o.BillingAddressCountry)
+	if o.BillingAddressZIP != nil && *o.BillingAddressZIP != "" {
+		shipAddrDetails = append(shipAddrDetails, *o.BillingAddressZIP)
+	}
+
+	// Summary - billing / shipping address
+	_, sy := summaryBlock(pdf, xIndent, logoH+lineHt*2.0, "Billing Address", billAddrDetails...)
+	summaryBlock(pdf, xIndent+200.0, logoH+lineHt*2.0, "Shipping Address", shipAddrDetails...)
+
+	// Summary - Invoice Total
+	x, y := w-xIndent-124.0, logoH+lineHt*2.25
+	pdf.MoveTo(x, y)
+	pdf.SetFont("times", "", 14)
+	_, lineHt = pdf.GetFontSize()
+	pdf.SetTextColor(180, 180, 180)
+	pdf.CellFormat(124.0, lineHt, "Invoice Total", gofpdf.BorderNone, gofpdf.LineBreakNone, gofpdf.AlignRight, false, 0, "")
+	x, y = x+2.0, y+lineHt*1.5
+	pdf.MoveTo(x, y)
+	pdf.SetFont("times", "", 48)
+	_, lineHt = pdf.GetFontSize()
+	alpha := 58
+	pdf.SetTextColor(72+alpha, 42+alpha, 55+alpha)
+	pdf.CellFormat(124.0, lineHt, toUSD(o.Total), gofpdf.BorderNone, gofpdf.LineBreakNone, gofpdf.AlignRight, false, 0, "")
+	x, y = x-2.0, y+lineHt*1.25
+
+	if sy > y {
+		y = sy
+	}
+	x, y = xIndent-20.0, y+30.0
+	pdf.Rect(x, y, w-(xIndent*2.0)+40.0, 3.0, "F")
+
+	// Line Items - headers
+	pdf.SetFont("times", "", 14)
+	_, lineHt = pdf.GetFontSize()
+	pdf.SetTextColor(180, 180, 180)
+	x, y = xIndent-2.0, y+lineHt
+	pdf.MoveTo(x, y)
+	pdf.CellFormat(w/2.65+1.5, lineHt, "Name", gofpdf.BorderNone, gofpdf.LineBreakNone, gofpdf.AlignLeft, false, 0, "")
+	x = x + w/2.65 + 1.5
+	pdf.MoveTo(x, y)
+	pdf.CellFormat(100.0, lineHt, "Price", gofpdf.BorderNone, gofpdf.LineBreakNone, gofpdf.AlignRight, false, 0, "")
+	x = x + 100.0
+	pdf.MoveTo(x, y)
+	pdf.CellFormat(80.0, lineHt, "Quantity", gofpdf.BorderNone, gofpdf.LineBreakNone, gofpdf.AlignRight, false, 0, "")
+	x = w - xIndent - 2.0 - 119.5
+	pdf.MoveTo(x, y)
+	pdf.CellFormat(119.5, lineHt, "Summed Price", gofpdf.BorderNone, gofpdf.LineBreakNone, gofpdf.AlignRight, false, 0, "")
+
+	// Line Items - real data
+	y = y + lineHt
+
+	for _, dtl := range details {
+		x, y = lineItem(pdf, x, y, dtl)
+	}
+
+	// Subtotal etc
+	x, y = w/1.75, y+lineHt*2.25
+	x, y = trailerLine(pdf, x, y, "Subtotal", toUSD(o.Subtotal))
+
+	if o.PromoCode != nil && *o.PromoCode != "" {
+		promoStr := fmt.Sprintf("-%v", toUSD(*o.PromoCodeAmount))
+		if *o.PromoCodeType == "percentage" {
+			promoStr = fmt.Sprintf("-%v%%", *o.PromoCodeAmount)
+		}
+		x, y = trailerLine(pdf, x, y, "Promo Code", promoStr)
+	}
+
+	pdf.SetDrawColor(180, 180, 180)
+	pdf.Line(x+10.0, y, x+220.0, y)
+	y = y + lineHt*0.5
+	x, y = trailerLine(pdf, x, y, "Total Charge", toUSD(o.Total))
+
+	var buf bytes.Buffer
+
+	if err := pdf.Output(&buf); err != nil {
+		return buf, model.NewAppErr("PDF", model.ErrInternal, locale.GetUserLocalizer("en"), msgCreatePDF, http.StatusInternalServerError, nil)
+	}
+
+	return buf, nil
+}
+
+func trailerLine(pdf *gofpdf.Fpdf, x, y float64, label string, formattedAmount string) (float64, float64) {
+	origX := x
+	w, _ := pdf.GetPageSize()
+	pdf.SetFont("times", "", 14)
+	_, lineHt := pdf.GetFontSize()
+	pdf.SetTextColor(180, 180, 180)
+	pdf.MoveTo(x, y)
+	pdf.CellFormat(80.0, lineHt, label, gofpdf.BorderNone, gofpdf.LineBreakNone, gofpdf.AlignRight, false, 0, "")
+	x = w - xIndent - 2.0 - 119.5
+	pdf.MoveTo(x, y)
+	pdf.SetTextColor(50, 50, 50)
+	pdf.CellFormat(119.5, lineHt, formattedAmount, gofpdf.BorderNone, gofpdf.LineBreakNone, gofpdf.AlignRight, false, 0, "")
+	y = y + lineHt*1.5
+	return origX, y
+}
+
+func toUSD(cents int) string {
+	centsStr := fmt.Sprintf("%d", cents%100)
+	if len(centsStr) < 2 {
+		centsStr = "0" + centsStr
+	}
+	return fmt.Sprintf("$%d.%s", cents/100, centsStr)
+}
+
+func lineItem(pdf *gofpdf.Fpdf, x, y float64, item *model.OrderInfo) (float64, float64) {
+	origX := x
+	w, _ := pdf.GetPageSize()
+	pdf.SetFont("times", "", 14)
+	_, lineHt := pdf.GetFontSize()
+	pdf.SetTextColor(50, 50, 50)
+	pdf.MoveTo(x, y)
+	x, y = xIndent-2.0, y+lineHt*.75
+	pdf.MoveTo(x, y)
+	pdf.MultiCell(w/2.65+1.5, lineHt, item.Product.Name, gofpdf.BorderNone, gofpdf.AlignLeft, false)
+	tmp := pdf.SplitLines([]byte(item.Product.Name), w/2.65+1.5)
+	maxY := y + float64(len(tmp)-1)*lineHt
+	x = x + w/2.65 + 1.5
+	pdf.MoveTo(x, y)
+	pdf.CellFormat(100.0, lineHt, toUSD(item.HistoryPrice), gofpdf.BorderNone, gofpdf.LineBreakNone, gofpdf.AlignRight, false, 0, "")
+	x = x + 100.0
+	pdf.MoveTo(x, y)
+	pdf.CellFormat(80.0, lineHt, fmt.Sprintf("%d", item.Quantity), gofpdf.BorderNone, gofpdf.LineBreakNone, gofpdf.AlignRight, false, 0, "")
+	x = w - xIndent - 2.0 - 119.5
+	pdf.MoveTo(x, y)
+	pdf.CellFormat(119.5, lineHt, toUSD(item.HistoryPrice*item.Quantity), gofpdf.BorderNone, gofpdf.LineBreakNone, gofpdf.AlignRight, false, 0, "")
+	if maxY > y {
+		y = maxY
+	}
+	y = y + lineHt*1.75
+	pdf.SetDrawColor(180, 180, 180)
+	pdf.Line(xIndent-10.0, y, w-xIndent+10.0, y)
+	return origX, y
+}
+
+func summaryBlock(pdf *gofpdf.Fpdf, x, y float64, title string, data ...string) (float64, float64) {
+	pdf.SetFont("times", "", 14)
+	pdf.SetTextColor(180, 180, 180)
+	_, lineHt := pdf.GetFontSize()
+	y = y + lineHt
+	pdf.Text(x, y, title)
+	y = y + lineHt*.25
+	pdf.SetTextColor(50, 50, 50)
+	for _, str := range data {
+		y = y + lineHt*1.25
+		pdf.Text(x, y, str)
+	}
+	return x, y
 }

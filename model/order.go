@@ -45,11 +45,16 @@ type Order struct {
 	ID                       int64      `json:"id" db:"id"`
 	UserID                   int64      `json:"user_id" db:"user_id"`
 	PromoCode                *string    `json:"promo_code" db:"promo_code"`
+	PromoCodeType            *string    `json:"promo_code_type" db:"promo_code_type"`
+	PromoCodeAmount          *int       `json:"promo_code_amount" db:"promo_code_amount"`
 	Status                   string     `json:"status" db:"status"`
 	Subtotal                 int        `json:"subtotal" db:"subtotal"`
 	Total                    int        `json:"total" db:"total"`
 	ShippedAt                *time.Time `json:"shipped_at" db:"shipped_at"`
 	CreatedAt                time.Time  `json:"created_at" db:"created_at"`
+	PaymentMethodID          string     `json:"payment_method_id" db:"payment_method_id"`
+	PaymentIntentID          string     `json:"payment_intent_id" db:"payment_intent_id"`
+	ReceiptURL               string     `json:"receipt_url" db:"receipt_url"`
 	BillingAddressLine1      string     `json:"billing_address_line_1,omitempty" db:"billing_address_line_1"`
 	BillingAddressLine2      *string    `json:"billing_address_line_2,omitempty" db:"billing_address_line_2"`
 	BillingAddressCity       string     `json:"billing_address_city,omitempty" db:"billing_address_city"`

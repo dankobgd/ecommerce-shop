@@ -28,8 +28,8 @@ var (
 
 // Save creates the new order
 func (s PgOrderStore) Save(o *model.Order) (*model.Order, *model.AppErr) {
-	q := `INSERT INTO public.order (user_id, promo_code, status, subtotal, total, shipped_at, created_at, billing_address_line_1, billing_address_line_2, billing_address_city, billing_address_country, billing_address_state, billing_address_zip, billing_address_latitude, billing_address_longitude, shipping_address_line_1, shipping_address_line_2, shipping_address_city, shipping_address_country, shipping_address_state, shipping_address_zip, shipping_address_latitude, shipping_address_longitude) 
-	VALUES (:user_id, :promo_code, :status, :subtotal, :total, :shipped_at, :created_at, :billing_address_line_1, :billing_address_line_2, :billing_address_city, :billing_address_country, :billing_address_state, :billing_address_zip, :billing_address_latitude, :billing_address_longitude, :shipping_address_line_1, :shipping_address_line_2, :shipping_address_city, :shipping_address_country, :shipping_address_state, :shipping_address_zip, :shipping_address_latitude, :shipping_address_longitude) RETURNING id`
+	q := `INSERT INTO public.order (user_id, promo_code, promo_code_type, promo_code_amount, status, subtotal, total, shipped_at, created_at, payment_method_id, payment_intent_id, receipt_url, billing_address_line_1, billing_address_line_2, billing_address_city, billing_address_country, billing_address_state, billing_address_zip, billing_address_latitude, billing_address_longitude, shipping_address_line_1, shipping_address_line_2, shipping_address_city, shipping_address_country, shipping_address_state, shipping_address_zip, shipping_address_latitude, shipping_address_longitude) 
+	VALUES (:user_id, :promo_code, :promo_code_type, :promo_code_amount, :status, :subtotal, :total, :shipped_at, :created_at, :payment_method_id, :payment_intent_id, :receipt_url, :billing_address_line_1, :billing_address_line_2, :billing_address_city, :billing_address_country, :billing_address_state, :billing_address_zip, :billing_address_latitude, :billing_address_longitude, :shipping_address_line_1, :shipping_address_line_2, :shipping_address_city, :shipping_address_country, :shipping_address_state, :shipping_address_zip, :shipping_address_latitude, :shipping_address_longitude) RETURNING id`
 
 	var id int64
 	rows, err := s.db.NamedQuery(q, o)
@@ -71,7 +71,7 @@ func (s PgOrderStore) Get(id int64) (*model.Order, *model.AppErr) {
 // GetAll returns all orders
 func (s PgOrderStore) GetAll(limit, offset int) ([]*model.Order, *model.AppErr) {
 	var orders = make([]*model.Order, 0)
-	if err := s.db.Select(&orders, `SELECT COUNT(*) OVER() AS total_count, * FROM public.order LIMIT $1 OFFSET $2`, limit, offset); err != nil {
+	if err := s.db.Select(&orders, `SELECT COUNT(*) OVER() AS total_count, * FROM public.order ORDER BY created_at DESC LIMIT $1 OFFSET $2`, limit, offset); err != nil {
 		return nil, model.NewAppErr("PgOrderStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetOrders, http.StatusInternalServerError, nil)
 	}
 

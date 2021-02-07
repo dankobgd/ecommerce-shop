@@ -23,9 +23,10 @@ var (
 // InitPromotions inits the promotion routes
 func InitPromotions(a *API) {
 	a.Routes.Promotions.Post("/", a.AdminSessionRequired(a.createPromotion))
-	a.Routes.Promotions.Get("/", a.AdminSessionRequired(a.getPromotions))
+	a.Routes.Promotions.Get("/", a.SessionRequired(a.getPromotions))
 	a.Routes.Promotions.Delete("/bulk", a.AdminSessionRequired(a.deletePromotions))
-	a.Routes.Promotion.Get("/", a.AdminSessionRequired(a.getPromotion))
+
+	a.Routes.Promotion.Get("/", a.SessionRequired(a.getPromotion))
 	a.Routes.Promotion.Patch("/", a.AdminSessionRequired(a.patchPromotion))
 	a.Routes.Promotion.Delete("/", a.AdminSessionRequired(a.deletePromotion))
 	a.Routes.Promotion.Get("/valid", a.SessionRequired(a.getPromotionIsValid))

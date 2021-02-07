@@ -14,7 +14,7 @@ type PgStore struct {
 
 // Connect establishes connection to postgres db
 func Connect() (*sqlx.DB, error) {
-	db, err := sqlx.Connect("pgx", "host=localhost user=test password=test dbname=ecommerce sslmode=disable")
+	db, err := sqlx.Connect("pgx", "host=localhost port=5432 user=test password=test dbname=ecommerce sslmode=disable")
 	if err != nil {
 		log.Fatalln(err)
 		return nil, err

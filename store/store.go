@@ -124,8 +124,7 @@ type OrderStore interface {
 type OrderDetailStore interface {
 	BulkInsert(items []*model.OrderDetail) *model.AppErr
 	Save(od *model.OrderDetail) (*model.OrderDetail, *model.AppErr)
-	Get(id int64) (*model.OrderDetail, *model.AppErr)
-	GetAll(limit, offset int) ([]*model.OrderDetail, *model.AppErr)
+	GetAll(orderID int64) ([]*model.OrderInfo, *model.AppErr)
 }
 
 // AddressStore is the contact address store

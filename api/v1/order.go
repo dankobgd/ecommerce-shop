@@ -1,6 +1,9 @@
 package apiv1
 
 import (
+	"bytes"
+	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -19,7 +22,10 @@ var (
 func InitOrder(a *API) {
 	a.Routes.Orders.Post("/", a.SessionRequired(a.createOrder))
 	a.Routes.Orders.Get("/", a.SessionRequired(a.getOrders))
+
 	a.Routes.Order.Get("/", a.SessionRequired(a.getOrder))
+	a.Routes.Order.Get("/details", a.SessionRequired(a.getOrderDetails))
+	a.Routes.Order.Get("/details/pdf", a.SessionRequired(a.getOrderDetailsPDF))
 }
 
 func (a *API) createOrder(w http.ResponseWriter, r *http.Request) {
@@ -68,4 +74,56 @@ func (a *API) getOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondJSON(w, http.StatusOK, order)
+}
+
+func (a *API) getOrderDetails(w http.ResponseWriter, r *http.Request) {
+	oid, e := strconv.ParseInt(chi.URLParam(r, "order_id"), 10, 64)
+	if e != nil {
+		respondError(w, model.NewAppErr("getOrderDetails", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
+		return
+	}
+	details, err := a.app.GetOrderDetails(oid)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+	respondJSON(w, http.StatusOK, details)
+}
+
+func (a *API) getOrderDetailsPDF(w http.ResponseWriter, r *http.Request) {
+	oid, e := strconv.ParseInt(chi.URLParam(r, "order_id"), 10, 64)
+	if e != nil {
+		respondError(w, model.NewAppErr("getOrderDetailsPDF", model.ErrInternal, locale.GetUserLocalizer("en"), msgURLParamErr, http.StatusInternalServerError, nil))
+		return
+	}
+
+	order, err := a.app.GetOrder(oid)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	details, err := a.app.GetOrderDetails(oid)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	user, err := a.app.GetUserByID(order.UserID)
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	pdf, pdfErr := a.app.GenerateOrderDetailsPDF(order, details, user)
+	if pdfErr != nil {
+		respondError(w, pdfErr)
+	}
+
+	t := order.CreatedAt
+	filename := fmt.Sprintf("%02d-%02d-%d-%02d:%02d:%02d-order-invoice.pdf", t.Month(), t.Day(), t.Year(), t.Hour(), t.Minute(), t.Second())
+
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", filename))
+	io.Copy(w, bytes.NewReader(pdf.Bytes()))
 }

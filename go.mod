@@ -16,11 +16,13 @@ require (
 	github.com/jmoiron/sqlx v1.2.1-0.20200615141059-0794cb1f47ee
 	github.com/joho/godotenv v1.3.0
 	github.com/jordan-wright/email v0.0.0-20200602115436-fd8a7622303e
+	github.com/jung-kurt/gofpdf v1.16.2
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.6.0 // indirect
 	github.com/mattn/go-sqlite3 v1.11.0 // indirect
 	github.com/nicksnyder/go-i18n/v2 v2.0.3
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rs/cors v1.7.0
 	github.com/sendgrid/rest v2.6.0+incompatible // indirect
 	github.com/sendgrid/sendgrid-go v3.6.0+incompatible

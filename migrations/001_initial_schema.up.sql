@@ -185,11 +185,16 @@ create table public.order (
   id int generated always as identity primary key,
   user_id int not null,
   promo_code varchar(30),
+  promo_code_type varchar(30),
+  promo_code_amount int,  
   status varchar(30) default 'pending' not null,
   subtotal int not null,
   total int not null,
   shipped_at timestamptz,
   created_at timestamptz not null,
+  payment_method_id text not null,
+  payment_intent_id text not null,
+  receipt_url text not null,
   billing_address_line_1 text not null,
   billing_address_line_2 text,
   billing_address_city text not null,
@@ -214,8 +219,8 @@ create table public.order_detail (
   order_id int,
   product_id int,
   quantity int not null,
-  original_price int not null,
-  original_sku text not null,
+  history_price int not null,
+  history_sku text not null,
   primary key (order_id, product_id)
 );
 
