@@ -24,17 +24,18 @@ func NewPgProductStore(pgst *PgStore) store.ProductStore {
 }
 
 var (
-	msgBulkInsertProducts = &i18n.Message{ID: "store.postgres.product.bulk_insert.app_error", Other: "could not bulk insert products"}
-	msgSaveProduct        = &i18n.Message{ID: "store.postgres.product.save.app_error", Other: "could not save product"}
-	msgGetProduct         = &i18n.Message{ID: "store.postgres.product.get.app_error", Other: "could not get product"}
-	msgGetProducts        = &i18n.Message{ID: "store.postgres.product.get_all.app_error", Other: "could not get products"}
-	msgUpdateProduct      = &i18n.Message{ID: "store.postgres.product.update.app_error", Other: "could not update product"}
-	msgDeleteProduct      = &i18n.Message{ID: "store.postgres.product.delete.app_error", Other: "could not delete product"}
-	msgInvalidColumn      = &i18n.Message{ID: "store.postgres.product.save.app_error", Other: "could not save product, invalid foreign key value"}
-	msgGetPricing         = &i18n.Message{ID: "store.postgres.product.get_pricing.app_error", Other: "could not get latest pricing"}
-	msgSavePricing        = &i18n.Message{ID: "store.postgres.product.insert_pricing.app_error", Other: "could not insert pricing data"}
-	msgUpdatePricing      = &i18n.Message{ID: "store.postgres.product.update_pricing.app_error", Other: "could not update pricing data"}
-	msgBulkDeleteProducts = &i18n.Message{ID: "store.postgres.product.bulk_delete.app_error", Other: "could not bulk delete products"}
+	msgUniqueConstraintProduct = &i18n.Message{ID: "store.postgres.product.save.unique_constraint.app_error", Other: "invalid product foreign key"}
+	msgBulkInsertProducts      = &i18n.Message{ID: "store.postgres.product.bulk_insert.app_error", Other: "could not bulk insert products"}
+	msgSaveProduct             = &i18n.Message{ID: "store.postgres.product.save.app_error", Other: "could not save product"}
+	msgGetProduct              = &i18n.Message{ID: "store.postgres.product.get.app_error", Other: "could not get product"}
+	msgGetProducts             = &i18n.Message{ID: "store.postgres.product.get_all.app_error", Other: "could not get products"}
+	msgUpdateProduct           = &i18n.Message{ID: "store.postgres.product.update.app_error", Other: "could not update product"}
+	msgDeleteProduct           = &i18n.Message{ID: "store.postgres.product.delete.app_error", Other: "could not delete product"}
+	msgInvalidColumn           = &i18n.Message{ID: "store.postgres.product.save.app_error", Other: "could not save product, invalid foreign key value"}
+	msgGetPricing              = &i18n.Message{ID: "store.postgres.product.get_pricing.app_error", Other: "could not get latest pricing"}
+	msgSavePricing             = &i18n.Message{ID: "store.postgres.product.insert_pricing.app_error", Other: "could not insert pricing data"}
+	msgUpdatePricing           = &i18n.Message{ID: "store.postgres.product.update_pricing.app_error", Other: "could not update pricing data"}
+	msgBulkDeleteProducts      = &i18n.Message{ID: "store.postgres.product.bulk_delete.app_error", Other: "could not bulk delete products"}
 )
 
 // BulkInsert inserts multiple products into db
@@ -382,13 +383,22 @@ func (s PgProductStore) InsertPricing(pricing *model.ProductPricing) (*model.Pro
 	}
 	if err := rows.Err(); err != nil {
 		if IsUniqueConstraintViolationError(err) {
-			return nil, model.NewAppErr("PgProductStore.InsertPricing", model.ErrConflict, locale.GetUserLocalizer("en"), msgUniqueConstraintBrand, http.StatusInternalServerError, nil)
+			return nil, model.NewAppErr("PgProductStore.InsertPricing", model.ErrConflict, locale.GetUserLocalizer("en"), msgUniqueConstraintProduct, http.StatusInternalServerError, nil)
 		}
 		return nil, model.NewAppErr("PgProductStore.InsertPricing", model.ErrInternal, locale.GetUserLocalizer("en"), msgSavePricing, http.StatusInternalServerError, nil)
 	}
 
 	pricing.PriceID = id
 	return pricing, nil
+}
+
+// InsertPricingBulk bulk inserts the price info into product_pricing
+func (s PgProductStore) InsertPricingBulk(pricing []*model.ProductPricing) *model.AppErr {
+	q := `INSERT INTO product_pricing(product_id, price, original_price, sale_starts, sale_ends) VALUES(:product_id, :price, :original_price, :sale_starts, :sale_ends) RETURNING id`
+	if _, err := s.db.NamedExec(q, pricing); err != nil {
+		return model.NewAppErr("PgProductStore.InsertPricingBulk", model.ErrConflict, locale.GetUserLocalizer("en"), msgUniqueConstraintProduct, http.StatusInternalServerError, nil)
+	}
+	return nil
 }
 
 // UpdatePricing updates the ProductPricing

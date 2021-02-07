@@ -106,13 +106,13 @@ func seedDatabaseFn(command *cobra.Command, args []string) error {
 	if err := seedTags(); err != nil {
 		return err
 	}
+	if err := seedPromotions(); err != nil {
+		return err
+	}
 	if err := seedProducts(); err != nil {
 		return err
 	}
 	if err := seedReviews(); err != nil {
-		return err
-	}
-	if err := seedPromotions(); err != nil {
 		return err
 	}
 	cmdApp.Log().Info("database seed completed successfully")
@@ -291,12 +291,6 @@ type productSeed struct {
 	Properties    types.JSONText `json:"properties"`
 }
 
-type productData struct {
-	Prod *model.Product
-	Tags []*model.ProductTag
-	Imgs []*model.ProductImage
-}
-
 // seedProducts populates the product table
 func seedProducts() error {
 	var ps []*productSeed
@@ -311,11 +305,13 @@ func seedProducts() error {
 		return err
 	}
 
-	productDataList := make([]*productData, 0)
+	products := make([]*model.Product, 0)
+	pricings := make([]*model.ProductPricing, 0)
+	productTags := make([]*model.ProductTag, 0)
+	productImgs := make([]*model.ProductImage, 0)
 
-	for _, x := range ps {
+	for i, x := range ps {
 		p := &model.Product{
-			ID:            x.ID,
 			BrandID:       x.BrandID,
 			CategoryID:    x.CategoryID,
 			Name:          x.Name,
@@ -333,17 +329,16 @@ func seedProducts() error {
 			},
 		}
 
-		tagList := make([]*model.ProductTag, 0)
-		imgList := make([]*model.ProductImage, 0)
-
 		for _, tagID := range x.Tags {
-			tagList = append(tagList, &model.ProductTag{
-				TagID: model.NewInt64(tagID),
+			productTags = append(productTags, &model.ProductTag{
+				TagID:     model.NewInt64(tagID),
+				ProductID: model.NewInt64(int64(i + 1)),
 			})
 		}
 		for _, img := range x.Images {
 			now := time.Now()
-			imgList = append(imgList, &model.ProductImage{
+			productImgs = append(productImgs, &model.ProductImage{
+				ProductID: model.NewInt64(int64(i + 1)),
 				URL:       model.NewString(img),
 				PublicID:  model.NewString(""),
 				CreatedAt: &now,
@@ -351,43 +346,42 @@ func seedProducts() error {
 			})
 		}
 
-		pdata := &productData{
-			Prod: p,
-			Tags: tagList,
-			Imgs: imgList,
+		price := &model.ProductPricing{
+			ProductID:     int64(i + 1),
+			Price:         x.Price,
+			OriginalPrice: x.Price,
+			SaleStarts:    time.Now(),
+			SaleEnds:      model.FutureSaleEndsTime,
 		}
 
-		productDataList = append(productDataList, pdata)
+		products = append(products, p)
+		pricings = append(pricings, price)
 	}
 
-	for _, item := range productDataList {
-		item.Prod.PreSave()
-		newProd, err := cmdApp.Srv().Store.Product().Save(item.Prod)
-		if err != nil {
-			cmdApp.Log().Error("could not seed save product", zlog.String("err: ", err.Message))
-			return err
-		}
+	for _, p := range products {
+		p.PreSave()
+	}
+	if err := cmdApp.Srv().Store.Product().BulkInsert(products); err != nil {
+		cmdApp.Log().Error("could not seed products", zlog.String("err: ", err.Message))
+		return err
+	}
 
-		for _, tag := range item.Tags {
-			tag.ProductID = &newProd.ID
-		}
-		if len(item.Tags) > 0 {
-			if err := cmdApp.Srv().Store.ProductTag().BulkInsert(item.Tags); err != nil {
-				cmdApp.Log().Error("could not seed bulk insert tags", zlog.String("err: ", err.Message))
-				return err
-			}
-		}
+	if err := cmdApp.Srv().Store.Product().InsertPricingBulk(pricings); err != nil {
+		cmdApp.Log().Error("could not seed product pricings", zlog.String("err: ", err.Message))
+		return err
+	}
 
-		for _, img := range item.Imgs {
-			img.ProductID = &newProd.ID
-			img.PreSave()
-		}
-		if len(item.Imgs) > 0 {
-			if err := cmdApp.Srv().Store.ProductImage().BulkInsert(item.Imgs); err != nil {
-				cmdApp.Log().Error("could not seed bulk insert images", zlog.String("err: ", err.Message))
-				return err
-			}
-		}
+	if err := cmdApp.Srv().Store.ProductTag().BulkInsert(productTags); err != nil {
+		cmdApp.Log().Error("could not seed bulk insert product tags", zlog.String("err: ", err.Message))
+		return err
+	}
+
+	for _, img := range productImgs {
+		img.PreSave()
+	}
+	if err := cmdApp.Srv().Store.ProductImage().BulkInsert(productImgs); err != nil {
+		cmdApp.Log().Error("could not seed bulk insert product images", zlog.String("err: ", err.Message))
+		return err
 	}
 
 	cmdApp.Log().Info("products seeded")

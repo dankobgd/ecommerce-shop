@@ -73,6 +73,7 @@ type ProductStore interface {
 	GetReviews(id int64) ([]*model.ProductReview, *model.AppErr)
 	Search(query string) ([]*model.Product, *model.AppErr)
 	GetLatestPricing(pid int64) (*model.ProductPricing, *model.AppErr)
+	InsertPricingBulk(pricing []*model.ProductPricing) *model.AppErr
 	InsertPricing(pricing *model.ProductPricing) (*model.ProductPricing, *model.AppErr)
 	UpdatePricing(pricing *model.ProductPricing) (*model.ProductPricing, *model.AppErr)
 }
