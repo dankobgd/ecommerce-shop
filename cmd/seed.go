@@ -2,13 +2,19 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
+	"math"
+	"math/rand"
+	"os"
 	"time"
 
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/zlog"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/spf13/cobra"
+	"github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/paymentmethod"
 )
 
 var seedCmd = &cobra.Command{
@@ -18,79 +24,8 @@ var seedCmd = &cobra.Command{
 	PreRun: loadApp,
 }
 
-var seedUsersCmd = &cobra.Command{
-	Use:    "users",
-	Short:  "seed users",
-	RunE:   seedUsersFn,
-	PreRun: loadApp,
-}
-
-var seedProductsCmd = &cobra.Command{
-	Use:    "products",
-	Short:  "seed products",
-	RunE:   seedProductsFn,
-	PreRun: loadApp,
-}
-
-var seedCategoriesCmd = &cobra.Command{
-	Use:    "categories",
-	Short:  "seed categories",
-	RunE:   seedCategoriesFn,
-	PreRun: loadApp,
-}
-
-var seedBrandsCmd = &cobra.Command{
-	Use:    "brands",
-	Short:  "seed brands",
-	RunE:   seedBrandsFn,
-	PreRun: loadApp,
-}
-
-var seedTagsCmd = &cobra.Command{
-	Use:    "tags",
-	Short:  "seed tags",
-	RunE:   seedTagsFn,
-	PreRun: loadApp,
-}
-
-var seedReviewsCmd = &cobra.Command{
-	Use:    "reviews",
-	Short:  "seed reviews",
-	RunE:   seedReviewsFn,
-	PreRun: loadApp,
-}
-
 func init() {
-	seedCmd.AddCommand(seedUsersCmd, seedProductsCmd, seedCategoriesCmd, seedBrandsCmd, seedTagsCmd)
 	rootCmd.AddCommand(seedCmd)
-}
-
-func seedUsersFn(command *cobra.Command, args []string) error {
-	return seedUsers()
-}
-
-func seedCategoriesFn(command *cobra.Command, args []string) error {
-	return seedCategories()
-}
-
-func seedBrandsFn(command *cobra.Command, args []string) error {
-	return seedBrands()
-}
-
-func seedTagsFn(command *cobra.Command, args []string) error {
-	return seedTags()
-}
-
-func seedReviewsFn(command *cobra.Command, args []string) error {
-	return seedReviews()
-}
-
-func seedPromotionsFn(command *cobra.Command, args []string) error {
-	return seedPromotions()
-}
-
-func seedProductsFn(command *cobra.Command, args []string) error {
-	return seedProducts()
 }
 
 func seedDatabaseFn(command *cobra.Command, args []string) error {
@@ -112,7 +47,13 @@ func seedDatabaseFn(command *cobra.Command, args []string) error {
 	if err := seedProducts(); err != nil {
 		return err
 	}
+	if err := seedDiscounts(); err != nil {
+		return err
+	}
 	if err := seedReviews(); err != nil {
+		return err
+	}
+	if err := seedOrders(); err != nil {
 		return err
 	}
 	cmdApp.Log().Info("database seed completed successfully")
@@ -144,11 +85,12 @@ func seedUsers() error {
 		cmdApp.Log().Error("could not seed users", zlog.String("err: ", err.Message))
 		return err
 	}
+
 	cmdApp.Log().Info("users seeded")
 	return nil
 }
 
-// seedCategories populates the categories table
+// seedCategories seeds the categories table
 func seedCategories() error {
 	var categories []*model.Category
 
@@ -169,11 +111,12 @@ func seedCategories() error {
 		cmdApp.Log().Error("could not seed categories", zlog.String("err: ", err.Message))
 		return err
 	}
+
 	cmdApp.Log().Info("categories seeded")
 	return nil
 }
 
-// seedBrands populates the brand table
+// seedBrands seeds the brand table
 func seedBrands() error {
 	var brands []*model.Brand
 
@@ -194,11 +137,12 @@ func seedBrands() error {
 		cmdApp.Log().Error("could not seed brands", zlog.String("err: ", err.Message))
 		return err
 	}
+
 	cmdApp.Log().Info("brands seeded")
 	return nil
 }
 
-// seedTags populates the tag table
+// seedTags seeds the tag table
 func seedTags() error {
 	var tags []*model.Tag
 
@@ -219,11 +163,12 @@ func seedTags() error {
 		cmdApp.Log().Error("could not seed tags", zlog.String("err: ", err.Message))
 		return err
 	}
+
 	cmdApp.Log().Info("tags seeded")
 	return nil
 }
 
-// seedReviews populates the product_review table
+// seedReviews seeds the product_review table
 func seedReviews() error {
 	var reviews []*model.ProductReview
 
@@ -244,11 +189,125 @@ func seedReviews() error {
 		cmdApp.Log().Error("could not seed reviews", zlog.String("err: ", err.Message))
 		return err
 	}
+
 	cmdApp.Log().Info("reviews seeded")
 	return nil
 }
 
-// seedPromotions populates the product_promotions table
+// seedOrders seeds the orders / order_details table
+func seedOrders() error {
+	var orderDataList []*model.OrderRequestData
+
+	data, err := ioutil.ReadFile("./data/seeds/orders.json")
+	if err != nil {
+		cmdApp.Log().Error("could not read orders.json seed", zlog.String("err: ", err.Error()))
+		return err
+	}
+	if err := json.Unmarshal(data, &orderDataList); err != nil {
+		cmdApp.Log().Error("could not unmarshal orders.json", zlog.String("err: ", err.Error()))
+		return err
+	}
+
+	for _, orderData := range orderDataList {
+		ids := make([]int64, 0)
+		for _, x := range orderData.Items {
+			ids = append(ids, x.ProductID)
+		}
+
+		products, err := cmdApp.GetProductsbyIDS(ids)
+		if err != nil {
+			cmdApp.Log().Error("could not get products by id", zlog.String("err: ", err.Error()))
+			return err
+		}
+
+		var total int
+		for i, p := range products {
+			total += p.Price * orderData.Items[i].Quantity
+		}
+
+		stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
+		params := &stripe.PaymentMethodParams{
+			Card: &stripe.PaymentMethodCardParams{
+				Number:   stripe.String("4242424242424242"),
+				ExpMonth: stripe.String("2"),
+				ExpYear:  stripe.String("2022"),
+				CVC:      stripe.String("314"),
+			},
+			Type: stripe.String("card"),
+		}
+		pm, e := paymentmethod.New(params)
+		if e != nil {
+			cmdApp.Log().Error("stripe payment method error", zlog.String("err: ", e.Error()))
+			return e
+		}
+
+		rand.Seed(time.Now().UnixNano())
+		userID := rand.Intn(1000) + 1
+		user, _ := cmdApp.GetUserByID(int64(userID))
+
+		o := &model.Order{
+			UserID:                   int64(userID),
+			Subtotal:                 total,
+			Total:                    total,
+			Status:                   model.OrderStatusSuccess.String(),
+			PaymentMethodID:          pm.ID,
+			BillingAddressLine1:      orderData.BillingAddress.Line1,
+			BillingAddressLine2:      orderData.BillingAddress.Line2,
+			BillingAddressCity:       orderData.BillingAddress.City,
+			BillingAddressCountry:    orderData.BillingAddress.Country,
+			BillingAddressState:      orderData.BillingAddress.State,
+			BillingAddressZIP:        orderData.BillingAddress.ZIP,
+			BillingAddressLatitude:   orderData.BillingAddress.Latitude,
+			BillingAddressLongitude:  orderData.BillingAddress.Longitude,
+			ShippingAddressLine1:     orderData.ShippingAddress.Line1,
+			ShippingAddressLine2:     orderData.ShippingAddress.Line2,
+			ShippingAddressCity:      orderData.ShippingAddress.City,
+			ShippingAddressCountry:   orderData.ShippingAddress.Country,
+			ShippingAddressState:     orderData.ShippingAddress.State,
+			ShippingAddressZIP:       orderData.ShippingAddress.ZIP,
+			ShippingAddressLatitude:  orderData.ShippingAddress.Latitude,
+			ShippingAddressLongitude: orderData.ShippingAddress.Longitude,
+		}
+
+		pi, cErr := cmdApp.PaymentProvider().Charge(pm.ID, o, user, uint64(total), "usd")
+		if cErr != nil {
+			cmdApp.Log().Error("stripe charge err", zlog.String("err: ", cErr.Error()))
+			return cErr
+		}
+
+		o.PaymentIntentID = pi.ID
+		o.ReceiptURL = pi.Charges.Data[0].ReceiptURL
+
+		o.PreSave()
+		order, err := cmdApp.Srv().Store.Order().Save(o)
+		if err != nil {
+			cmdApp.Log().Error("seed save order err", zlog.String("err: ", err.Error()))
+			return err
+		}
+
+		orderDetails := make([]*model.OrderDetail, 0)
+		for i, p := range products {
+			detail := &model.OrderDetail{
+				OrderID:      order.ID,
+				ProductID:    p.ID,
+				Quantity:     orderData.Items[i].Quantity,
+				HistoryPrice: p.Price,
+				HistorySKU:   p.SKU,
+			}
+			orderDetails = append(orderDetails, detail)
+		}
+
+		if err := cmdApp.InsertOrderDetails(orderDetails); err != nil {
+			cmdApp.Log().Error("seed insert order details err", zlog.String("err: ", err.Error()))
+			return err
+		}
+	}
+
+	cmdApp.Log().Info("orders seeded")
+	return nil
+}
+
+// seedPromotions seeds the product_promotions table
 func seedPromotions() error {
 	var promotions []*model.Promotion
 
@@ -266,7 +325,66 @@ func seedPromotions() error {
 		cmdApp.Log().Error("could not seed promotions", zlog.String("err: ", err.Message))
 		return err
 	}
+
 	cmdApp.Log().Info("promotions seeded")
+	return nil
+}
+
+// seedDiscounts seeds price discounts
+func seedDiscounts() error {
+	var discounts []*model.ProductPricing
+
+	data, err := ioutil.ReadFile("./data/seeds/discounts.json")
+	if err != nil {
+		cmdApp.Log().Error("could not read discounts.json seed", zlog.String("err: ", err.Error()))
+		return err
+	}
+	if err := json.Unmarshal(data, &discounts); err != nil {
+		cmdApp.Log().Error("could not unmarshal discounts.json", zlog.String("err: ", err.Error()))
+		return err
+	}
+
+	ids := make([]int64, 0)
+	for _, x := range discounts {
+		ids = append(ids, x.ProductID)
+	}
+
+	discountPercents := []int{10, 20, 30, 40, 50, 60, 70, 80, 90}
+	products, e := cmdApp.GetProductsbyIDS(ids)
+	if e != nil {
+		cmdApp.Log().Error("could not get products for discount ids.json", zlog.String("err: ", e.Error()))
+		return e
+	}
+
+	rand.Seed(time.Now().UnixNano())
+
+	findIndex := func(arr []*model.Product, x int) int {
+		for i, elm := range arr {
+			if int64(x) == elm.ID {
+				return i
+			}
+		}
+		return -1
+	}
+
+	for i := 0; i < len(discounts); i++ {
+		pcv := discountPercents[rand.Intn(len(discountPercents))]
+
+		if idx := findIndex(products, int(discounts[i].ProductID)); idx != -1 {
+			dprice := float64(products[idx].Price) - float64(pcv)/100*float64(products[idx].Price)
+			discounts[i].Price = int(math.Round(dprice*100) / 100)
+			discounts[i].OriginalPrice = products[i].Price
+		}
+	}
+
+	for _, d := range discounts {
+		if _, err := cmdApp.AddProductPricing(d); err != nil {
+			cmdApp.Log().Error("could not add pricing for seed", zlog.String("err: ", e.Error()))
+			return errors.New("could not add pricing")
+		}
+	}
+
+	cmdApp.Log().Info("discounts seeded")
 	return nil
 }
 
@@ -291,7 +409,7 @@ type productSeed struct {
 	Properties    types.JSONText `json:"properties"`
 }
 
-// seedProducts populates the product table
+// seedProducts seeds the product table
 func seedProducts() error {
 	var ps []*productSeed
 

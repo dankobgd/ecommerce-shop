@@ -40,8 +40,8 @@ var (
 
 // BulkInsert inserts multiple products into db
 func (s PgProductStore) BulkInsert(products []*model.Product) *model.AppErr {
-	q := `INSERT INTO public.product (name, brand_id, category_id, slug, image_url, image_public_id, description, in_stock, sku, is_featured, created_at, updated_at) 
-	VALUES (:name, :brand_id, :category_id, :slug, :image_url, :image_public_id, :description, :in_stock, :sku, :is_featured, :created_at, :updated_at)`
+	q := `INSERT INTO public.product (name, brand_id, category_id, slug, image_url, image_public_id, description, in_stock, sku, is_featured, created_at, updated_at, properties) 
+	VALUES (:name, :brand_id, :category_id, :slug, :image_url, :image_public_id, :description, :in_stock, :sku, :is_featured, :created_at, :updated_at, :properties)`
 
 	if _, err := s.db.NamedExec(q, products); err != nil {
 		return model.NewAppErr("PgProductStore.BulkInsert", model.ErrInternal, locale.GetUserLocalizer("en"), msgBulkInsertProducts, http.StatusInternalServerError, nil)

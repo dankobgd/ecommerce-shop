@@ -4,7 +4,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
@@ -219,41 +218,12 @@ func (a *API) createProductPricing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	old, err := a.app.GetProductLatestPricing(salePricing.ProductID)
+	discount, err := a.app.AddProductPricing(salePricing)
 	if err != nil {
 		respondError(w, err)
 		return
 	}
 
-	t := salePricing.SaleStarts.Add(time.Millisecond - 1)
-	patch := &model.ProductPricingPatch{SaleEnds: &t}
-	old.Patch(patch)
-
-	if _, err := a.app.UpdateProductPricing(old); err != nil {
-		respondError(w, err)
-		return
-	}
-
-	salePricing.OriginalPrice = old.Price
-
-	discount, err := a.app.CreateProductPricing(salePricing)
-	if err != nil {
-		respondError(w, err)
-		return
-	}
-
-	pricingAfter := &model.ProductPricing{
-		ProductID:     salePricing.ProductID,
-		Price:         old.Price,
-		OriginalPrice: discount.Price,
-		SaleStarts:    salePricing.SaleEnds.Add(time.Millisecond),
-		SaleEnds:      model.FutureSaleEndsTime,
-	}
-
-	if _, err := a.app.CreateProductPricing(pricingAfter); err != nil {
-		respondError(w, err)
-		return
-	}
 	respondJSON(w, http.StatusCreated, discount)
 }
 

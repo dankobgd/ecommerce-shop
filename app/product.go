@@ -6,6 +6,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/dankobgd/ecommerce-shop/model"
 	"github.com/dankobgd/ecommerce-shop/utils/locale"
@@ -158,7 +159,25 @@ func (a *App) PatchProduct(pid int64, patch *model.ProductPatch, fh *multipart.F
 
 // DeleteProduct hard deletes the product from the db
 func (a *App) DeleteProduct(pid int64) *model.AppErr {
-	return a.Srv().Store.Product().Delete(pid)
+	old, e := a.Srv().Store.Product().Get(pid)
+	if e != nil {
+		return e
+	}
+
+	err := a.Srv().Store.Product().Delete(pid)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if old.ImageURL != "" {
+			if err := a.DeleteImage(old.ImagePublicID); err != nil {
+				a.Log().Error(err.Error(), zlog.Err(err))
+			}
+		}
+	}()
+
+	return nil
 }
 
 // GetProduct gets the product by the id
@@ -186,8 +205,45 @@ func (a *App) DeleteProducts(ids []int) *model.AppErr {
 	return a.Srv().Store.Product().BulkDelete(ids)
 }
 
-// CreateProductPricing creates the discount
-func (a *App) CreateProductPricing(pricing *model.ProductPricing) (*model.ProductPricing, *model.AppErr) {
+// AddProductPricing adds the new pricing (updates the prev val and creates 2 new entries)
+func (a *App) AddProductPricing(pricing *model.ProductPricing) (*model.ProductPricing, *model.AppErr) {
+	old, err := a.GetProductLatestPricing(pricing.ProductID)
+	if err != nil {
+		return nil, err
+	}
+
+	t := pricing.SaleStarts.Add(time.Millisecond - 1)
+
+	patch := &model.ProductPricingPatch{SaleEnds: &t}
+	old.Patch(patch)
+
+	if _, err := a.UpdateProductPricing(old); err != nil {
+		return nil, err
+	}
+
+	pricing.OriginalPrice = old.Price
+
+	discount, err := a.InsertProductPricing(pricing)
+	if err != nil {
+		return nil, err
+	}
+
+	pricingAfter := &model.ProductPricing{
+		ProductID:     pricing.ProductID,
+		Price:         old.Price,
+		OriginalPrice: discount.Price,
+		SaleStarts:    pricing.SaleEnds.Add(time.Millisecond),
+		SaleEnds:      model.FutureSaleEndsTime,
+	}
+
+	if _, err := a.InsertProductPricing(pricingAfter); err != nil {
+		return nil, err
+	}
+	return pricing, nil
+}
+
+// InsertProductPricing creates the discount
+func (a *App) InsertProductPricing(pricing *model.ProductPricing) (*model.ProductPricing, *model.AppErr) {
 	if err := pricing.Validate(); err != nil {
 		return nil, err
 	}

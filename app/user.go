@@ -355,7 +355,25 @@ func (a *App) PatchUserProfile(id int64, patch *model.UserPatch) (*model.User, *
 
 // DeleteUser soft deletes the user account
 func (a *App) DeleteUser(id int64) *model.AppErr {
-	return a.Srv().Store.User().Delete(id)
+	old, e := a.Srv().Store.User().Get(id)
+	if e != nil {
+		return e
+	}
+
+	err := a.Srv().Store.User().Delete(id)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if old.AvatarPublicID != nil && *old.AvatarPublicID != "" {
+			if err := a.DeleteImage(*old.AvatarPublicID); err != nil {
+				a.Log().Error(err.Error(), zlog.Err(err))
+			}
+		}
+	}()
+
+	return nil
 }
 
 // DeleteUsers bulk deletes users

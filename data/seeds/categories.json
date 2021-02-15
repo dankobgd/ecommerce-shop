@@ -75,8 +75,8 @@
             "label": "Black"
           },
           {
-            "name": "grey",
-            "label": "Grey"
+            "name": "gray",
+            "label": "Gray"
           },
           {
             "name": "brown",
@@ -219,8 +219,8 @@
             "label": "Black"
           },
           {
-            "name": "grey",
-            "label": "Grey"
+            "name": "gray",
+            "label": "Gray"
           },
           {
             "name": "brown",
@@ -439,8 +439,8 @@
             "label": "Black"
           },
           {
-            "name": "grey",
-            "label": "Grey"
+            "name": "gray",
+            "label": "Gray"
           },
           {
             "name": "brown",
@@ -692,8 +692,8 @@
             "label": "Black"
           },
           {
-            "name": "grey",
-            "label": "Grey"
+            "name": "gray",
+            "label": "Gray"
           },
           {
             "name": "brown",
@@ -949,8 +949,8 @@
             "label": "Black"
           },
           {
-            "name": "grey",
-            "label": "Grey"
+            "name": "gray",
+            "label": "Gray"
           },
           {
             "name": "brown",
@@ -1089,8 +1089,8 @@
             "label": "Black"
           },
           {
-            "name": "grey",
-            "label": "Grey"
+            "name": "gray",
+            "label": "Gray"
           },
           {
             "name": "brown",
@@ -1241,8 +1241,8 @@
             "label": "Black"
           },
           {
-            "name": "grey",
-            "label": "Grey"
+            "name": "gray",
+            "label": "Gray"
           },
           {
             "name": "brown",
@@ -1446,45 +1446,13 @@
             "label": "Black"
           },
           {
-            "name": "grey",
-            "label": "Grey"
-          },
-          {
-            "name": "brown",
-            "label": "Brown"
-          },
-          {
-            "name": "yellow",
-            "label": "Yellow"
-          },
-          {
-            "name": "red",
-            "label": "Red"
-          },
-          {
-            "name": "green",
-            "label": "Green"
-          },
+            "name": "gray",
+            "label": "Gray"
+          },          
           {
             "name": "blue",
             "label": "Blue"
-          },
-          {
-            "name": "orange",
-            "label": "Orange"
-          },
-          {
-            "name": "purple",
-            "label": "Purple"
-          },
-          {
-            "name": "pink",
-            "label": "Pink"
-          },
-          {
-            "name": "multicolor",
-            "label": "Multicolor"
-          }
+          }          
         ]
       },
       {
@@ -1572,45 +1540,9 @@
             "label": "Black"
           },
           {
-            "name": "grey",
-            "label": "Grey"
-          },
-          {
-            "name": "brown",
-            "label": "Brown"
-          },
-          {
-            "name": "yellow",
-            "label": "Yellow"
-          },
-          {
-            "name": "red",
-            "label": "Red"
-          },
-          {
-            "name": "green",
-            "label": "Green"
-          },
-          {
-            "name": "blue",
-            "label": "Blue"
-          },
-          {
-            "name": "orange",
-            "label": "Orange"
-          },
-          {
-            "name": "purple",
-            "label": "Purple"
-          },
-          {
-            "name": "pink",
-            "label": "Pink"
-          },
-          {
-            "name": "multicolor",
-            "label": "Multicolor"
-          }
+            "name": "gray",
+            "label": "Gray"
+          }          
         ]
       },
       {
@@ -1673,63 +1605,6 @@
           {
             "name": "other",
             "label": "Other"
-          }
-        ]
-      },
-      {
-        "name": "color",
-        "label": "Color",
-        "type": "text",
-        "importance": 2,
-        "filterable": true,
-        "choices": [
-          {
-            "name": "white",
-            "label": "White"
-          },
-          {
-            "name": "black",
-            "label": "Black"
-          },
-          {
-            "name": "grey",
-            "label": "Grey"
-          },
-          {
-            "name": "brown",
-            "label": "Brown"
-          },
-          {
-            "name": "yellow",
-            "label": "Yellow"
-          },
-          {
-            "name": "red",
-            "label": "Red"
-          },
-          {
-            "name": "green",
-            "label": "Green"
-          },
-          {
-            "name": "blue",
-            "label": "Blue"
-          },
-          {
-            "name": "orange",
-            "label": "Orange"
-          },
-          {
-            "name": "purple",
-            "label": "Purple"
-          },
-          {
-            "name": "pink",
-            "label": "Pink"
-          },
-          {
-            "name": "multicolor",
-            "label": "Multicolor"
           }
         ]
       }
@@ -1811,8 +1686,8 @@
             "label": "Black"
           },
           {
-            "name": "grey",
-            "label": "Grey"
+            "name": "gray",
+            "label": "Gray"
           },
           {
             "name": "brown",
@@ -1926,59 +1801,19 @@
     "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407624/ecommerce/seeds/skateboard.jpg",
     "properties": [
       {
-        "name": "color",
-        "label": "Color",
+        "name": "type",
+        "label": "Type",
         "type": "text",
         "importance": 1,
         "filterable": true,
         "choices": [
           {
-            "name": "white",
-            "label": "White"
+            "name": "cruiser",
+            "label": "Cruiser"
           },
           {
-            "name": "black",
-            "label": "Black"
-          },
-          {
-            "name": "grey",
-            "label": "Grey"
-          },
-          {
-            "name": "brown",
-            "label": "Brown"
-          },
-          {
-            "name": "yellow",
-            "label": "Yellow"
-          },
-          {
-            "name": "red",
-            "label": "Red"
-          },
-          {
-            "name": "green",
-            "label": "Green"
-          },
-          {
-            "name": "blue",
-            "label": "Blue"
-          },
-          {
-            "name": "orange",
-            "label": "Orange"
-          },
-          {
-            "name": "purple",
-            "label": "Purple"
-          },
-          {
-            "name": "pink",
-            "label": "Pink"
-          },
-          {
-            "name": "multicolor",
-            "label": "Multicolor"
+            "name": "longboard",
+            "label": "Longboard"
           }
         ]
       }
@@ -1992,59 +1827,19 @@
     "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407617/ecommerce/seeds/rollerblades.jpg",
     "properties": [
       {
-        "name": "color",
-        "label": "Color",
+        "name": "type",
+        "label": "Type",
         "type": "text",
         "importance": 1,
         "filterable": true,
         "choices": [
           {
-            "name": "white",
-            "label": "White"
+            "name": "recreational",
+            "label": "Recreational"
           },
           {
-            "name": "black",
-            "label": "Black"
-          },
-          {
-            "name": "grey",
-            "label": "Grey"
-          },
-          {
-            "name": "brown",
-            "label": "Brown"
-          },
-          {
-            "name": "yellow",
-            "label": "Yellow"
-          },
-          {
-            "name": "red",
-            "label": "Red"
-          },
-          {
-            "name": "green",
-            "label": "Green"
-          },
-          {
-            "name": "blue",
-            "label": "Blue"
-          },
-          {
-            "name": "orange",
-            "label": "Orange"
-          },
-          {
-            "name": "purple",
-            "label": "Purple"
-          },
-          {
-            "name": "pink",
-            "label": "Pink"
-          },
-          {
-            "name": "multicolor",
-            "label": "Multicolor"
+            "name": "performance",
+            "label": "Performance"
           }
         ]
       }
@@ -2096,59 +1891,19 @@
         ]
       },
       {
-        "name": "color",
-        "label": "Color",
+        "name": "theme",
+        "label": "Theme",
         "type": "text",
         "importance": 3,
         "filterable": true,
         "choices": [
           {
-            "name": "white",
-            "label": "White"
+            "name": "casual",
+            "label": "Casual"
           },
           {
-            "name": "black",
-            "label": "Black"
-          },
-          {
-            "name": "grey",
-            "label": "Grey"
-          },
-          {
-            "name": "brown",
-            "label": "Brown"
-          },
-          {
-            "name": "yellow",
-            "label": "Yellow"
-          },
-          {
-            "name": "red",
-            "label": "Red"
-          },
-          {
-            "name": "green",
-            "label": "Green"
-          },
-          {
-            "name": "blue",
-            "label": "Blue"
-          },
-          {
-            "name": "orange",
-            "label": "Orange"
-          },
-          {
-            "name": "purple",
-            "label": "Purple"
-          },
-          {
-            "name": "pink",
-            "label": "Pink"
-          },
-          {
-            "name": "multicolor",
-            "label": "Multicolor"
+            "name": "sport",
+            "label": "Sport"
           }
         ]
       }
@@ -2159,86 +1914,6 @@
     "slug": "hats",
     "description": "hats description",
     "is_featured": false,
-    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407611/ecommerce/seeds/hat.jpg",
-    "properties": [
-      {
-        "name": "color",
-        "label": "Color",
-        "type": "text",
-        "importance": 1,
-        "filterable": true,
-        "choices": [
-          {
-            "name": "white",
-            "label": "White"
-          },
-          {
-            "name": "black",
-            "label": "Black"
-          },
-          {
-            "name": "grey",
-            "label": "Grey"
-          },
-          {
-            "name": "brown",
-            "label": "Brown"
-          },
-          {
-            "name": "yellow",
-            "label": "Yellow"
-          },
-          {
-            "name": "red",
-            "label": "Red"
-          },
-          {
-            "name": "green",
-            "label": "Green"
-          },
-          {
-            "name": "blue",
-            "label": "Blue"
-          },
-          {
-            "name": "orange",
-            "label": "Orange"
-          },
-          {
-            "name": "purple",
-            "label": "Purple"
-          },
-          {
-            "name": "pink",
-            "label": "Pink"
-          },
-          {
-            "name": "multicolor",
-            "label": "Multicolor"
-          }
-        ]
-      },
-      {
-        "name": "theme",
-        "label": "Theme",
-        "type": "text",
-        "importance": 2,
-        "filterable": true,
-        "choices": [
-          {
-            "name": "casual",
-            "label": "Casual"
-          },
-          {
-            "name": "prestige",
-            "label": "Prestige"
-          },
-          {
-            "name": "fun",
-            "label": "Fun"
-          }
-        ]
-      }
-    ]
+    "logo": "https://res.cloudinary.com/dankobgd/image/upload/v1599407611/ecommerce/seeds/hat.jpg"
   }
 ]

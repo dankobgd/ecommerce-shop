@@ -15,6 +15,7 @@ import (
 	"github.com/dankobgd/ecommerce-shop/zlog"
 	"github.com/jung-kurt/gofpdf"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/stripe/stripe-go"
 )
 
 var (
@@ -87,12 +88,6 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData) (*model.Or
 				t = 0
 			}
 			total = t
-		}
-
-		// insert promo detail to mark the promo_code as used by the specific user
-		pd := &model.PromotionDetail{UserID: userID, PromoCode: promo.PromoCode}
-		if _, err := a.CreatePromotionDetail(pd); err != nil {
-			return nil, err
 		}
 	}
 
@@ -181,7 +176,19 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData) (*model.Or
 
 	pi, cErr := a.PaymentProvider().Charge(data.PaymentMethodID, o, user, uint64(o.Total), "usd")
 	if cErr != nil {
-		return nil, model.NewAppErr("CreateOrder", model.ErrInternal, locale.GetUserLocalizer("en"), &i18n.Message{ID: "app.order.create_order.app_error", Other: "could not charge card: " + cErr.Error()}, http.StatusInternalServerError, nil)
+		if stripeErr, ok := cErr.(*stripe.Error); ok {
+			if cardErr, ok := stripeErr.Err.(*stripe.CardError); ok {
+				dc := ""
+				if (string(cardErr.DeclineCode)) != "" {
+					dc = "Decline code: " + string(cardErr.DeclineCode)
+				}
+
+				return nil, model.NewAppErr("CreateOrder", model.ErrInternal, locale.GetUserLocalizer("en"), &i18n.Message{ID: "app.order.create_order.app_error", Other: fmt.Sprintf("%s\n%s", stripeErr.Msg, dc)}, http.StatusInternalServerError, nil)
+			}
+			return nil, model.NewAppErr("CreateOrder", model.ErrInternal, locale.GetUserLocalizer("en"), &i18n.Message{ID: "app.order.create_order.app_error", Other: stripeErr.Msg}, http.StatusInternalServerError, nil)
+
+		}
+		return nil, model.NewAppErr("CreateOrder", model.ErrInternal, locale.GetUserLocalizer("en"), &i18n.Message{ID: "app.order.create_order.app_error", Other: "could not charge the card"}, http.StatusInternalServerError, nil)
 	}
 
 	o.PaymentIntentID = pi.ID
@@ -207,6 +214,14 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData) (*model.Or
 
 	if err := a.InsertOrderDetails(orderDetails); err != nil {
 		return nil, err
+	}
+
+	if data.PromoCode != nil && *data.PromoCode != "" {
+		// insert promo detail to mark the promo_code as used by the specific user
+		pd := &model.PromotionDetail{UserID: userID, PromoCode: *data.PromoCode}
+		if _, err := a.CreatePromotionDetail(pd); err != nil {
+			return nil, err
+		}
 	}
 
 	defer func() {
@@ -316,7 +331,7 @@ func (a *App) GenerateOrderDetailsPDF(o *model.Order, details []*model.OrderInfo
 
 	// user details
 	userDetails := make([]string, 0)
-	userDetails = append(userDetails, fmt.Sprintf("Name: %s", user.FirstName), fmt.Sprintf("Surname: %s", user.LastName), fmt.Sprintf("Email: %s", user.Email))
+	userDetails = append(userDetails, user.FirstName, user.LastName, user.Email)
 	formattedUserDetails := ""
 	for _, x := range userDetails {
 		formattedUserDetails += fmt.Sprintf("%s\n", x)
@@ -326,7 +341,7 @@ func (a *App) GenerateOrderDetailsPDF(o *model.Order, details []*model.OrderInfo
 	pdf.SetTextColor(255, 255, 255)
 	_, lineHt = pdf.GetFontSize()
 	pdf.MoveTo(w-xIndent-2.0*124.0+60, (logoH-(lineHt*1.5*3.0))/2.0)
-	pdf.MultiCell(124.0, lineHt*1.5, formattedUserDetails, gofpdf.BorderNone, gofpdf.AlignRight, false)
+	pdf.MultiCell(200.0, lineHt*1.5, formattedUserDetails, gofpdf.BorderNone, gofpdf.AlignRight, false)
 
 	// addr details
 	billAddrDetails := make([]string, 0)
@@ -340,18 +355,18 @@ func (a *App) GenerateOrderDetailsPDF(o *model.Order, details []*model.OrderInfo
 	}
 
 	shipAddrDetails := make([]string, 0)
-	shipAddrDetails = append(shipAddrDetails, o.BillingAddressLine1)
-	if o.BillingAddressLine2 != nil && *o.BillingAddressLine2 != "" {
-		shipAddrDetails = append(shipAddrDetails, *o.BillingAddressLine2)
+	shipAddrDetails = append(shipAddrDetails, o.ShippingAddressLine1)
+	if o.ShippingAddressLine2 != nil && *o.ShippingAddressLine2 != "" {
+		shipAddrDetails = append(shipAddrDetails, *o.ShippingAddressLine2)
 	}
-	shipAddrDetails = append(shipAddrDetails, o.BillingAddressCity, o.BillingAddressCountry)
+	shipAddrDetails = append(shipAddrDetails, o.ShippingAddressCity, o.ShippingAddressCountry)
 	if o.BillingAddressZIP != nil && *o.BillingAddressZIP != "" {
 		shipAddrDetails = append(shipAddrDetails, *o.BillingAddressZIP)
 	}
 
 	// Summary - billing / shipping address
 	_, sy := summaryBlock(pdf, xIndent, logoH+lineHt*2.0, "Billing Address", billAddrDetails...)
-	summaryBlock(pdf, xIndent+200.0, logoH+lineHt*2.0, "Shipping Address", shipAddrDetails...)
+	summaryBlock(pdf, xIndent+175.0, logoH+lineHt*2.0, "Shipping Address", shipAddrDetails...)
 
 	// Summary - Invoice Total
 	x, y := w-xIndent-124.0, logoH+lineHt*2.25
@@ -362,7 +377,7 @@ func (a *App) GenerateOrderDetailsPDF(o *model.Order, details []*model.OrderInfo
 	pdf.CellFormat(124.0, lineHt, "Invoice Total", gofpdf.BorderNone, gofpdf.LineBreakNone, gofpdf.AlignRight, false, 0, "")
 	x, y = x+2.0, y+lineHt*1.5
 	pdf.MoveTo(x, y)
-	pdf.SetFont("times", "", 48)
+	pdf.SetFont("times", "", 42)
 	_, lineHt = pdf.GetFontSize()
 	alpha := 58
 	pdf.SetTextColor(72+alpha, 42+alpha, 55+alpha)
