@@ -301,6 +301,104 @@ func (s PgProductStore) GetFeatured(limit, offset int) ([]*model.Product, *model
 	return products, nil
 }
 
+// GetMostSold returns the most sold products
+func (s PgProductStore) GetMostSold(limit, offset int) ([]*model.Product, *model.AppErr) {
+	q := `SELECT COUNT(*) OVER() AS total_count,
+	p.*,
+	b.name AS brand_name,
+	b.slug AS brand_slug,
+	b.type AS brand_type,
+	b.description AS brand_description,
+	b.email AS brand_email,
+	b.logo AS brand_logo,
+	b.website_url AS brand_website_url,
+	b.created_at AS brand_created_at,
+	b.updated_at AS brand_updated_at,
+	c.name AS category_name,
+	c.slug AS category_slug,
+	c.description AS category_description,
+	c.logo AS category_logo,
+	c.properties AS category_properties,
+	c.created_at AS category_created_at,
+	c.updated_at AS category_updated_at,
+	pp.id AS pricing_id,
+	pp.product_id AS pricing_product_id,
+	pp.price AS pricing_price,
+	pp.original_price AS pricing_original_price,
+	pp.sale_starts AS pricing_sale_starts,
+	pp.sale_ends AS pricing_sale_ends
+	FROM public.product p
+	LEFT JOIN product_pricing pp ON p.id = pp.product_id
+	LEFT JOIN brand b ON p.brand_id = b.id
+	LEFT JOIN category c ON p.category_id = c.id
+	INNER JOIN order_detail od ON p.id = od.product_id
+	WHERE CURRENT_TIMESTAMP BETWEEN pp.sale_starts AND pp.sale_ends
+	GROUP BY p.id, b.id, c.id, pp.id
+	ORDER BY SUM(od.quantity) DESC, p.id DESC
+	LIMIT $1 OFFSET $2`
+
+	var pj []productJoin
+	if err := s.db.Select(&pj, q, limit, offset); err != nil {
+		fmt.Println(err)
+		return nil, model.NewAppErr("PgProductStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProducts, http.StatusInternalServerError, nil)
+	}
+
+	products := make([]*model.Product, 0)
+	for _, x := range pj {
+		products = append(products, x.ToProduct())
+	}
+
+	return products, nil
+}
+
+// GetBestDeals returns the most discounted products
+func (s PgProductStore) GetBestDeals(limit, offset int) ([]*model.Product, *model.AppErr) {
+	q := `SELECT COUNT(*) OVER() AS total_count,
+	p.*,
+	b.name AS brand_name,
+	b.slug AS brand_slug,
+	b.type AS brand_type,
+	b.description AS brand_description,
+	b.email AS brand_email,
+	b.logo AS brand_logo,
+	b.website_url AS brand_website_url,
+	b.created_at AS brand_created_at,
+	b.updated_at AS brand_updated_at,
+	c.name AS category_name,
+	c.slug AS category_slug,
+	c.description AS category_description,
+	c.logo AS category_logo,
+	c.properties AS category_properties,
+	c.created_at AS category_created_at,
+	c.updated_at AS category_updated_at,
+	pp.id AS pricing_id,
+	pp.product_id AS pricing_product_id,
+	pp.price AS pricing_price,
+	pp.original_price AS pricing_original_price,
+	pp.sale_starts AS pricing_sale_starts,
+	pp.sale_ends AS pricing_sale_ends
+	FROM public.product p
+	LEFT JOIN product_pricing pp ON p.id = pp.product_id
+	LEFT JOIN brand b ON p.brand_id = b.id
+	LEFT JOIN category c ON p.category_id = c.id
+	WHERE CURRENT_TIMESTAMP BETWEEN pp.sale_starts AND pp.sale_ends
+	GROUP BY p.id, b.id, c.id, pp.id
+	ORDER BY (((pp.original_price::float - pp.price::float) / pp.original_price::float) * 100) DESC, p.id DESC
+	LIMIT $1 OFFSET $2`
+
+	var pj []productJoin
+	if err := s.db.Select(&pj, q, limit, offset); err != nil {
+		return nil, model.NewAppErr("PgProductStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProducts, http.StatusInternalServerError, nil)
+	}
+
+	products := make([]*model.Product, 0)
+	for _, x := range pj {
+		products = append(products, x.ToProduct())
+	}
+
+	return products, nil
+}
+
 // GetReviews returns all reviews
 func (s PgProductStore) GetReviews(id int64) ([]*model.ProductReview, *model.AppErr) {
 	q := `SELECT r.*,

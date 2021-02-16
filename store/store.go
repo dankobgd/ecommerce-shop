@@ -67,6 +67,8 @@ type ProductStore interface {
 	ListByIDS(ids []int64) ([]*model.Product, *model.AppErr)
 	GetAll(filters map[string][]string, limit, offset int) ([]*model.Product, *model.AppErr)
 	GetFeatured(limit, offset int) ([]*model.Product, *model.AppErr)
+	GetMostSold(limit, offset int) ([]*model.Product, *model.AppErr)
+	GetBestDeals(limit, offset int) ([]*model.Product, *model.AppErr)
 	Update(id int64, u *model.Product) (*model.Product, *model.AppErr)
 	Delete(id int64) *model.AppErr
 	BulkDelete(ids []int) *model.AppErr

@@ -195,6 +195,16 @@ func (a *App) GetFeaturedProducts(limit, offset int) ([]*model.Product, *model.A
 	return a.Srv().Store.Product().GetFeatured(limit, offset)
 }
 
+// GetMostSoldProducts returns most sold products
+func (a *App) GetMostSoldProducts(limit, offset int) ([]*model.Product, *model.AppErr) {
+	return a.Srv().Store.Product().GetMostSold(limit, offset)
+}
+
+// GetBestDealsProducts returns the most discounted products
+func (a *App) GetBestDealsProducts(limit, offset int) ([]*model.Product, *model.AppErr) {
+	return a.Srv().Store.Product().GetBestDeals(limit, offset)
+}
+
 // GetProductLatestPricing creates the discount
 func (a *App) GetProductLatestPricing(pid int64) (*model.ProductPricing, *model.AppErr) {
 	return a.Srv().Store.Product().GetLatestPricing(pid)

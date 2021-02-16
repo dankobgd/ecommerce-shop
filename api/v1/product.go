@@ -30,6 +30,8 @@ func InitProducts(a *API) {
 	a.Routes.Products.Post("/", a.AdminSessionRequired(a.createProduct))
 	a.Routes.Products.Get("/", a.getProducts)
 	a.Routes.Products.Get("/featured", a.getFeaturedProducts)
+	a.Routes.Products.Get("/sold", a.getMostSoldProducts)
+	a.Routes.Products.Get("/deals", a.getBestDealsProducts)
 	a.Routes.Products.Get("/search", a.searchProducts)
 	a.Routes.Products.Delete("/bulk", a.deleteProducts)
 
@@ -626,6 +628,40 @@ func (a *API) getFeaturedProducts(w http.ResponseWriter, r *http.Request) {
 		totalCount = featured[0].TotalCount
 	}
 	pages.SetData(featured, totalCount)
+
+	respondJSON(w, http.StatusOK, pages)
+}
+
+func (a *API) getMostSoldProducts(w http.ResponseWriter, r *http.Request) {
+	pages := pagination.NewFromRequest(r)
+	mostSold, err := a.app.GetMostSoldProducts(pages.Limit(), pages.Offset())
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	totalCount := -1
+	if len(mostSold) > 0 {
+		totalCount = mostSold[0].TotalCount
+	}
+	pages.SetData(mostSold, totalCount)
+
+	respondJSON(w, http.StatusOK, pages)
+}
+
+func (a *API) getBestDealsProducts(w http.ResponseWriter, r *http.Request) {
+	pages := pagination.NewFromRequest(r)
+	bestDeals, err := a.app.GetBestDealsProducts(pages.Limit(), pages.Offset())
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	totalCount := -1
+	if len(bestDeals) > 0 {
+		totalCount = bestDeals[0].TotalCount
+	}
+	pages.SetData(bestDeals, totalCount)
 
 	respondJSON(w, http.StatusOK, pages)
 }
