@@ -136,7 +136,6 @@ func (s PgProductStore) Get(id int64) (*model.Product, *model.AppErr) {
 // GetAll returns all products
 func (s PgProductStore) GetAll(filters map[string][]string, limit, offset int) ([]*model.Product, *model.AppErr) {
 	baseQuery := `SELECT DISTINCT ON (p.id)
-	(SELECT COUNT(DISTINCT product.id) FROM product LEFT JOIN product_pricing on product.id = product_pricing.product_id) AS total_count,
 	p.*,
 	b.name AS brand_name,
 	b.slug AS brand_slug,
@@ -170,8 +169,28 @@ func (s PgProductStore) GetAll(filters map[string][]string, limit, offset int) (
 
 	q, args, _ := buildProductsFilterSearchQuery(baseQuery, filters, limit, offset)
 
+	// basically add there where condition inside the select count for getting the total for pagination
+	finalSplit := strings.SplitAfter(q, "ON (p.id)")
+	lastPart := strings.SplitAfter(q, "pt.tag_id")[1]
+
+	var wherePart string
+	if i := strings.Index(lastPart, "GROUP BY"); i >= 0 {
+		wherePart = lastPart[:i]
+	}
+
+	countQuery := fmt.Sprintf(`(
+		SELECT COUNT(DISTINCT p.id) FROM product p 
+		LEFT JOIN product_pricing pp on p.id = pp.product_id 
+		LEFT JOIN brand b ON p.brand_id = b.id 
+		LEFT JOIN category c ON p.category_id = c.id 
+		LEFT JOIN product_tag pt ON p.id = pt.product_id 
+		LEFT JOIN tag t on t.id = pt.tag_id %s
+		) AS total_count,`, wherePart)
+
+	finalQuery := fmt.Sprintf("%s %s %s", finalSplit[0], countQuery, finalSplit[1])
+
 	var pj []productJoin
-	if err := s.db.Select(&pj, q, args...); err != nil {
+	if err := s.db.Select(&pj, finalQuery, args...); err != nil {
 		return nil, model.NewAppErr("PgProductStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProducts, http.StatusInternalServerError, nil)
 	}
 
@@ -186,7 +205,7 @@ func (s PgProductStore) GetAll(filters map[string][]string, limit, offset int) (
 // ListByIDS returns all products where ids are in slice
 func (s PgProductStore) ListByIDS(ids []int64) ([]*model.Product, *model.AppErr) {
 	q, args, err := sqlx.In(`SELECT DISTINCT ON (p.id)
-	 (SELECT COUNT(DISTINCT product.id) FROM product LEFT JOIN product_pricing on product.id = product_pricing.product_id WHERE product.id IN (?)) AS total_count,
+	 (SELECT COUNT(DISTINCT product.id) FROM product LEFT JOIN product_pricing on product.id = product_pricing.product_id WHERE CURRENT_TIMESTAMP BETWEEN pp.sale_starts AND pp.sale_ends AND product.id IN (?)) AS total_count,
 	 p.*,
    b.name AS brand_name,
    b.slug AS brand_slug,
@@ -254,7 +273,7 @@ func (s PgProductStore) Delete(id int64) *model.AppErr {
 // GetFeatured returns featured products
 func (s PgProductStore) GetFeatured(limit, offset int) ([]*model.Product, *model.AppErr) {
 	q := `SELECT DISTINCT ON (p.id)
-	(SELECT COUNT(DISTINCT product.id) FROM product LEFT JOIN product_pricing on product.id = product_pricing.product_id WHERE product.is_featured = true) AS total_count,
+	(SELECT COUNT(DISTINCT product.id) FROM product LEFT JOIN product_pricing on product.id = product_pricing.product_id WHERE CURRENT_TIMESTAMP BETWEEN pp.sale_starts AND pp.sale_ends AND product.is_featured = true) AS total_count,
 	p.*,
 	b.name AS brand_name,
 	b.slug AS brand_slug,
