@@ -105,6 +105,12 @@ func (a *App) CreateOrder(userID int64, data *model.OrderRequestData) (*model.Or
 		billAddrInfo = data.BillingAddress
 	}
 
+	// im too lazy to handle 100% discount (free item) case, and stripe lowest is 0.5$
+	// otherwise i would need to create invoice which cant work without invoice items etc bla bla...
+	if total == 0 {
+		total = 50
+	}
+
 	o := &model.Order{
 		UserID:          userID,
 		Subtotal:        subtotal,
