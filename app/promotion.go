@@ -12,6 +12,7 @@ var (
 
 // CreatePromotion creates the new promotion in the system
 func (a *App) CreatePromotion(p *model.Promotion) (*model.Promotion, *model.AppErr) {
+	p.PreSave()
 	if err := p.Validate(); err != nil {
 		return nil, err
 	}
@@ -33,6 +34,7 @@ func (a *App) PatchPromotion(code string, patch *model.PromotionPatch) (*model.P
 	}
 
 	old.Patch(patch)
+	old.PreUpdate()
 	up, err := a.Srv().Store.Promotion().Update(code, old)
 	if err != nil {
 		return nil, err

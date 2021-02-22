@@ -38,7 +38,7 @@ var (
 
 // BulkInsert inserts multiple promotions in the db
 func (s PgPromotionStore) BulkInsert(promotions []*model.Promotion) *model.AppErr {
-	q := `INSERT INTO public.promotion(promo_code, type, amount, description, starts_at, ends_at) VALUES(:promo_code, :type, :amount, :description, :starts_at, :ends_at) RETURNING promo_code`
+	q := `INSERT INTO public.promotion(promo_code, type, amount, description, starts_at, ends_at, created_at, updated_at) VALUES(:promo_code, :type, :amount, :description, :starts_at, :ends_at, :created_at, :updated_at) RETURNING promo_code`
 
 	if _, err := s.db.NamedExec(q, promotions); err != nil {
 		if IsUniqueConstraintViolationError(err) {
@@ -51,7 +51,7 @@ func (s PgPromotionStore) BulkInsert(promotions []*model.Promotion) *model.AppEr
 
 // Save inserts the new promotion in the db
 func (s PgPromotionStore) Save(promotion *model.Promotion) (*model.Promotion, *model.AppErr) {
-	q := `INSERT INTO public.promotion(promo_code, type, amount, description, starts_at, ends_at) VALUES(:promo_code, :type, :amount, :description, :starts_at, :ends_at) RETURNING promo_code`
+	q := `INSERT INTO public.promotion(promo_code, type, amount, description, starts_at, ends_at, created_at, updated_at) VALUES(:promo_code, :type, :amount, :description, :starts_at, :ends_at, :created_at, :updated_at) RETURNING promo_code`
 	if _, err := s.db.NamedExec(q, promotion); err != nil {
 		if IsUniqueConstraintViolationError(err) {
 			return nil, model.NewAppErr("PgPromotionStore.Save", model.ErrInternal, locale.GetUserLocalizer("en"), msgUniqueConstraintPromotion, http.StatusInternalServerError, nil)
@@ -71,9 +71,10 @@ func (s PgPromotionStore) Update(code string, promotion *model.Promotion) (*mode
 		"description": promotion.Description,
 		"starts_at":   promotion.StartsAt,
 		"ends_at":     promotion.EndsAt,
+		"updated_at":  promotion.UpdatedAt,
 	}
 
-	q := `UPDATE public.promotion SET promo_code=:promo_code, type=:type, amount=:amount, description=:description, starts_at=:starts_at, ends_at=:ends_at WHERE promo_code=:code`
+	q := `UPDATE public.promotion SET promo_code=:promo_code, type=:type, amount=:amount, description=:description, starts_at=:starts_at, ends_at=:ends_at, updated_at=:updated_at WHERE promo_code=:code`
 	if _, err := s.db.NamedExec(q, m); err != nil {
 		return nil, model.NewAppErr("PgPromotionStore.Update", model.ErrInternal, locale.GetUserLocalizer("en"), msgUpdatePromotion, http.StatusInternalServerError, nil)
 	}
@@ -92,7 +93,7 @@ func (s PgPromotionStore) Get(code string) (*model.Promotion, *model.AppErr) {
 // GetAll returns all promotions
 func (s PgPromotionStore) GetAll(limit, offset int) ([]*model.Promotion, *model.AppErr) {
 	var promotions = make([]*model.Promotion, 0)
-	if err := s.db.Select(&promotions, `SELECT COUNT(*) OVER() AS total_count, * FROM public.promotion LIMIT $1 OFFSET $2`, limit, offset); err != nil {
+	if err := s.db.Select(&promotions, `SELECT COUNT(*) OVER() AS total_count, * FROM public.promotion ORDER BY created_at DESC LIMIT $1 OFFSET $2`, limit, offset); err != nil {
 		return nil, model.NewAppErr("PgPromotionStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetPromotions, http.StatusInternalServerError, nil)
 	}
 

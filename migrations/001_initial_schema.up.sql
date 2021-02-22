@@ -170,7 +170,9 @@ create table public.promotion (
   amount int not null,  
   description text,
   starts_at timestamptz not null,
-  ends_at timestamptz not null
+  ends_at timestamptz not null,
+  created_at timestamptz not null,
+  updated_at timestamptz not null
 );
 
 create table public.promotion_detail (

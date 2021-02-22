@@ -321,6 +321,10 @@ func seedPromotions() error {
 		return err
 	}
 
+	for _, p := range promotions {
+		p.PreSave()
+	}
+
 	if err := cmdApp.Srv().Store.Promotion().BulkInsert(promotions); err != nil {
 		cmdApp.Log().Error("could not seed promotions", zlog.String("err: ", err.Message))
 		return err

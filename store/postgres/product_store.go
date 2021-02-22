@@ -358,7 +358,6 @@ func (s PgProductStore) GetMostSold(limit, offset int) ([]*model.Product, *model
 
 	var pj []productJoin
 	if err := s.db.Select(&pj, q, limit, offset); err != nil {
-		fmt.Println(err)
 		return nil, model.NewAppErr("PgProductStore.GetAll", model.ErrInternal, locale.GetUserLocalizer("en"), msgGetProducts, http.StatusInternalServerError, nil)
 	}
 

@@ -17,6 +17,8 @@ var (
 	msgValidatePromotionAmount    = &i18n.Message{ID: "model.promotion.validate.amount.app_error", Other: "invalid promotion amount value"}
 	msgValidatePromotionStartsAt  = &i18n.Message{ID: "model.promotion.validate.starts_at.app_error", Other: "invalid promotion starts_at timestamp"}
 	msgValidatePromotionEndsAt    = &i18n.Message{ID: "model.promotion.validate.ends_at.app_error", Other: "invalid promotion ends_at timestamp"}
+	msgValidatePromotionCreatedAt = &i18n.Message{ID: "model.promotion.validate.created_at.app_error", Other: "invalid promotion created_at timestamp"}
+	msgValidatePromotionUpdatedAt = &i18n.Message{ID: "model.promotion.validate.updated_at.app_error", Other: "invalid promotion updated_at timestamp"}
 )
 
 // Promotion is the promotion model (discount for order)
@@ -28,12 +30,25 @@ type Promotion struct {
 	Description string    `json:"description,omitempty" db:"description"`
 	StartsAt    time.Time `json:"starts_at" db:"starts_at"`
 	EndsAt      time.Time `json:"ends_at" db:"ends_at"`
+	CreatedAt   time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
 }
 
 // PromotionDetail is is the promotion association
 type PromotionDetail struct {
 	UserID    int64  `json:"user_id" db:"user_id"`
 	PromoCode string `json:"promo_code" db:"promo_code"`
+}
+
+// PreSave will fill timestamps and other defaults
+func (p *Promotion) PreSave() {
+	p.CreatedAt = time.Now()
+	p.UpdatedAt = p.CreatedAt
+}
+
+// PreUpdate sets the update timestamp
+func (p *Promotion) PreUpdate() {
+	p.UpdatedAt = time.Now()
 }
 
 // Validate validates the category and returns an error if it doesn't pass criteria
@@ -55,6 +70,12 @@ func (p *Promotion) Validate() *AppErr {
 	}
 	if p.EndsAt.IsZero() || p.EndsAt.Before(p.StartsAt) {
 		errs.Add(Invalid("ends_at", l, msgValidatePromotionEndsAt))
+	}
+	if p.CreatedAt.IsZero() {
+		errs.Add(Invalid("created_at", l, msgValidatePromotionCreatedAt))
+	}
+	if p.UpdatedAt.IsZero() {
+		errs.Add(Invalid("updated_at", l, msgValidatePromotionUpdatedAt))
 	}
 
 	if !errs.IsZero() {
