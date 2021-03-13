@@ -21,6 +21,7 @@ var (
 // InitOrder inits the order routes
 func InitOrder(a *API) {
 	a.Routes.Orders.Post("/", a.SessionRequired(a.createOrder))
+	a.Routes.Orders.Get("/count", a.getOrdersCount)
 	a.Routes.Orders.Get("/", a.SessionRequired(a.getOrders))
 
 	a.Routes.Order.Get("/", a.SessionRequired(a.getOrder))
@@ -43,6 +44,11 @@ func (a *API) createOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondJSON(w, http.StatusCreated, order)
+}
+
+func (a *API) getOrdersCount(w http.ResponseWriter, r *http.Request) {
+	c := a.app.GetOrdersCount()
+	respondJSON(w, http.StatusOK, map[string]int{"count": c})
 }
 
 func (a *API) getOrders(w http.ResponseWriter, r *http.Request) {

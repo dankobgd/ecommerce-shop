@@ -26,6 +26,7 @@ var (
 // InitCategories inits the category routes
 func InitCategories(a *API) {
 	a.Routes.Categories.Post("/", a.AdminSessionRequired(a.createCategory))
+	a.Routes.Categories.Get("/count", a.getCategoriesCount)
 	a.Routes.Categories.Get("/", a.getCategories)
 	a.Routes.Categories.Get("/featured", a.getFeaturedCategories)
 	a.Routes.Categories.Delete("/bulk", a.deleteCategories)
@@ -74,6 +75,11 @@ func (a *API) getCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondJSON(w, http.StatusOK, c)
+}
+
+func (a *API) getCategoriesCount(w http.ResponseWriter, r *http.Request) {
+	c := a.app.GetCategoriesCount()
+	respondJSON(w, http.StatusOK, map[string]int{"count": c})
 }
 
 func (a *API) getCategories(w http.ResponseWriter, r *http.Request) {

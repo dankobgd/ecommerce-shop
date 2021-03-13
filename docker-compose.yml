@@ -1,48 +1,50 @@
-version: "3.7"
+version: "3.8"
 
 services:
-  # # Golang app
-  # app:
-  #   build:
-  #     context: .
-  #     dockerfile: ./dockerfiles/app.dockerfile
-  #   container_name: app
-  #   restart: always
-  #   ports:
-  #     - 3001:3001
-  #   networks:
-  #     - net
-  #   depends_on:
-  #     - database
-  #     - redis
-
-  # Database
-  database:
-    image: postgres:alpine
-    container_name: database
+  # --------------------------------------------------------------------------------
+  ecommerce-app:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/app.dockerfile
+    container_name: ecommerce-app
     restart: always
     ports:
-      - 5432:5432
+      - ${PORT}:${PORT}
+    networks:
+      - ecommerce-net
+    depends_on:
+      - ecommerce-postgres
+      - ecommerce-redis
+  # --------------------------------------------------------------------------------
+  ecommerce-postgres:
+    image: postgres:alpine
+    container_name: ecommerce-postgres
+    restart: always
+    ports:
+      - ${POSTGRES_PORT}:5432
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_USER}
     volumes:
-      - /home/docker/volumes/postgres:/var/lib/postgresql/data
+      - ecommerce-postgres-data:/var/lib/postgresql/data
       - ./migrations:/migrations
     networks:
-      - net
-
-  # Redis
-  redis:
+      - ecommerce-net
+  # --------------------------------------------------------------------------------
+  ecommerce-redis:
     image: redis:alpine
-    container_name: redis
+    container_name: ecommerce-redis
     restart: always
     ports:
-      - 6379:6379
+      - ${REDIS_PORT}:6379
     networks:
-      - net
+      - ecommerce-net
+  # --------------------------------------------------------------------------------
 
 networks:
-  net:
+  ecommerce-net:
     driver: bridge
+
+volumes:
+  ecommerce-postgres-data:

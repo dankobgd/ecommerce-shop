@@ -36,6 +36,13 @@ var (
 	msgUniqueConstraintPromotionDetail = &i18n.Message{ID: "store.postgres.promotion.insert_detail.unique_constraint.app_error", Other: "promotion already used by the same user"}
 )
 
+// Count returns the total promotions count
+func (s PgPromotionStore) Count() int {
+	var n int
+	s.db.Get(&n, "SELECT COUNT(*) FROM public.promotion")
+	return n
+}
+
 // BulkInsert inserts multiple promotions in the db
 func (s PgPromotionStore) BulkInsert(promotions []*model.Promotion) *model.AppErr {
 	q := `INSERT INTO public.promotion(promo_code, type, amount, description, starts_at, ends_at, created_at, updated_at) VALUES(:promo_code, :type, :amount, :description, :starts_at, :ends_at, :created_at, :updated_at) RETURNING promo_code`

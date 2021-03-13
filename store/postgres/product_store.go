@@ -38,6 +38,13 @@ var (
 	msgBulkDeleteProducts      = &i18n.Message{ID: "store.postgres.product.bulk_delete.app_error", Other: "could not bulk delete products"}
 )
 
+// Count returns the total products count
+func (s PgProductStore) Count() int {
+	var n int
+	s.db.Get(&n, "SELECT COUNT(*) FROM public.product")
+	return n
+}
+
 // BulkInsert inserts multiple products into db
 func (s PgProductStore) BulkInsert(products []*model.Product) *model.AppErr {
 	q := `INSERT INTO public.product (name, brand_id, category_id, slug, image_url, image_public_id, description, in_stock, sku, is_featured, created_at, updated_at, properties) 

@@ -42,6 +42,13 @@ var (
 	msgClearWishlist  = &i18n.Message{ID: "store.postgres.user.clear_wishlist.app_error", Other: "could not delete all products from wishlist"}
 )
 
+// Count returns the total users count
+func (s PgUserStore) Count() int {
+	var n int
+	s.db.Get(&n, "SELECT COUNT(*) FROM public.user")
+	return n
+}
+
 // BulkInsert inserts multiple users in the db
 func (s PgUserStore) BulkInsert(users []*model.User) *model.AppErr {
 	q := `INSERT INTO public.user (first_name, last_name, username, email, password, role, gender, locale, avatar_url, avatar_public_id, active, email_verified, failed_attempts, last_login_at, created_at, updated_at, deleted_at) 

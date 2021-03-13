@@ -26,6 +26,13 @@ var (
 	msgGetOrders   = &i18n.Message{ID: "store.postgres.orders.get.app_error", Other: "could not get orders"}
 )
 
+// Count returns the total orders count
+func (s PgOrderStore) Count() int {
+	var n int
+	s.db.Get(&n, "SELECT COUNT(*) FROM public.order")
+	return n
+}
+
 // Save creates the new order
 func (s PgOrderStore) Save(o *model.Order) (*model.Order, *model.AppErr) {
 	q := `INSERT INTO public.order (user_id, promo_code, promo_code_type, promo_code_amount, status, subtotal, total, shipped_at, created_at, payment_method_id, payment_intent_id, receipt_url, billing_address_line_1, billing_address_line_2, billing_address_city, billing_address_country, billing_address_state, billing_address_zip, billing_address_latitude, billing_address_longitude, shipping_address_line_1, shipping_address_line_2, shipping_address_city, shipping_address_country, shipping_address_state, shipping_address_zip, shipping_address_latitude, shipping_address_longitude) 

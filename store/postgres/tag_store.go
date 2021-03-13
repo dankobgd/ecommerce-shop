@@ -31,6 +31,13 @@ var (
 	msgBulkDeleteTags      = &i18n.Message{ID: "store.postgres.tag.bulk_delete.app_error", Other: "could not bulk delete tags"}
 )
 
+// Count returns the total tags count
+func (s PgTagStore) Count() int {
+	var n int
+	s.db.Get(&n, "SELECT COUNT(*) FROM public.tag")
+	return n
+}
+
 // BulkInsert inserts multiple tags in the db
 func (s PgTagStore) BulkInsert(tags []*model.Tag) *model.AppErr {
 	q := `INSERT INTO public.tag(name, slug, description, created_at, updated_at) VALUES(:name, :slug, :description, :created_at, :updated_at) RETURNING id`

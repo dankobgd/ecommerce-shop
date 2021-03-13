@@ -10,6 +10,11 @@ var (
 	msgPromoNotExists = &i18n.Message{ID: "app.promotion.create_promotio.status.app_error", Other: "promo_code doesn't exist"}
 )
 
+// GetPromotionsCount gets all promotions count
+func (a *App) GetPromotionsCount() int {
+	return a.Srv().Store.Promotion().Count()
+}
+
 // CreatePromotion creates the new promotion in the system
 func (a *App) CreatePromotion(p *model.Promotion) (*model.Promotion, *model.AppErr) {
 	p.PreSave()

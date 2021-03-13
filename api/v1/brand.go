@@ -26,6 +26,7 @@ var (
 // InitBrands inits the brand routes
 func InitBrands(a *API) {
 	a.Routes.Brands.Post("/", a.AdminSessionRequired(a.createBrand))
+	a.Routes.Brands.Get("/count", a.getBrandsCount)
 	a.Routes.Brands.Get("/", a.getBrands)
 	a.Routes.Brands.Delete("/bulk", a.deleteBrands)
 	a.Routes.Brand.Get("/", a.getBrand)
@@ -73,6 +74,11 @@ func (a *API) getBrand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondJSON(w, http.StatusOK, b)
+}
+
+func (a *API) getBrandsCount(w http.ResponseWriter, r *http.Request) {
+	c := a.app.GetBrandsCount()
+	respondJSON(w, http.StatusOK, map[string]int{"count": c})
 }
 
 func (a *API) getBrands(w http.ResponseWriter, r *http.Request) {

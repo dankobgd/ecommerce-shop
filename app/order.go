@@ -23,6 +23,11 @@ var (
 	msgCreatePDF               = &i18n.Message{ID: "app.order.details_pdf.app_error", Other: "could not create order details pdf"}
 )
 
+// GetOrdersCount gets all users count
+func (a *App) GetOrdersCount() int {
+	return a.Srv().Store.Order().Count()
+}
+
 // CreateOrder creates the new order
 func (a *App) CreateOrder(userID int64, data *model.OrderRequestData) (*model.Order, *model.AppErr) {
 	// validate order request data

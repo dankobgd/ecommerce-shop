@@ -31,6 +31,13 @@ var (
 	msgBulkDeleteBrands      = &i18n.Message{ID: "store.postgres.brand.bulk_delete.app_error", Other: "could not bulk delete brands"}
 )
 
+// Count returns the total brands count
+func (s PgBrandStore) Count() int {
+	var n int
+	s.db.Get(&n, "SELECT COUNT(*) FROM public.brand")
+	return n
+}
+
 // BulkInsert inserts multiple brands in the db
 func (s PgBrandStore) BulkInsert(brands []*model.Brand) *model.AppErr {
 	q := `INSERT INTO public.brand(name, slug, type, logo, logo_public_id, description, email, website_url, created_at, updated_at) VALUES(:name, :slug, :type, :logo, :logo_public_id, :description, :email, :website_url, :created_at, :updated_at) RETURNING id`

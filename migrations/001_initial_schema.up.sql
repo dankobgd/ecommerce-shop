@@ -180,7 +180,7 @@ create table public.promotion_detail (
   promo_code varchar(30),
   foreign key (user_id) references public.user (id) on delete cascade,
   foreign key (promo_code) references public.promotion (promo_code) on delete cascade,
-  unique (user_id, promo_code)  
+  unique (user_id, promo_code)
 );
 
 create table public.order (

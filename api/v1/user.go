@@ -31,6 +31,7 @@ var (
 
 // InitUser inits the user routes
 func InitUser(a *API) {
+	a.Routes.Users.Get("/count", a.getUsersCount)
 	a.Routes.Users.Get("/", a.AdminSessionRequired(a.getUsers))
 	a.Routes.Users.Get("/me", a.SessionRequired(a.currentUser))
 	a.Routes.Users.Post("/new", a.createUser)
@@ -336,6 +337,11 @@ func (a *API) getUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondJSON(w, http.StatusOK, user)
+}
+
+func (a *API) getUsersCount(w http.ResponseWriter, r *http.Request) {
+	c := a.app.GetUsersCount()
+	respondJSON(w, http.StatusOK, map[string]int{"count": c})
 }
 
 func (a *API) getUsers(w http.ResponseWriter, r *http.Request) {

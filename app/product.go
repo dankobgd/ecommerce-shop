@@ -22,6 +22,11 @@ var (
 	msgProductImagesErr    = &i18n.Message{ID: "app.product.create_product_images.formfile.app_error", Other: "No images provided"}
 )
 
+// GetProductsCount gets all products count
+func (a *App) GetProductsCount() int {
+	return a.Srv().Store.Product().Count()
+}
+
 // CreateProduct creates the new product in the system
 func (a *App) CreateProduct(p *model.Product, thumbnailFH *multipart.FileHeader, imagesFHs []*multipart.FileHeader, tagids []string) (*model.Product, *model.AppErr) {
 	p.PreSave()

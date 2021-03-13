@@ -17,6 +17,11 @@ var (
 	msgBrandFileErr      = &i18n.Message{ID: "app.brand.create_brand.formfile.app_error", Other: "error parsing files"}
 )
 
+// GetBrandsCount gets all brands count
+func (a *App) GetBrandsCount() int {
+	return a.Srv().Store.Brand().Count()
+}
+
 // CreateBrand creates the new brand in the system
 func (a *App) CreateBrand(b *model.Brand, fh *multipart.FileHeader) (*model.Brand, *model.AppErr) {
 	b.PreSave()

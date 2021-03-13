@@ -5,6 +5,11 @@ import (
 	"github.com/dankobgd/ecommerce-shop/zlog"
 )
 
+// GetTagsCount gets all users count
+func (a *App) GetTagsCount() int {
+	return a.Srv().Store.Tag().Count()
+}
+
 // CreateTag creates the new tag in the system
 func (a *App) CreateTag(t *model.Tag) (*model.Tag, *model.AppErr) {
 	t.PreSave()

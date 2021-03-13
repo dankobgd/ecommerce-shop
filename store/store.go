@@ -24,6 +24,7 @@ type Store interface {
 
 // UserStore ris the user store
 type UserStore interface {
+	Count() int
 	BulkInsert([]*model.User) *model.AppErr
 	Save(*model.User) (*model.User, *model.AppErr)
 	Get(id int64) (*model.User, *model.AppErr)
@@ -61,6 +62,7 @@ type TokenStore interface {
 
 // ProductStore is the product store
 type ProductStore interface {
+	Count() int
 	BulkInsert([]*model.Product) *model.AppErr
 	Save(p *model.Product) (*model.Product, *model.AppErr)
 	Get(id int64) (*model.Product, *model.AppErr)
@@ -116,6 +118,7 @@ type ProductReviewStore interface {
 
 // OrderStore is the order store
 type OrderStore interface {
+	Count() int
 	Save(order *model.Order) (*model.Order, *model.AppErr)
 	Get(id int64) (*model.Order, *model.AppErr)
 	GetAll(limit, offset int) ([]*model.Order, *model.AppErr)
@@ -141,6 +144,7 @@ type AddressStore interface {
 
 // CategoryStore is the category store
 type CategoryStore interface {
+	Count() int
 	BulkInsert(categories []*model.Category) *model.AppErr
 	Save(c *model.Category) (*model.Category, *model.AppErr)
 	Get(id int64) (*model.Category, *model.AppErr)
@@ -153,6 +157,7 @@ type CategoryStore interface {
 
 // BrandStore is the brand store
 type BrandStore interface {
+	Count() int
 	BulkInsert(brands []*model.Brand) *model.AppErr
 	Save(b *model.Brand) (*model.Brand, *model.AppErr)
 	Get(id int64) (*model.Brand, *model.AppErr)
@@ -164,6 +169,7 @@ type BrandStore interface {
 
 // TagStore is the tag store
 type TagStore interface {
+	Count() int
 	BulkInsert(tags []*model.Tag) *model.AppErr
 	Save(t *model.Tag) (*model.Tag, *model.AppErr)
 	Get(id int64) (*model.Tag, *model.AppErr)
@@ -175,6 +181,7 @@ type TagStore interface {
 
 // PromotionStore is the promotion store
 type PromotionStore interface {
+	Count() int
 	BulkInsert(promotions []*model.Promotion) *model.AppErr
 	Save(p *model.Promotion) (*model.Promotion, *model.AppErr)
 	Get(code string) (*model.Promotion, *model.AppErr)

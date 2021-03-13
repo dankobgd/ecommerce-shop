@@ -23,6 +23,7 @@ var (
 // InitPromotions inits the promotion routes
 func InitPromotions(a *API) {
 	a.Routes.Promotions.Post("/", a.AdminSessionRequired(a.createPromotion))
+	a.Routes.Promotions.Get("/count", a.getPromotionsCount)
 	a.Routes.Promotions.Get("/", a.SessionRequired(a.getPromotions))
 	a.Routes.Promotions.Delete("/bulk", a.AdminSessionRequired(a.deletePromotions))
 
@@ -57,6 +58,11 @@ func (a *API) getPromotion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondJSON(w, http.StatusOK, promotion)
+}
+
+func (a *API) getPromotionsCount(w http.ResponseWriter, r *http.Request) {
+	c := a.app.GetPromotionsCount()
+	respondJSON(w, http.StatusOK, map[string]int{"count": c})
 }
 
 func (a *API) getPromotions(w http.ResponseWriter, r *http.Request) {

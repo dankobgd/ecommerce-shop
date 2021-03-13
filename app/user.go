@@ -132,6 +132,11 @@ func (a *App) GetUserByID(id int64) (*model.User, *model.AppErr) {
 	return user, nil
 }
 
+// GetUsersCount gets all users count
+func (a *App) GetUsersCount() int {
+	return a.Srv().Store.User().Count()
+}
+
 // GetUsers gets all users
 func (a *App) GetUsers(limit, offset int) ([]*model.User, *model.AppErr) {
 	users, err := a.Srv().Store.User().GetAll(limit, offset)

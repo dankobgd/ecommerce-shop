@@ -27,6 +27,7 @@ var (
 func InitTags(a *API) {
 	a.Routes.Tags.Post("/", a.AdminSessionRequired(a.createTag))
 	a.Routes.Tags.Delete("/bulk", a.AdminSessionRequired(a.deleteTags))
+	a.Routes.Tags.Get("/count", a.getTagsCount)
 	a.Routes.Tags.Get("/", a.getTags)
 	a.Routes.Tag.Get("/", a.getTag)
 	a.Routes.Tag.Patch("/", a.AdminSessionRequired(a.patchTag))
@@ -60,6 +61,11 @@ func (a *API) getTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondJSON(w, http.StatusOK, t)
+}
+
+func (a *API) getTagsCount(w http.ResponseWriter, r *http.Request) {
+	c := a.app.GetTagsCount()
+	respondJSON(w, http.StatusOK, map[string]int{"count": c})
 }
 
 func (a *API) getTags(w http.ResponseWriter, r *http.Request) {

@@ -28,6 +28,7 @@ var (
 // InitProducts inits the product routes
 func InitProducts(a *API) {
 	a.Routes.Products.Post("/", a.AdminSessionRequired(a.createProduct))
+	a.Routes.Products.Get("/count", a.getProductsCount)
 	a.Routes.Products.Get("/", a.getProducts)
 	a.Routes.Products.Get("/featured", a.getFeaturedProducts)
 	a.Routes.Products.Get("/sold", a.getMostSoldProducts)
@@ -178,6 +179,11 @@ func (a *API) getProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondJSON(w, http.StatusOK, p)
+}
+
+func (a *API) getProductsCount(w http.ResponseWriter, r *http.Request) {
+	c := a.app.GetProductsCount()
+	respondJSON(w, http.StatusOK, map[string]int{"count": c})
 }
 
 func (a *API) getProducts(w http.ResponseWriter, r *http.Request) {

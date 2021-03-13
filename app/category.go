@@ -17,6 +17,11 @@ var (
 	msgCategoryFileErr      = &i18n.Message{ID: "app.category.create_category.formfile.app_error", Other: "error parsing files"}
 )
 
+// GetCategoriesCount gets all categories count
+func (a *App) GetCategoriesCount() int {
+	return a.Srv().Store.Category().Count()
+}
+
 // CreateCategory creates the new category in the system
 func (a *App) CreateCategory(c *model.Category, fh *multipart.FileHeader) (*model.Category, *model.AppErr) {
 	c.PreSave()

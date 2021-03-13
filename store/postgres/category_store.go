@@ -31,6 +31,13 @@ var (
 	msgBulkDeleteCategories     = &i18n.Message{ID: "store.postgres.category.delete.app_error", Other: "could not bulk delete categories"}
 )
 
+// Count returns the total categories count
+func (s PgCategoryStore) Count() int {
+	var n int
+	s.db.Get(&n, "SELECT COUNT(*) FROM public.category")
+	return n
+}
+
 // BulkInsert inserts multiple categories in the db
 func (s PgCategoryStore) BulkInsert(categories []*model.Category) *model.AppErr {
 	q := `INSERT INTO public.category(name, slug, logo, logo_public_id, description, is_featured, properties, created_at, updated_at) VALUES(:name, :slug, :logo, :logo_public_id, :description, :is_featured, :properties, :created_at, :updated_at) RETURNING id`
